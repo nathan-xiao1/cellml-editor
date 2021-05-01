@@ -1,8 +1,8 @@
 {
   "name": "cellml-editor",
-  "productName": "cellml-editor",
-  "version": "1.0.0",
-  "description": "My Electron application description",
+  "productName": "CellML Editor",
+  "version": "0.0.1",
+  "description": "A CellML 2.0 editor",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",
@@ -13,8 +13,8 @@
   },
   "keywords": [],
   "author": {
-    "name": "Nathan Xiao",
-    "email": "XDN2369@hotmail.com"
+    "name": "",
+    "email": ""
   },
   "license": "MIT",
   "config": {
