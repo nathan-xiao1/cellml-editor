@@ -1,8 +1,11 @@
+import { hot } from 'react-hot-loader';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
-function render() {
-  ReactDOM.render(<h2>Hello from React!</h2>, document.getElementById('root'));
+function App() {
+  return <h2>Hello from React!</h2>
 }
 
-render();
+const HotApp = hot(module)(App);
+
+ReactDOM.render(<HotApp />, document.getElementById('root'));
