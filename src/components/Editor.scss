@@ -1,0 +1,29 @@
+@use './misc/TitleMenuBar.scss' as titlebar;
+
+.editor-container {
+  height: calc(100% - #{titlebar.$height});
+  width: 100%;
+}
+
+.reflex-element {
+  overflow: hidden !important;
+}
+
+.pane-content {
+  padding: 4px;
+}
+
+.pane-middle-header {
+  height: 35px;
+  min-height: 35px;
+  max-height: 35px;
+}
+
+.splitter {
+  border: 0px !important;
+
+  &:hover {
+    border: 0px !important;
+    background-color: #009165 !important;
+  }
+}

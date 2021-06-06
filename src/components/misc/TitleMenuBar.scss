@@ -1,0 +1,89 @@
+@use '../../theme/theme-dark.scss' as theme;
+
+$height: 30px;
+
+.title-menu-bar {
+  height: $height;
+  width: 100%;
+  background-color: lighten(theme.$primary, 8%);
+  font-size: 12px;
+  user-select: none;
+  -webkit-app-region: drag;
+
+  .section {
+    float: left;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 100%;
+    width: calc(100% / 3);
+    white-space: nowrap;
+  }
+}
+
+#menu-section {
+  justify-content: flex-start;
+
+  .menu-item {
+    height: 100%;
+    padding: 0px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: default;
+    -webkit-app-region: no-drag;
+
+    .dropdown-content {
+      top: 100%;
+      left: 0;
+      font-size: 13px;
+      display: none;
+      position: absolute;
+      background-color: lighten(theme.$primary, 5%);
+      z-index: 10;
+
+      div {
+        padding: 8px 16px;
+
+        &:hover {
+          background-color: lighten(theme.$primary, 2%);
+        }
+      }
+    }
+
+    &:hover {
+      background-color: lighten(theme.$primary, 15%);
+      .dropdown-content {
+        display: block;
+      }
+    }
+  }
+}
+
+#title-section {
+  justify-content: center;
+}
+
+#window-btn-section {
+  justify-content: flex-end;
+
+  .window-btn {
+    width: 30px;
+    height: 100%;
+    padding: 0 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+    -webkit-app-region: no-drag;
+
+    &:hover {
+      background-color: lighten(theme.$primary, 15%);
+    }
+  }
+
+  #close-btn:hover {
+    background-color: rgb(216, 56, 56);
+  }
+}
