@@ -54,3 +54,16 @@ app.on('activate', () => {
 ipcMain.on('toggle-developer-tools', (event) => {
   event.sender.toggleDevTools();
 })
+
+ipcMain.on('minimise-window', (event) => {
+  BrowserWindow.fromWebContents(event.sender).minimize();
+})
+
+ipcMain.on('expand-window', (event) => {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  window.isMaximized() ? window.unmaximize() : window.maximize();
+})
+
+ipcMain.on('close-window', (event) => {
+  BrowserWindow.fromWebContents(event.sender).close();
+})

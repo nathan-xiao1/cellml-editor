@@ -1,4 +1,7 @@
 import { ipcRenderer } from "electron";
+import CloseIcon from "@material-ui/icons/Close";
+import RemoveIcon from "@material-ui/icons/Remove";
+import StopOutlinedIcon from "@material-ui/icons/StopOutlined";
 import React from "react";
 import "./TitleMenuBar.scss";
 
@@ -32,14 +35,23 @@ export default class TitleMenuBar extends React.Component {
         </div>
 
         <div id="window-btn-section" className="section">
-          <div id="minimise-btn" className="window-btn">
-            -
+          <div
+            id="minimise-btn"
+            className="window-btn"
+            onClick={() => this.ipcSend("minimise-window")}>
+            <RemoveIcon style={{ fontSize: 18 }} />
           </div>
-          <div id="expand-btn" className="window-btn">
-            o
+          <div
+            id="expand-btn"
+            className="window-btn"
+            onClick={() => this.ipcSend("expand-window")}>
+            <StopOutlinedIcon style={{ fontSize: 18 }} />
           </div>
-          <div id="close-btn" className="window-btn">
-            x
+          <div
+            id="close-btn"
+            className="window-btn"
+            onClick={() => this.ipcSend("close-window")}>
+            <CloseIcon style={{ fontSize: 18 }} />
           </div>
         </div>
       </div>
