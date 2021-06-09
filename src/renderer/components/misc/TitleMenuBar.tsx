@@ -17,7 +17,7 @@ export default class TitleMenuBar extends React.Component {
           <div className="menu-item">
             File
             <div className="dropdown-content">
-              <div>Open File</div>
+              <div onClick={() => this.ipcSend("open-file")}>Open File</div>
               <div>Save</div>
             </div>
           </div>
@@ -27,6 +27,9 @@ export default class TitleMenuBar extends React.Component {
             className="menu-item"
             onClick={() => this.ipcSend("toggle-developer-tools")}>
             Toggle Developer Tools
+          </div>
+          <div className="menu-item" onClick={() => this.ipcSend("test")}>
+            Test
           </div>
         </div>
 

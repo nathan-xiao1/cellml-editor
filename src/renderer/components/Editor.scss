@@ -9,10 +9,6 @@
   overflow: hidden !important;
 }
 
-.pane-content {
-  padding: 4px;
-}
-
 .pane-middle-header {
   height: 35px;
   min-height: 35px;
@@ -21,9 +17,11 @@
 
 .splitter {
   border: 0px !important;
+  transition: all 1s ease-out;
 
   &:hover {
     border: 0px !important;
     background-color: #009165 !important;
+    transition: all 1s ease-in;
   }
 }
