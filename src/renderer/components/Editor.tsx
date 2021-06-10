@@ -1,8 +1,9 @@
 import React from "react";
+import Header from "./Header/Header";
+import ProblemPane from "./Panes/ProblemPane";
 import { ReflexContainer, ReflexSplitter, ReflexElement } from "react-reflex";
 import "react-reflex/styles.css";
 import "./Editor.scss";
-import ProblemPane from "./Panes/ProblemPane";
 
 export default class Editor extends React.Component {
   render(): React.ReactNode {
@@ -16,7 +17,7 @@ export default class Editor extends React.Component {
           <ReflexElement className="pane-middle">
             <ReflexContainer orientation="horizontal">
               <ReflexElement className="pane-middle-header" size={35}>
-                Header
+                <Header />
               </ReflexElement>
               <ReflexElement className="pane-middle-top primary-bg-dark">
                 Middle Top

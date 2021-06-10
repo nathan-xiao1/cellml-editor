@@ -1,0 +1,58 @@
+$primary: #f0f2f5;
+$primary-text: #1f1f1f;
+$primary-text-secondary: #202020;   
+$error: #f44336;
+$warning: #ff9800;
+$success: #4caf50;
+
+body {
+  --primary-color: $primary;
+  --primary-text: $primary-text;
+}
+
+/* Background */
+.primary-bg {
+  background-color: $primary;
+}
+
+.primary-bg-light {
+  background-color: lighten($primary, 2%);
+}
+
+.primary-bg-dark {
+  background-color: darken($primary, 2%);
+}
+
+.error-bg {
+  background-color: $error;
+}
+
+.warning-bg {
+  background-color: $warning;
+}
+
+.success-bg {
+  background-color: $success;
+}
+
+/* Text */
+.primary-text {
+  color: $primary-text;
+}
+
+.error-text {
+  color: $error;
+}
+
+.warning-text {
+  color: $warning;
+}
+
+.success-text {
+  color: $success;
+}
+
+/* Other components */
+.primary-splitter {
+  background-color: lighten($primary, 5%) !important;
+}

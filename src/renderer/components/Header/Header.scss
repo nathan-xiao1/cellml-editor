@@ -1,0 +1,55 @@
+@use '../../theme/theme-dark.scss' as theme;
+
+.header-tab-container {
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  overflow-x: scroll;
+  overflow-y: hidden;
+
+  &:empty {
+    background-color: darken(theme.$primary, 2%);
+  }
+
+  &::-webkit-scrollbar {
+    height: 2px;
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: lighten(theme.$primary, 20%);
+  }
+}
+
+.header-tab {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  min-width: 100px;
+  max-width: 180px;
+  cursor: pointer;
+  color: theme.$primary-text-secondary;
+  background-color: lighten(theme.$primary, 2%);
+
+  &.active {
+    background-color: darken(theme.$primary, 2%);
+    .header-tab-title {
+      color: theme.$primary-text;
+    }
+  }
+
+  .tab-close-btn:hover {
+    background-color: lighten(theme.$primary, 15%);
+  }
+}
+
+.header-tab-title {
+  flex: 1 1;
+  text-align: center;
+  font-size: 12px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

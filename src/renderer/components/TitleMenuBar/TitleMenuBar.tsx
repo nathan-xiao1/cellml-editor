@@ -28,8 +28,8 @@ export default class TitleMenuBar extends React.Component {
             onClick={() => this.ipcSend("toggle-developer-tools")}>
             Toggle Developer Tools
           </div>
-          <div className="menu-item" onClick={() => this.ipcSend("test")}>
-            Test
+          <div className="menu-item" onClick={() => this.ipcSend("debug")}>
+            Debug
           </div>
         </div>
 
