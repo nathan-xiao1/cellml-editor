@@ -1,4 +1,4 @@
-@use './misc/TitleMenuBar.scss' as titlebar;
+@use './TitleMenuBar/TitleMenuBar.scss' as titlebar;
 
 .editor-container {
   height: calc(100% - #{titlebar.$height});

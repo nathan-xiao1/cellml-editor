@@ -2,7 +2,7 @@ import React from "react";
 import { ReflexContainer, ReflexSplitter, ReflexElement } from "react-reflex";
 import "react-reflex/styles.css";
 import "./Editor.scss";
-import ProblemPane from "./panes/ProblemPane";
+import ProblemPane from "./Panes/ProblemPane";
 
 export default class Editor extends React.Component {
   render(): React.ReactNode {
