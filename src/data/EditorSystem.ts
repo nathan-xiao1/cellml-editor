@@ -6,7 +6,8 @@ export default class EditorSystem {
   public openFile(file: string): boolean {
     if (!this.openedFiles.has(file)) {
       this.openedFiles.set(file, new CellMLModel(file));
-      console.log(`Opened ${file}`);
+      console.log(`Opened: ${file}`);
+      console.log(`Filename: ${this.openedFiles.get(file).filename}`);
       return true;
     } else {
       return false;
