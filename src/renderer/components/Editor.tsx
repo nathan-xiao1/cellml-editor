@@ -4,6 +4,7 @@ import ProblemPane from "./Panes/ProblemPane";
 import { ReflexContainer, ReflexSplitter, ReflexElement } from "react-reflex";
 import "react-reflex/styles.css";
 import "./Editor.scss";
+import Pane from "./Panes/Pane";
 
 export default class Editor extends React.Component {
   render(): React.ReactNode {
@@ -27,7 +28,9 @@ export default class Editor extends React.Component {
                 className="pane-middle-bottom"
                 minSize={50}
                 flex={0.25}>
-                <ProblemPane />
+                <Pane title="Problem">
+                  <ProblemPane />
+                </Pane>
               </ReflexElement>
             </ReflexContainer>
           </ReflexElement>
