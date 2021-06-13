@@ -7,7 +7,9 @@ export default class TextEditor extends React.Component {
     return (
       <Editor
         height="100%"
-        theme="vs-dark"
+        theme="vs-dark-custom"
+        language="xml"
+        options={{ minimap: { enabled: false } }}
       />
     );
   }
