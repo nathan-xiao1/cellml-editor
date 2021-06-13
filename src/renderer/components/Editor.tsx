@@ -4,7 +4,9 @@ import ProblemPane from "./Panes/ProblemPane";
 import { ReflexContainer, ReflexSplitter, ReflexElement } from "react-reflex";
 import "react-reflex/styles.css";
 import "./Editor.scss";
+
 import Pane from "./Panes/Pane";
+import TextEditor from "./TextEditor/TextEditor";
 
 export default class Editor extends React.Component {
   render(): React.ReactNode {
@@ -21,7 +23,7 @@ export default class Editor extends React.Component {
                 <Header />
               </ReflexElement>
               <ReflexElement className="pane-middle-top primary-bg-dark">
-                Middle Top
+                <TextEditor />
               </ReflexElement>
               <ReflexSplitter className="primary-splitter splitter" />
               <ReflexElement
