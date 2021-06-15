@@ -1,7 +1,6 @@
 import React from "react";
 import CloseIcon from "@material-ui/icons/Close";
 import "./Header.scss";
-import { ipcRenderer } from "electron";
 
 function filePathToName(filepath: string) {
   return filepath.split("\\").pop();
@@ -12,7 +11,7 @@ interface TabProps {
   title: string;
   active: boolean;
   onTabClick: (file: string) => void;
-  onCloseClick: () => void;
+  onTabClose: (file: string) => void;
 }
 
 function Tab(props: TabProps): JSX.Element {
@@ -27,7 +26,7 @@ function Tab(props: TabProps): JSX.Element {
         className="tab-close-btn"
         style={{ fontSize: 14 }}
         onClick={() => {
-          props.onCloseClick();
+          props.onTabClose(props.title);
         }}
       />
     </div>
@@ -37,48 +36,25 @@ function Tab(props: TabProps): JSX.Element {
 Tab.defaultProps = { active: false };
 
 /* Header Class */
-interface HeaderState {
-  openedFile: string[];
-  activeIndex: number;
+interface HeaderProp {
+  openedFiles: string[];
+  activeFileIndex: number;
+  onTabClick: (file: string) => void;
+  onTabClose: (file: string) => void;
 }
 
-export default class Header extends React.Component<unknown, HeaderState> {
-  constructor(props: unknown) {
-    super(props);
-    this.state = { openedFile: [], activeIndex: -1 };
-    ipcRenderer.on("update-opened-file", (_, arg) => {
-      this.setState((prevState) => {
-        return {
-          openedFile: arg,
-          activeIndex: arg.length - 1,
-        };
-      });
-    });
-    ipcRenderer.send("get-opened-file");
-  }
-
-  componentWillUnmount(): void {
-    ipcRenderer.removeAllListeners("update-opened-file");
-  }
-
-  setActiveFile(file: string): void {
-    const index: number = this.state.openedFile.indexOf(file);
-    this.setState({ activeIndex: index });
-  }
-
-  render(): React.ReactNode {
-    return (
-      <div className="header-tab-container">
-        {this.state.openedFile.map((file, index) => (
-          <Tab
-            title={file}
-            key={index}
-            active={this.state.activeIndex == index ? true : false}
-            onTabClick={this.setActiveFile.bind(this)}
-            onCloseClick={() => ipcRenderer.send("close-file", file)}
-          />
-        ))}
-      </div>
-    );
-  }
+export default function Header(props: HeaderProp): JSX.Element {
+  return (
+    <div className="header-tab-container">
+      {props.openedFiles.map((file, index) => (
+        <Tab
+          title={file}
+          key={index}
+          active={props.activeFileIndex == index ? true : false}
+          onTabClick={props.onTabClick}
+          onTabClose={props.onTabClose}
+        />
+      ))}
+    </div>
+  );
 }
