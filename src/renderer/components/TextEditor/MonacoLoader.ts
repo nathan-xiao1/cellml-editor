@@ -7,7 +7,7 @@ import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
  */
 loader.config({
   paths: {
-    vs: "/vs",
+    vs: "vs"
   },
 });
 
