@@ -1,13 +1,26 @@
 import { loader } from "@monaco-editor/react";
-import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
+import * as monaco from "monaco-editor";
+import path from "path";
 
 /*
  Change default source of the monaco files from using CDN to node_modules'.
  Files are copied from node_modules to 'build' by webpack
  */
+function ensureFirstBackSlash(str: string) {
+  return str.length > 0 && str.charAt(0) !== "/" ? "/" + str : str;
+}
+
+function uriFromPath(_path: string) {
+  const pathName = path.resolve(_path).replace(/\\/g, "/");
+  return encodeURI("file://" + ensureFirstBackSlash(pathName));
+}
+
 loader.config({
   paths: {
-    vs: "vs"
+    vs:
+      process.env.NODE_ENV != "development"
+        ? uriFromPath(path.join(__dirname, "/vs"))
+        : "vs",
   },
 });
 
