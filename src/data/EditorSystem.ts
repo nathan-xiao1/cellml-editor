@@ -1,45 +1,48 @@
-import CellMLModel from "./CellMLModel";
+import File from "./File";
 
 export default class EditorSystem {
-  private openedFiles: Map<string, CellMLModel> = new Map();
+  private openedFiles: Map<string, File> = new Map();
 
-  public openFile(file: string): boolean {
-    if (!this.openedFiles.has(file)) {
-      this.openedFiles.set(file, new CellMLModel(file));
-      console.log(`Opened: ${file}`);
-      console.log(`Filename: ${this.openedFiles.get(file).filename}`);
+  public openFile(filepath: string): boolean {
+    if (!this.openedFiles.has(filepath)) {
+      this.openedFiles.set(filepath, new File(filepath));
+      console.log(`Opened: ${filepath}`);
       return true;
     } else {
       return false;
     }
   }
 
-  public openFiles(files: string[]): boolean[] {
+  public openFiles(filepaths: string[]): boolean[] {
     const success: boolean[] = [];
-    for (const file of files) {
-      success.push(this.openFile(file));
+    for (const filepath of filepaths) {
+      success.push(this.openFile(filepath));
     }
     return success;
   }
 
-  public closeFile(file: string): boolean {
-    if (this.openedFiles.has(file)) {
-      this.openedFiles.delete(file);
+  public closeFile(filepath: string): boolean {
+    if (this.openedFiles.has(filepath)) {
+      this.openedFiles.delete(filepath);
       return true;
     } else {
       return false;
     }
   }
 
-  public getFile(file: string): CellMLModel {
-    if (this.openedFiles.has(file)) {
-      return this.openedFiles.get(file);
+  public getFile(filepath: string): File {
+    if (this.openedFiles.has(filepath)) {
+      return this.openedFiles.get(filepath);
     } else {
       return null;
     }
   }
 
-  public getOpenedFile(): string[] {
+  public getOpenedFiles(): File[] {
+    return Array.from(this.openedFiles.values());
+  }
+
+  public getOpenedFilepaths(): string[] {
     return Array.from(this.openedFiles.keys());
   }
 }

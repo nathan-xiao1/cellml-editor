@@ -1,43 +1,78 @@
 import React from "react";
 import { ipcRenderer } from "electron";
-import Header from "./Header/Header";
-import ProblemPane from "./Panes/ProblemPane";
+import { loader, Monaco } from "@monaco-editor/react";
 import { ReflexContainer, ReflexSplitter, ReflexElement } from "react-reflex";
 import "react-reflex/styles.css";
 import "./Editor.scss";
 
+import Header from "./Header/Header";
 import Pane from "./Panes/Pane";
+import ProblemPane from "./Panes/ProblemPane";
 import TextEditor from "./TextEditor/TextEditor";
 
 interface EditorState {
-  openedFiles: string[];
+  openedFilepaths: string[];
   activeFileIndex: number;
 }
 
 export default class Editor extends React.Component<unknown, EditorState> {
+  private initialisedFiles: Set<string>;
+  private monaco: Monaco;
+
   constructor(props: unknown) {
     super(props);
-    this.state = { openedFiles: [], activeFileIndex: -1 };
+    this.initialisedFiles = new Set();
+
+    this.state = { openedFilepaths: [], activeFileIndex: -1 };
 
     // Set listener to update openedFile state
     ipcRenderer.on("update-opened-file", (_, arg) => {
       this.setState(() => ({
-        openedFiles: arg,
+        openedFilepaths: arg,
         activeFileIndex: arg.length - 1,
       }));
     });
 
-    // Send IPC command to initialise openedFile state
-    ipcRenderer.send("get-opened-file");
+    // Get monaco instance
+    loader.init().then(
+      function (monacoInstance: Monaco) {
+        this.monaco = monacoInstance;
+      }.bind(this)
+    );
   }
 
-  setActiveFile(file: string): void {
-    const index = this.state.openedFiles.indexOf(file);
+  setActiveFile(filepath: string): void {
+    const index = this.state.openedFilepaths.indexOf(filepath);
     this.setState({ activeFileIndex: index });
   }
 
-  closeFile(file: string): void {
-    ipcRenderer.send("close-file", file);
+  closeFile(filepath: string): void {
+    this.initialisedFiles.delete(filepath);
+    this.monaco.editor.getModel(this.monaco.Uri.parse(filepath)).dispose();
+    ipcRenderer.send("close-file", filepath);
+  }
+
+  // Get file content to initialise Monaco's defaultValue
+  getDefaultContent(filepath: string): string {
+    if (this.initialisedFiles.has(filepath)) {
+      console.log(`${filepath} already initialised`);
+      return null;
+    }
+    console.log(`${filepath} not initialised`);
+    this.initialisedFiles.add(filepath);
+    return ipcRenderer.sendSync(
+      "get-file-content",
+      this.state.openedFilepaths[this.state.activeFileIndex]
+    );
+  }
+
+  monacoOnMountCallback(): void {
+    // Send IPC command to initialise openedFile states
+    const initialOpenedFile = ipcRenderer.sendSync("get-opened-file-sync");
+    this.setState(() => ({
+      openedFilepaths: initialOpenedFile,
+      activeFileIndex: initialOpenedFile.length - 1,
+    }));
   }
 
   componentWillUnmount(): void {
@@ -45,6 +80,8 @@ export default class Editor extends React.Component<unknown, EditorState> {
   }
 
   render(): React.ReactNode {
+    const activeFilepath: string =
+      this.state.openedFilepaths[this.state.activeFileIndex];
     return (
       <div className="editor-container primary-bg primary-text">
         <ReflexContainer orientation="vertical" windowResizeAware={true}>
@@ -56,18 +93,19 @@ export default class Editor extends React.Component<unknown, EditorState> {
             <ReflexContainer orientation="horizontal">
               <ReflexElement className="pane-middle-header" size={35}>
                 <Header
-                  openedFiles={this.state.openedFiles}
+                  openedFiles={this.state.openedFilepaths}
                   activeFileIndex={this.state.activeFileIndex}
                   onTabClick={this.setActiveFile.bind(this)}
                   onTabClose={this.closeFile.bind(this)}
                 />
               </ReflexElement>
               <ReflexElement className="pane-middle-top primary-bg-dark">
-                {this.state.openedFiles.length > 0 && (
-                  <TextEditor
-                    file={this.state.openedFiles[this.state.activeFileIndex]}
-                  />
-                )}
+                <TextEditor
+                  hidden={this.state.openedFilepaths.length == 0}
+                  filepath={activeFilepath}
+                  defaultValue={this.getDefaultContent(activeFilepath)}
+                  onMountCallback={this.monacoOnMountCallback.bind(this)}
+                />
               </ReflexElement>
               <ReflexSplitter className="primary-splitter splitter" />
               <ReflexElement

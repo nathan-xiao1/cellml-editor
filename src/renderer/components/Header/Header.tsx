@@ -16,10 +16,11 @@ interface TabProps {
 
 function Tab(props: TabProps): JSX.Element {
   return (
-    <div
-      className={`header-tab ${props.active ? "active" : ""}`}
-      onClick={() => props.onTabClick(props.title)}>
-      <div className="header-tab-title" title={props.title}>
+    <div className={`header-tab ${props.active ? "active" : ""}`}>
+      <div
+        className="header-tab-title"
+        title={props.title}
+        onClick={() => props.onTabClick(props.title)}>
         {filePathToName(props.title)}
       </div>
       <CloseIcon

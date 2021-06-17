@@ -6,7 +6,7 @@ ipcMain.on("toggle-developer-tools", (event) => {
 });
 
 /* 
-Window Management Handler
+Window Management Handlers
 */
 ipcMain.on("minimise-window", (event) => {
   BrowserWindow.fromWebContents(event.sender).minimize();
@@ -25,9 +25,15 @@ ipcMain.on("close-window", (event) => {
 File Handling Handlers
 */
 ipcMain.on("get-opened-file", (event) => {
-  event.sender.send("update-opened-file", editorSystem.getOpenedFile());
+  event.sender.send("update-opened-file", editorSystem.getOpenedFilepaths());
 });
 
+ipcMain.on("get-opened-file-sync", (event) => {
+  event.returnValue = editorSystem.getOpenedFilepaths();
+});
+
+// Instruct system to open file and send an asynchronous response
+// with currently opened files
 ipcMain.on("open-file", (event) => {
   dialog
     .showOpenDialog({
@@ -40,8 +46,10 @@ ipcMain.on("open-file", (event) => {
     .then((result) => {
       if (!result.canceled) {
         editorSystem.openFiles(result.filePaths);
-        console.log(editorSystem.getOpenedFile());
-        event.sender.send("update-opened-file", editorSystem.getOpenedFile());
+        event.sender.send(
+          "update-opened-file",
+          editorSystem.getOpenedFilepaths()
+        );
       }
     })
     .catch((err) => {
@@ -49,12 +57,18 @@ ipcMain.on("open-file", (event) => {
     });
 });
 
-ipcMain.on("close-file", (event, file) => {
-  if (editorSystem.closeFile(file)) {
-    event.sender.send("update-opened-file", editorSystem.getOpenedFile());
+ipcMain.on("close-file", (event, filepath) => {
+  if (editorSystem.closeFile(filepath)) {
+    event.sender.send("update-opened-file", editorSystem.getOpenedFilepaths());
   }
 });
 
+// Synchronous response to get an opened file's content
+ipcMain.on("get-file-content", (event, filepath) => {
+  console.log(`Getting: ${filepath}`)
+  event.returnValue = editorSystem.getFile(filepath)?.getContent();
+});
+
 ipcMain.on("debug", () => {
-  console.log(editorSystem.getOpenedFile());
+  console.log(editorSystem.getOpenedFilepaths());
 });

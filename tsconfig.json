@@ -13,7 +13,8 @@
     "jsx": "react",
     "target": "es5",
     "paths": {
-      "*": ["node_modules/*"]
+      "*": ["node_modules/*"],
+      "Types": ["src/types.d.ts"]
     }
   },
   "include": [
