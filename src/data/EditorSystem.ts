@@ -45,4 +45,12 @@ export default class EditorSystem {
   public getOpenedFilepaths(): string[] {
     return Array.from(this.openedFiles.keys());
   }
+
+  public saveFile(filepath: string): void {
+    this.openedFiles.get(filepath).saveContent();
+  }
+
+  public updateFileContent(filepath: string, content: string): void {
+    this.openedFiles.get(filepath).updateContent(content);
+  }
 }

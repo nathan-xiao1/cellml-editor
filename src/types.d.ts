@@ -3,6 +3,7 @@ export class File {
   getFilename(): string;
   getContent(): string;
   updateContent(): string;
+  saveContent(): void;
 }
 
 export default class EditorSystem {
@@ -12,4 +13,6 @@ export default class EditorSystem {
   getFile(filepath: string): File;
   getOpenedFiles(): File[];
   getOpenedFilepaths(): string[];
+  saveFile(filepath: string): void;
+  updateFileContent(filepath: string, content: string): void;
 }

@@ -1,6 +1,5 @@
 import React from "react";
-import Editor, { Monaco } from "@monaco-editor/react";
-import * as monaco from "monaco-editor";
+import Editor from "@monaco-editor/react";
 import "./MonacoLoader";
 
 interface TEProps {
@@ -8,6 +7,7 @@ interface TEProps {
   filepath: string;
   defaultValue: string;
   onMountCallback?: () => void;
+  onChangeCallback?: (content: string) => void;
 }
 
 interface TEState {
@@ -35,9 +35,10 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
         language="xml"
         path={this.props.filepath}
         defaultValue={this.props.defaultValue}
-        options={{ minimap: { enabled: false } }}
+        onChange={this.props.onChangeCallback}
         beforeMount={this.handleEditorWillMount.bind(this)}
         onMount={this.handleEditorDidMount.bind(this)}
+        options={{ minimap: { enabled: false } }}
       />
     );
   }
