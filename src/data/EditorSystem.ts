@@ -1,7 +1,8 @@
+import { IEditorSystem, IFile } from "Types";
 import File from "./File";
 
-export default class EditorSystem {
-  private openedFiles: Map<string, File> = new Map();
+export default class EditorSystem implements IEditorSystem {
+  private openedFiles: Map<string, IFile> = new Map();
 
   public openFile(filepath: string): boolean {
     if (!this.openedFiles.has(filepath)) {
@@ -30,7 +31,7 @@ export default class EditorSystem {
     }
   }
 
-  public getFile(filepath: string): File {
+  public getFile(filepath: string): IFile {
     if (this.openedFiles.has(filepath)) {
       return this.openedFiles.get(filepath);
     } else {
@@ -38,7 +39,7 @@ export default class EditorSystem {
     }
   }
 
-  public getOpenedFiles(): File[] {
+  public getOpenedFiles(): IFile[] {
     return Array.from(this.openedFiles.values());
   }
 

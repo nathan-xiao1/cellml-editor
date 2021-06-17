@@ -1,6 +1,7 @@
 import fs from "fs";
+import { IFile } from "Types";
 
-export default class File {
+export default class File implements IFile{
   private _filepath: string;
   private _dom: null; // Placeholder for DOM representation of model
   private _content: string;

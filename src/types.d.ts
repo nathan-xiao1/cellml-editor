@@ -1,17 +1,17 @@
-export class File {
+export interface IFile {
   getFilepath(): string;
   getFilename(): string;
   getContent(): string;
-  updateContent(): string;
+  updateContent(content: string): void;
   saveContent(): void;
 }
 
-export default class EditorSystem {
+export interface IEditorSystem {
   openFile(filepath: string): boolean;
   openFiles(filepaths: string[]): boolean[];
   closeFile(filepath: string): boolean;
-  getFile(filepath: string): File;
-  getOpenedFiles(): File[];
+  getFile(filepath: string): IFile;
+  getOpenedFiles(): IFile[];
   getOpenedFilepaths(): string[];
   saveFile(filepath: string): void;
   updateFileContent(filepath: string, content: string): void;
