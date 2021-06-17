@@ -5,7 +5,11 @@ import StopOutlinedIcon from "@material-ui/icons/StopOutlined";
 import React from "react";
 import "./TitleMenuBar.scss";
 
-export default class TitleMenuBar extends React.Component {
+interface TMBProps {
+  getActiveFilepath(): () => string;
+}
+
+export default class TitleMenuBar extends React.Component<TMBProps> {
   ipcSend(action: string): void {
     ipcRenderer.send(action);
   }
@@ -18,7 +22,7 @@ export default class TitleMenuBar extends React.Component {
             File
             <div className="dropdown-content">
               <div onClick={() => this.ipcSend("open-file")}>Open File</div>
-              <div>Save</div>
+              <div onClick={() => ipcRenderer.send('save-file', this.props.getActiveFilepath())}>Save</div>
             </div>
           </div>
           <div className="menu-item">Edit</div>

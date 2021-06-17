@@ -9,6 +9,7 @@ import Header from "./Header/Header";
 import Pane from "./Panes/Pane";
 import ProblemPane from "./Panes/ProblemPane";
 import TextEditor from "./TextEditor/TextEditor";
+import TitleMenuBar from "./TitleMenuBar/TitleMenuBar";
 
 interface EditorState {
   openedFilepaths: string[];
@@ -41,6 +42,10 @@ export default class Editor extends React.Component<unknown, EditorState> {
     );
   }
 
+  getActiveFile(): string {
+    return this.state.openedFilepaths[this.state.activeFileIndex];
+  }
+
   setActiveFile(filepath: string): void {
     const index = this.state.openedFilepaths.indexOf(filepath);
     this.setState({ activeFileIndex: index });
@@ -66,9 +71,13 @@ export default class Editor extends React.Component<unknown, EditorState> {
     );
   }
 
+  monacoOnChangeCallback(content: string): void {
+    ipcRenderer.send("update-file-content", this.getActiveFile(), content);
+  }
+
   monacoOnMountCallback(): void {
     // Send IPC command to initialise openedFile states
-    const initialOpenedFile = ipcRenderer.sendSync("get-opened-file-sync");
+    const initialOpenedFile = ipcRenderer.sendSync("get-opened-files-sync");
     this.setState(() => ({
       openedFilepaths: initialOpenedFile,
       activeFileIndex: initialOpenedFile.length - 1,
@@ -80,50 +89,53 @@ export default class Editor extends React.Component<unknown, EditorState> {
   }
 
   render(): React.ReactNode {
-    const activeFilepath: string =
-      this.state.openedFilepaths[this.state.activeFileIndex];
+    const activeFilepath: string = this.getActiveFile();
     return (
-      <div className="editor-container primary-bg primary-text">
-        <ReflexContainer orientation="vertical" windowResizeAware={true}>
-          <ReflexElement className="pane-left" minSize={150} flex={0.15}>
-            Left
-          </ReflexElement>
-          <ReflexSplitter className="primary-splitter splitter" />
-          <ReflexElement className="pane-middle">
-            <ReflexContainer orientation="horizontal">
-              <ReflexElement className="pane-middle-header" size={35}>
-                <Header
-                  openedFiles={this.state.openedFilepaths}
-                  activeFileIndex={this.state.activeFileIndex}
-                  onTabClick={this.setActiveFile.bind(this)}
-                  onTabClose={this.closeFile.bind(this)}
-                />
-              </ReflexElement>
-              <ReflexElement className="pane-middle-top primary-bg-dark">
-                <TextEditor
-                  hidden={this.state.openedFilepaths.length == 0}
-                  filepath={activeFilepath}
-                  defaultValue={this.getDefaultContent(activeFilepath)}
-                  onMountCallback={this.monacoOnMountCallback.bind(this)}
-                />
-              </ReflexElement>
-              <ReflexSplitter className="primary-splitter splitter" />
-              <ReflexElement
-                className="pane-middle-bottom"
-                minSize={50}
-                flex={0.25}>
-                <Pane title="Problem">
-                  <ProblemPane />
-                </Pane>
-              </ReflexElement>
-            </ReflexContainer>
-          </ReflexElement>
-          <ReflexSplitter className="primary-splitter splitter" />
-          <ReflexElement className="pane-right" minSize={150} flex={0.15}>
-            Right
-          </ReflexElement>
-        </ReflexContainer>
-      </div>
+      <React.Fragment>
+        <TitleMenuBar getActiveFilepath={this.getActiveFile.bind(this)} />
+        <div className="editor-container primary-bg primary-text">
+          <ReflexContainer orientation="vertical" windowResizeAware={true}>
+            <ReflexElement className="pane-left" minSize={150} flex={0.15}>
+              Left
+            </ReflexElement>
+            <ReflexSplitter className="primary-splitter splitter" />
+            <ReflexElement className="pane-middle">
+              <ReflexContainer orientation="horizontal">
+                <ReflexElement className="pane-middle-header" size={35}>
+                  <Header
+                    openedFiles={this.state.openedFilepaths}
+                    activeFileIndex={this.state.activeFileIndex}
+                    onTabClick={this.setActiveFile.bind(this)}
+                    onTabClose={this.closeFile.bind(this)}
+                  />
+                </ReflexElement>
+                <ReflexElement className="pane-middle-top primary-bg-dark">
+                  <TextEditor
+                    hidden={this.state.openedFilepaths.length == 0}
+                    filepath={activeFilepath}
+                    defaultValue={this.getDefaultContent(activeFilepath)}
+                    onMountCallback={this.monacoOnMountCallback.bind(this)}
+                    onChangeCallback={this.monacoOnChangeCallback.bind(this)}
+                  />
+                </ReflexElement>
+                <ReflexSplitter className="primary-splitter splitter" />
+                <ReflexElement
+                  className="pane-middle-bottom"
+                  minSize={50}
+                  flex={0.25}>
+                  <Pane title="Problem">
+                    <ProblemPane />
+                  </Pane>
+                </ReflexElement>
+              </ReflexContainer>
+            </ReflexElement>
+            <ReflexSplitter className="primary-splitter splitter" />
+            <ReflexElement className="pane-right" minSize={150} flex={0.15}>
+              Right
+            </ReflexElement>
+          </ReflexContainer>
+        </div>
+      </React.Fragment>
     );
   }
 }

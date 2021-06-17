@@ -24,12 +24,12 @@ ipcMain.on("close-window", (event) => {
 /* 
 File Handling Handlers
 */
-ipcMain.on("get-opened-file", (event) => {
-  event.sender.send("update-opened-file", editorSystem.getOpenedFilepaths());
+ipcMain.on("get-opened-files", (event) => {
+  event.sender.send("update-opened-file", editorSystem.getOpenedFiles());
 });
 
-ipcMain.on("get-opened-file-sync", (event) => {
-  event.returnValue = editorSystem.getOpenedFilepaths();
+ipcMain.on("get-opened-files-sync", (event) => {
+  event.returnValue = editorSystem.getOpenedFiles();
 });
 
 // Instruct system to open file and send an asynchronous response
@@ -65,9 +65,18 @@ ipcMain.on("close-file", (event, filepath) => {
 
 // Synchronous response to get an opened file's content
 ipcMain.on("get-file-content", (event, filepath) => {
-  console.log(`Getting: ${filepath}`)
+  console.log(`Getting: ${filepath}`);
   event.returnValue = editorSystem.getFile(filepath)?.getContent();
 });
+
+ipcMain.on("save-file", (_, filepath) => {
+  console.log(`Saving: ${filepath}`);
+  editorSystem.saveFile(filepath);
+});
+
+ipcMain.on('update-file-content', (_, filepath, content) => {
+  editorSystem.updateFileContent(filepath, content);
+})
 
 ipcMain.on("debug", () => {
   console.log(editorSystem.getOpenedFilepaths());

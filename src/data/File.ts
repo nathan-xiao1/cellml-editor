@@ -25,4 +25,10 @@ export default class File {
   public updateContent(content: string): void {
     this._content = content;
   }
+
+  public saveContent(): void {
+    fs.writeFile(this._filepath, this._content, (error) => {
+      if (error != null) console.log(error);
+    });
+  }
 }
