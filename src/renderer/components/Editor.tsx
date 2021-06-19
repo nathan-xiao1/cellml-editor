@@ -1,4 +1,5 @@
 import React from "react";
+import IPCChannel from "IPCChannels";
 import { ipcRenderer } from "electron";
 import { loader, Monaco } from "@monaco-editor/react";
 import { ReflexContainer, ReflexSplitter, ReflexElement } from "react-reflex";
@@ -27,7 +28,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
     this.state = { openedFilepaths: [], activeFileIndex: -1 };
 
     // Set listener to update openedFile state
-    ipcRenderer.on("update-opened-file", (_, arg) => {
+    ipcRenderer.on(IPCChannel.RENDERER_UPDATE_OPENED_FILE, (_, arg) => {
       this.setState(() => ({
         openedFilepaths: arg,
         activeFileIndex: arg.length - 1,
@@ -53,8 +54,8 @@ export default class Editor extends React.Component<unknown, EditorState> {
 
   closeFile(filepath: string): void {
     this.initialisedFiles.delete(filepath);
-    this.monaco.editor.getModel(this.monaco.Uri.parse(filepath)).dispose();
-    ipcRenderer.send("close-file", filepath);
+    this.monaco?.editor.getModel(this.monaco.Uri.parse(filepath)).dispose();
+    ipcRenderer.send(IPCChannel.CLOSE_FILE, filepath);
   }
 
   // Get file content to initialise Monaco's defaultValue
@@ -66,26 +67,33 @@ export default class Editor extends React.Component<unknown, EditorState> {
     console.log(`${filepath} not initialised`);
     this.initialisedFiles.add(filepath);
     return ipcRenderer.sendSync(
-      "get-file-content",
+      IPCChannel.GET_FILE_CONTENT,
       this.state.openedFilepaths[this.state.activeFileIndex]
     );
   }
 
   monacoOnChangeCallback(content: string): void {
-    ipcRenderer.send("update-file-content", this.getActiveFile(), content);
+    ipcRenderer.send(
+      IPCChannel.UPDATE_FILE_CONTENT,
+      this.getActiveFile(),
+      content
+    );
   }
 
   monacoOnMountCallback(): void {
     // Send IPC command to initialise openedFile states
-    const initialOpenedFile = ipcRenderer.sendSync("get-opened-files-sync");
-    this.setState(() => ({
-      openedFilepaths: initialOpenedFile,
-      activeFileIndex: initialOpenedFile.length - 1,
-    }));
+    ipcRenderer
+      .invoke(IPCChannel.GET_OPENED_FILEPATHS_ASYNC)
+      .then((initialOpenedFile: string[]) => {
+        this.setState(() => ({
+          openedFilepaths: initialOpenedFile,
+          activeFileIndex: initialOpenedFile.length - 1,
+        }));
+      });
   }
 
   componentWillUnmount(): void {
-    ipcRenderer.removeAllListeners("update-opened-file");
+    ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_OPENED_FILE);
   }
 
   render(): React.ReactNode {

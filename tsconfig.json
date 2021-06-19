@@ -14,7 +14,8 @@
     "target": "es5",
     "paths": {
       "*": ["node_modules/*"],
-      "Types": ["src/types.d.ts"]
+      "Types": ["src/types.d.ts"],
+      "IPCChannels": ["src/main/handlers/IpcChannels.ts"]
     }
   },
   "include": [

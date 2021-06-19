@@ -15,7 +15,8 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.ts', '.jsx', '.tsx', '.css'],
     alias: {
-      Types: path.resolve(__dirname, 'src/types.d.ts')
+      Types: path.resolve(__dirname, 'src/types.d.ts'),
+      IPCChannels: path.resolve(__dirname, 'src/main/handlers/IpcChannels.ts')
     },
   },
 };
