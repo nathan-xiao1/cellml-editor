@@ -16,6 +16,10 @@
   }
 }
 
+.info-item, .hint-item {
+  border-left: 2px solid rgba(theme.$success, 0.6);
+}
+
 .error-item {
   border-left: 2px solid rgba(theme.$error, 0.6);
 }

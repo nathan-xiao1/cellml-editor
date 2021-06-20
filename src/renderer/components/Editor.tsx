@@ -11,10 +11,12 @@ import Pane from "./Panes/Pane";
 import ProblemPane from "./Panes/ProblemPane";
 import TextEditor from "./TextEditor/TextEditor";
 import TitleMenuBar from "./TitleMenuBar/TitleMenuBar";
+import { IFileState, IProblemItem } from "Types";
 
 interface EditorState {
   openedFilepaths: string[];
   activeFileIndex: number;
+  activeFileProblems: IProblemItem[];
 }
 
 export default class Editor extends React.Component<unknown, EditorState> {
@@ -25,15 +27,35 @@ export default class Editor extends React.Component<unknown, EditorState> {
     super(props);
     this.initialisedFiles = new Set();
 
-    this.state = { openedFilepaths: [], activeFileIndex: -1 };
+    this.state = {
+      openedFilepaths: [],
+      activeFileIndex: -1,
+      activeFileProblems: [],
+    };
 
     // Set listener to update openedFile state
     ipcRenderer.on(IPCChannel.RENDERER_UPDATE_OPENED_FILE, (_, arg) => {
-      this.setState(() => ({
-        openedFilepaths: arg,
-        activeFileIndex: arg.length - 1,
-      }));
+      this.setState(
+        {
+          openedFilepaths: arg,
+        },
+        () => {
+          this.setActiveFile(arg.length - 1);
+        }
+      );
     });
+
+    // Set listener to update this.state using file state from ipcMain
+    ipcRenderer.on(
+      IPCChannel.RENDERER_UPDATE_FILE_STATE,
+      (_, fileState: IFileState) => {
+        if (fileState.filepath == this.getActiveFilepath()) {
+          this.setState(() => ({
+            activeFileProblems: fileState.problems,
+          }));
+        }
+      }
+    );
 
     // Get monaco instance
     loader.init().then(
@@ -43,22 +65,48 @@ export default class Editor extends React.Component<unknown, EditorState> {
     );
   }
 
-  getActiveFile(): string {
+  getActiveFilepath(): string {
     return this.state.openedFilepaths[this.state.activeFileIndex];
   }
 
-  setActiveFile(filepath: string): void {
-    const index = this.state.openedFilepaths.indexOf(filepath);
-    this.setState({ activeFileIndex: index });
+  /*
+   Set a file as the active file and update this.state using the response from ipcMain
+  */
+  setActiveFile(filepath: string | number): void {
+    const index =
+      typeof filepath == "string"
+        ? this.state.openedFilepaths.indexOf(filepath)
+        : filepath;
+    const newActiveFile = this.state.openedFilepaths[index];
+    if (newActiveFile != undefined) {
+      ipcRenderer
+        .invoke(IPCChannel.GET_FILE_STATE_ASYNC, newActiveFile)
+        .then((state) => {
+          this.setState({
+            activeFileIndex: index,
+            activeFileProblems: state.problems,
+          });
+        });
+    } else {
+      this.setState({
+        activeFileProblems: [],
+      });
+    }
   }
 
+  /*
+   Close a file by notifying ipcMain and deleting Monaco's model of the fle
+  */
   closeFile(filepath: string): void {
     this.initialisedFiles.delete(filepath);
     this.monaco?.editor.getModel(this.monaco.Uri.parse(filepath)).dispose();
     ipcRenderer.send(IPCChannel.CLOSE_FILE, filepath);
   }
 
-  // Get file content to initialise Monaco's defaultValue
+  /*
+   Get file content to initialise Monaco's defaultValue only if the file hasn't 
+   been initialied before
+  */
   getDefaultContent(filepath: string): string {
     if (this.initialisedFiles.has(filepath)) {
       console.log(`${filepath} already initialised`);
@@ -72,23 +120,31 @@ export default class Editor extends React.Component<unknown, EditorState> {
     );
   }
 
+  /*
+   Callback for Monaco to send the changed file content back to ipcMain
+  */
   monacoOnChangeCallback(content: string): void {
     ipcRenderer.send(
       IPCChannel.UPDATE_FILE_CONTENT,
-      this.getActiveFile(),
+      this.getActiveFilepath(),
       content
     );
   }
 
+  /*
+   Used as the 'constructor' for this Editor.tsx as Monaco doesn't 
+   load properly sometime before being mounted
+  */
   monacoOnMountCallback(): void {
-    // Send IPC command to initialise openedFile states
     ipcRenderer
       .invoke(IPCChannel.GET_OPENED_FILEPATHS_ASYNC)
       .then((initialOpenedFile: string[]) => {
-        this.setState(() => ({
-          openedFilepaths: initialOpenedFile,
-          activeFileIndex: initialOpenedFile.length - 1,
-        }));
+        this.setState(
+          {
+            openedFilepaths: initialOpenedFile,
+          },
+          () => this.setActiveFile(initialOpenedFile.length - 1)
+        );
       });
   }
 
@@ -97,10 +153,10 @@ export default class Editor extends React.Component<unknown, EditorState> {
   }
 
   render(): React.ReactNode {
-    const activeFilepath: string = this.getActiveFile();
+    const activeFilepath: string = this.getActiveFilepath();
     return (
       <React.Fragment>
-        <TitleMenuBar getActiveFilepath={this.getActiveFile.bind(this)} />
+        <TitleMenuBar getActiveFilepath={this.getActiveFilepath.bind(this)} />
         <div className="editor-container primary-bg primary-text">
           <ReflexContainer orientation="vertical" windowResizeAware={true}>
             <ReflexElement className="pane-left" minSize={150} flex={0.15}>
@@ -132,7 +188,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                   minSize={50}
                   flex={0.25}>
                   <Pane title="Problem">
-                    <ProblemPane />
+                    <ProblemPane problems={this.state.activeFileProblems} />
                   </Pane>
                 </ReflexElement>
               </ReflexContainer>
