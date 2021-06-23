@@ -1,0 +1,18 @@
+<apply>
+  <eq/>
+  <ci>J</ci>
+  <apply>
+    <minus/>
+    <apply>
+      <times/>
+      <ci>kf</ci>
+      <ci>A</ci>
+      <ci>B</ci>
+    </apply>
+    <apply>
+      <times/>
+      <ci>kb</ci>
+      <ci>C</ci>
+    </apply>
+  </apply>
+</apply>

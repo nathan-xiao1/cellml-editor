@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\admin\Downloads\cellmlthesis\cellml-editor\build\CMakeFiles\ae35354485f97de02a070ba35f14d114\NightlyMemoryCheck.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\admin\Downloads\cellmlthesis\cellml-editor\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\admin\Downloads\cellmlthesis\cellml-editor\build\CMakeFiles\NightlyMemoryCheck" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{E59573F7-F669-32D3-B3AD-9AFDC51B720F}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
