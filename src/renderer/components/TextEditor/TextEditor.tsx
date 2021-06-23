@@ -1,6 +1,11 @@
 import React from "react";
-import Editor from "@monaco-editor/react";
+import Editor, { Monaco } from "@monaco-editor/react";
+import CellMLTokeniser from "./definitions/Tokeniser";
+import CellMLCompletionProvider from "./definitions/CompletionProvider";
+import CellMLDocumentFormattingProvider from "./definitions/FormattingProvider";
 import "./MonacoLoader";
+
+const CellMLID = "CellML2";
 
 interface TEProps {
   hidden?: boolean;
@@ -18,8 +23,18 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
   constructor(props: TEProps) {
     super(props);
   }
-  handleEditorWillMount(): void {
-    return;
+
+  handleEditorWillMount(monaco: Monaco): void {
+    monaco.languages.register({ id: CellMLID });
+    monaco.languages.setMonarchTokensProvider(CellMLID, CellMLTokeniser);
+    monaco.languages.registerCompletionItemProvider(
+      CellMLID,
+      CellMLCompletionProvider
+    );
+    monaco.languages.registerDocumentFormattingEditProvider(
+      CellMLID,
+      CellMLDocumentFormattingProvider
+    );
   }
 
   handleEditorDidMount(): void {
@@ -32,7 +47,7 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
         wrapperClassName={this.props.hidden ? "hidden" : ""}
         height="100%"
         theme="vs-dark-custom"
-        language="xml"
+        language={CellMLID}
         path={this.props.filepath}
         defaultValue={this.props.defaultValue}
         onChange={this.props.onChangeCallback}
