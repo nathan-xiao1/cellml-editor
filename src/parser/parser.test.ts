@@ -34,14 +34,14 @@ describe('CellML parser testing', () => {
             </model>`;
         await parser.init();
         expect(parser.print() === "");
-        const res = await parser.parse(valid);
+        const res = parser.parse(valid);
         expect(res.model).toBeTruthy();
         expect(res.errors.length === 0).toEqual(true);
         expect(res.warnings.length === 0).toEqual(true);
         expect(res.hints.length == 0).toEqual(true);
-        console.log(res);
-        const output = parser.print();
-        console.log(output);
+        // console.log(res);
+        // const output = parser.print();
+        // console.log(output);
     });
     
     test('parsing invalid CellML', async () => {
@@ -66,9 +66,9 @@ describe('CellML parser testing', () => {
                 </component_ref>
               
             </model>`;
-        await parser.init();
+        // await parser.init();
         // expect(parser.print() === "");
-        const res = await parser.parse(invalid);
+        const res = parser.parse(invalid);
         expect(res.model).toBeTruthy();
         // printIssues(res.errors);
         // printIssues(res.warnings);
@@ -76,8 +76,8 @@ describe('CellML parser testing', () => {
         expect(res.errors.length !== 0).toEqual(true);
         // expect(res.warnings.length !== 0).toEqual(true);
         // expect(res.hints.length == 0);
-        console.log(res);
-        const output = parser.print();
-        console.log(output);
+        // console.log(res);
+        // const output = parser.print();
+        // console.log(output);
     });
 });
