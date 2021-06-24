@@ -6,6 +6,7 @@ const enum IPCChannel {
   TOGGLE_DEVELOPER_TOOLS = "TOGGLE_DEVELOPER_TOOLS",
 
   /* FileHandlers.ts */
+  NEW_FILE = "NEW_FILE",
   OPEN_FILE = "OPEN_FILE",
   CLOSE_FILE = "CLOSE_FILE",
   SAVE_FILE = "SAVE_FILE",

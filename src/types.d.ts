@@ -1,7 +1,10 @@
 export interface IFile {
   getFilepath(): string;
+  setFilepath(filepath: string): void;
   getFilename(): string;
   getContent(): string;
+  getSaved(): boolean;
+  setSaved(saved: boolean): void
   updateContent(content: string): void;
   saveContent(): void;
   getProblems(): IProblemItem[];
@@ -11,6 +14,7 @@ export interface IFile {
 }
 
 export interface IEditorSystem {
+  newFile(): boolean;
   openFile(filepath: string): boolean;
   openFiles(filepaths: string[]): boolean[];
   closeFile(filepath: string): boolean;
@@ -19,6 +23,7 @@ export interface IEditorSystem {
   getOpenedFilepaths(): string[];
   saveFile(filepath: string): void;
   updateFileContent(filepath: string, content: string): void;
+  fileIsSaved(filepath: string): boolean;
 }
 
 export type ProblemSeverity = "warning" | "error" | "info" | "hint";

@@ -19,6 +19,9 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
           <div className="menu-item">
             File
             <div className="dropdown-content">
+              <div onClick={() => ipcRenderer.send(IPCChannel.NEW_FILE)}>
+                New File
+              </div>
               <div onClick={() => ipcRenderer.send(IPCChannel.OPEN_FILE)}>
                 Open File
               </div>
