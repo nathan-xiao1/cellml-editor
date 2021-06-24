@@ -4,6 +4,7 @@ import { ipcRenderer } from "electron";
 import CloseIcon from "@material-ui/icons/Close";
 import RemoveIcon from "@material-ui/icons/Remove";
 import StopOutlinedIcon from "@material-ui/icons/StopOutlined";
+import { MenuBar } from "react-electron-window-menu";
 
 import "./TitleMenuBar.scss";
 
@@ -16,36 +17,69 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
     return (
       <div className="title-menu-bar primary-text">
         <div id="menu-section" className="section">
-          <div className="menu-item">
-            File
-            <div className="dropdown-content">
-              <div onClick={() => ipcRenderer.send(IPCChannel.NEW_FILE)}>
-                New File
-              </div>
-              <div onClick={() => ipcRenderer.send(IPCChannel.OPEN_FILE)}>
-                Open File
-              </div>
-              <div
-                onClick={() =>
-                  ipcRenderer.send(
-                    IPCChannel.SAVE_FILE,
-                    this.props.getActiveFilepath()
-                  )
-                }>
-                Save
-              </div>
-            </div>
-          </div>
-          <div className="menu-item">Edit</div>
-          <div className="menu-item">View</div>
-          <div
-            className="menu-item"
-            onClick={() => ipcRenderer.send(IPCChannel.TOGGLE_DEVELOPER_TOOLS)}>
-            Toggle Developer Tools
-          </div>
-          <div className="menu-item" onClick={() => ipcRenderer.send("debug")}>
-            Debug
-          </div>
+          <MenuBar
+            submenu={{
+              style: { minWidth: "150px" },
+              placement: "bottom",
+            }}
+            items={[
+              {
+                label: "File",
+                submenu: [
+                  {
+                    label: "New File",
+                    click: () => ipcRenderer.send(IPCChannel.NEW_FILE),
+                    accelerator: "CmdOrCtrl+N",
+                  },
+                  {
+                    label: "Open File",
+                    click: () => ipcRenderer.send(IPCChannel.OPEN_FILE),
+                    accelerator: "CmdOrCtrl+O",
+                  },
+                  {
+                    label: "Save File",
+                    click: () =>
+                      ipcRenderer.send(
+                        IPCChannel.SAVE_FILE,
+                        this.props.getActiveFilepath()
+                      ),
+                    accelerator: "CmdOrCtrl+S",
+                  },
+                ],
+              },
+              {
+                label: "Edit",
+                submenu: [
+                  {
+                    label: "Undo",
+                    click: () => console.log("TODO: Not Implemented"),
+                    accelerator: "CmdOrCtrl+Z",
+                  },
+                  {
+                    label: "Redo",
+                    click: () => console.log("TODO: Not Implemented"),
+                    accelerator: "CmdOrCtrl+Y",
+                  },
+                ],
+              },
+              {
+                label: "View",
+                submenu: [
+                  {
+                    label: "Toggle Developer Tools",
+                    click: () =>
+                      ipcRenderer.send(IPCChannel.TOGGLE_DEVELOPER_TOOLS),
+                    accelerator: "CmdOrCtrl+Shift+I",
+                  },
+                  { type: "separator" },
+                  {
+                    label: "Debug",
+                    click: () => ipcRenderer.send("debug"),
+                  },
+                ],
+              },
+            ]}
+          />
         </div>
 
         <div id="title-section" className="section">
