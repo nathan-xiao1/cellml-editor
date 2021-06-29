@@ -2,6 +2,8 @@ import fs from "fs";
 import IPCChannel from "IPCChannels";
 import { webContents } from "electron";
 import { IProblemItem, IFile, IFileState, ProblemSeverity } from "Types";
+import { Level } from "../parser/ILibcellml";
+import CellMLParser from "../parser/parser";
 
 const generateRandomProblem = (filepath?: string): IProblemItem => {
   const severityArray: ProblemSeverity[] = ["warning", "error", "info", "hint"];
@@ -17,17 +19,20 @@ const generateRandomProblem = (filepath?: string): IProblemItem => {
 };
 
 export default class File implements IFile {
+  private _parser: CellMLParser;
   private _filepath: string;
   private _dom: null; // Placeholder for DOM representation of model
   private _content: string;
   private _problems: IProblemItem[];
   private _saved: boolean; // Indicate new unsaved file
 
-  constructor(filepath: string, saved = true) {
+  constructor(filepath: string, parser: CellMLParser, saved = true) {
+    this._parser = parser;
     this._filepath = filepath;
     this._content = saved ? fs.readFileSync(this._filepath, "utf8") : "";
-    this._problems = [generateRandomProblem(this._filepath)];
+    this._problems = [];
     this._saved = saved;
+    this._parse(this._content);
   }
 
   public getFilepath(): string {
@@ -60,6 +65,7 @@ export default class File implements IFile {
   */
   public updateContent(content: string): void {
     this._content = content;
+    this._parse(this._content);
   }
 
   /*
@@ -101,5 +107,39 @@ export default class File implements IFile {
     webContents.getAllWebContents().forEach((webContent) => {
       webContent.send(IPCChannel.RENDERER_UPDATE_FILE_STATE, this.getState());
     });
+  }
+
+  /*
+    Parse the text using the libCellML parser and update the problem list
+  */
+  private _parse(content: string): void {
+    const result = this._parser.parse(content);
+    const problems: IProblemItem[] = [];
+    [result.hints, result.errors, result.warnings].forEach((type) => {
+      type.forEach((error) => {
+        let level: ProblemSeverity;
+        switch (error.level()) {
+          case Level.ERROR:
+            level = "error";
+            break;
+          case Level.WARNING:
+            level = "warning";
+            break;
+          case Level.HINT:
+            level = "hint";
+            break;
+        }
+        problems.push({
+          description: error.description(),
+          severity: level,
+          startColumn: 0,
+          endColumn: 0,
+          startLineNumber: 0,
+          endLineNumber: 0,
+        });
+      });
+    });
+
+    this.updateProblems(problems);
   }
 }

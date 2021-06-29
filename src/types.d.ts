@@ -14,6 +14,7 @@ export interface IFile {
 }
 
 export interface IEditorSystem {
+  init(): void;
   newFile(): boolean;
   openFile(filepath: string): boolean;
   openFiles(filepaths: string[]): boolean[];
@@ -29,7 +30,7 @@ export interface IEditorSystem {
 export type ProblemSeverity = "warning" | "error" | "info" | "hint";
 
 export interface IProblemItem {
-  title: string;
+  title?: string;
   description: string;
   severity: ProblemSeverity;
   startColumn: number;

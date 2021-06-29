@@ -12,7 +12,7 @@ function ProblemPaneItem(props: ProblemItemProps) {
   return (
     <div className={`problem-item ${props.type}-item`}>
       <div className="problem-item-description">
-        <span className="problem-item-title">{props.title}: </span>
+        {props.title && <span className="problem-item-title">{props.title}: </span>}
         {props.description}
       </div>
     </div>

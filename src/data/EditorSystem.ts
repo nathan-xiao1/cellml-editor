@@ -1,9 +1,16 @@
 import { IEditorSystem, IFile } from "Types";
+import CellMLParser from "../parser/parser";
 import File from "./File";
 
 export default class EditorSystem implements IEditorSystem {
   private unsavedFileIDAcc = 0;
   private openedFiles: Map<string, IFile> = new Map();
+  private cellmlParser: CellMLParser;
+
+  public async init(): Promise<void> {
+    this.cellmlParser = new CellMLParser();
+    return await this.cellmlParser.init();
+  }
 
   /*
     Rename a file and keep original order by creating a new Map()
@@ -26,13 +33,13 @@ export default class EditorSystem implements IEditorSystem {
   */
   public newFile(): boolean {
     const filename = `New-File-${this.unsavedFileIDAcc++}`;
-    this.openedFiles.set(filename, new File(filename, false));
+    this.openedFiles.set(filename, new File(filename, this.cellmlParser, false));
     return true;
   }
 
   public openFile(filepath: string): boolean {
     if (!this.openedFiles.has(filepath)) {
-      this.openedFiles.set(filepath, new File(filepath));
+      this.openedFiles.set(filepath, new File(filepath, this.cellmlParser));
       console.log(`Opened: ${filepath}`);
       return true;
     } else {
