@@ -3,6 +3,8 @@ import Editor, { Monaco } from "@monaco-editor/react";
 import CellMLTokeniser from "./definitions/Tokeniser";
 import CellMLCompletionProvider from "./definitions/CompletionProvider";
 import CellMLDocumentFormattingProvider from "./definitions/FormattingProvider";
+import CellMLLanguageConfiguration from './definitions/LanguageConfiguration';
+import CellMLHoverProvider from './definitions/HoverProvider';
 import "./MonacoLoader";
 
 const CellMLID = "CellML2";
@@ -27,14 +29,10 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
   handleEditorWillMount(monaco: Monaco): void {
     monaco.languages.register({ id: CellMLID });
     monaco.languages.setMonarchTokensProvider(CellMLID, CellMLTokeniser);
-    monaco.languages.registerCompletionItemProvider(
-      CellMLID,
-      CellMLCompletionProvider
-    );
-    monaco.languages.registerDocumentFormattingEditProvider(
-      CellMLID,
-      CellMLDocumentFormattingProvider
-    );
+    monaco.languages.registerCompletionItemProvider(CellMLID, CellMLCompletionProvider);
+    monaco.languages.registerDocumentFormattingEditProvider(CellMLID, CellMLDocumentFormattingProvider);
+    monaco.languages.setLanguageConfiguration(CellMLID, CellMLLanguageConfiguration);
+    monaco.languages.registerHoverProvider(CellMLID, CellMLHoverProvider)
   }
 
   handleEditorDidMount(): void {
