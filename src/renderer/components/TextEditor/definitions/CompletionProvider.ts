@@ -62,15 +62,17 @@ const completionProvider: monaco.languages.CompletionItemProvider = {
     if (schemaTag) {
       const suggestions: monaco.languages.CompletionItem[] = [];
       if (nextTagContext == ContextType.CLOSE_TAG) {
-        // Suggest closing tag
-        suggestions.push({
-          label: lastOpenedTag.tagName,
-          kind: languages.CompletionItemKind.Property,
-          insertText: lastOpenedTag.tagName + ">",
-          insertTextRules:
-            languages.CompletionItemInsertTextRule.InsertAsSnippet,
-          range: undefined,
-        });
+        if (lastOpenedTag) {
+          // Suggest closing tag
+          suggestions.push({
+            label: lastOpenedTag.tagName,
+            kind: languages.CompletionItemKind.Property,
+            insertText: lastOpenedTag.tagName + ">",
+            insertTextRules:
+              languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            range: undefined,
+          });
+        }
       } else {
         // Suggest opening tag
         schemaTag.children.forEach((elementName) => {
@@ -211,7 +213,7 @@ function getContext(text: string): ContextType {
 }
 
 function getFullSnippet(tagName: string): string {
-  return `<${tagName}>\n\t$0\n</${tagName}>`
+  return `<${tagName}>\n\t$0\n</${tagName}>`;
 }
 
 export default completionProvider;

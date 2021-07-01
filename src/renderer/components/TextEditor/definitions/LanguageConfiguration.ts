@@ -3,7 +3,6 @@ import { languages } from "monaco-editor";
 
 // Referenced from: https://github.com/redhat-developer/vscode-xml/blob/master/src/client/indentation.ts
 const languageConfig : languages.LanguageConfiguration = {
-
   indentationRules: {
     increaseIndentPattern: /<(?!\?|[^>]*\/>)([-_\.A-Za-z0-9]+)(?=\s|>)\b[^>]*>(?!.*<\/\1>)|<!--(?!.*-->)|\{[^}"']*$/,
     decreaseIndentPattern: /^\s*(<\/[-_\.A-Za-z0-9]+\b[^>]*>|-->|\})/

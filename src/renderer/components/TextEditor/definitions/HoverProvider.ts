@@ -6,14 +6,23 @@ const hoverProvider: languages.HoverProvider = {
     model: monaco.editor.ITextModel,
     position: monaco.Position
   ) => {
-    const word = model.getWordAtPosition(position)?.word;
-    console.log(word);
-    if (CellMLSchema.has(word)) {
-      console.log(`${CellMLSchema.get(word).insertText}`)
+    const word = model.getWordAtPosition(position);
+    if (
+      !word ||
+      model.getValueInRange({
+        startLineNumber: position.lineNumber,
+        endLineNumber: position.lineNumber,
+        startColumn: word.startColumn - 1,
+        endColumn: word.startColumn,
+      }) != "<"
+    )
+      return undefined;
+    const tagName = word.word;
+    if (CellMLSchema.has(tagName)) {
       return {
         contents: [
-          { value: `**${word}**` },
-          { value: `${CellMLSchema.get(word).documentation}` },
+          { value: `**${tagName}**` },
+          { value: `${CellMLSchema.get(tagName).documentation}` },
         ],
       };
     }
