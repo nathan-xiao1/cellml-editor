@@ -1,10 +1,12 @@
+import { TagContextType } from "./renderer/components/TextEditor/definitions/ContextProvider";
+
 export interface IFile {
   getFilepath(): string;
   setFilepath(filepath: string): void;
   getFilename(): string;
   getContent(): string;
   getSaved(): boolean;
-  setSaved(saved: boolean): void
+  setSaved(saved: boolean): void;
   updateContent(content: string): void;
   saveContent(): void;
   getProblems(): IProblemItem[];
@@ -42,4 +44,14 @@ export interface IProblemItem {
 export interface IFileState {
   filepath: string;
   problems: IProblemItem[];
+}
+
+export interface IContextProvider {
+  readonly isCompletionAvailable: boolean;
+  readonly clearedText: string;
+  readonly lastOpenedTag: string;
+  readonly isAttributeSearch: boolean;
+  readonly tagContext: TagContextType;
+  readonly lastTag: string
+  update(content: string): void;
 }

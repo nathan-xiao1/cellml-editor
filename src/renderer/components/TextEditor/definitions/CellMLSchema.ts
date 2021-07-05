@@ -25,13 +25,13 @@ export interface IElement {
   documentation?: string;
 }
 
-const elements: IElement[] = [
+export const elements: IElement[] = [
   { label: "root", insertText: null, attributes: [], children: ["model"] },
   {
     label: "model",
     insertText: "model",
-    insertSnippet: '<model name="$1">\n\t$0\n</model>',
-    attributes: ["name"],
+    insertSnippet: '<model xmlns="http://www.cellml.org/cellml/2.0#" name="$1">\n\t$0\n</model>',
+    attributes: ["name", "xmlns"],
     children: ["component", "connection", "encapsulation", "import", "units"],
     documentation:
       "The top-level element information item in a CellML infoset MUST be an element in the CellML namespace with a local name equal to model.\n" +
@@ -48,6 +48,7 @@ const elements: IElement[] = [
   {
     label: "import",
     insertText: "import",
+    insertSnippet: '<import xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="$1>\n\t$0</import>',
     attributes: ["href"],
     children: ["import component", "import units"],
     documentation:
@@ -122,7 +123,7 @@ const elements: IElement[] = [
   {
     label: "component",
     insertText: "component",
-    attributes: ["name"],
+    attributes: ["name", "component_ref"],
     children: ["math", "reset", "variable"],
     documentation:
       "A `component` element information item (referred to in this specification as a `component` element) is an element in the CellML namespace with a local name equal to component, which appears as a child of a `model` element.\n" +
@@ -186,7 +187,8 @@ const elements: IElement[] = [
   {
     label: "math",
     insertText: "math",
-    attributes: [],
+    insertSnippet: '<math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:cellml="http://www.cellml.org/cellml/2.0#">$0</math>',
+    attributes: ["xmlns"],
     children: [],
     documentation:
       "A `math` element information item (referred to in this specification as a `math` element) is an element in the MathML namespace, which appears as a child of a `component` element, a `test_value` element, or a `reset_value` element.\n" +
@@ -249,7 +251,7 @@ const elements: IElement[] = [
 ];
 
 // prettier-ignore
-const mathElements: IElement[] = [
+export const mathElements: IElement[] = [
   { label: "ci", insertText: "ci", attributes: [], children: [] },
   { label: "cn", insertText: "cn", attributes: [], children: [] },
   { label: "sep", insertText: "sep", attributes: [], children: [] },
@@ -319,7 +321,7 @@ const mathElements: IElement[] = [
 ];
 
 // prettier-ignore
-const units: IElement[] = [
+export const units: IElement[] = [
   { label: "ampere", insertText: "ampere", attributes: [], children: [] },
   { label: "becquerel", insertText: "becquerel", attributes: [], children: [] },
   { label: "candela", insertText: "candela", attributes: [], children: [] },
@@ -354,7 +356,7 @@ const units: IElement[] = [
 ];
 
 // prettier-ignore
-const prefix: IElement[] = [
+export const prefix: IElement[] = [
   { label: "yotta", insertText: "yotta", attributes: [], children: [] },
   { label: "zetta", insertText: "zetta", attributes: [], children: [] },
   { label: "exa", insertText: "exa", attributes: [], children: [] },

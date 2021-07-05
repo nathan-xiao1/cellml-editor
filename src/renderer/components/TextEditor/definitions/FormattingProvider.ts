@@ -1,4 +1,5 @@
 import monaco from "monaco-editor";
+import xmlFormat from "xml-formatter";
 
 const formatter: monaco.languages.DocumentFormattingEditProvider = {
   provideDocumentFormattingEdits: (
@@ -7,7 +8,7 @@ const formatter: monaco.languages.DocumentFormattingEditProvider = {
   ) => {
     return [
       {
-        text: model.getValue(),
+        text: xmlFormat(model.getValue()),
         range: model.getFullModelRange(),
       },
     ];

@@ -21,7 +21,7 @@ export default {
 
       // Standard opening tag
       [
-        /(<)(@qualifiedName)/,
+        /(<\??)(@qualifiedName)/,
         [{ token: "delimiter" }, { token: "tag", next: "@tag" }],
       ],
 

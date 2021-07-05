@@ -1,10 +1,14 @@
 import React from "react";
+import monaco from 'monaco-editor';
 import Editor, { Monaco } from "@monaco-editor/react";
+import autoTagClose from "./definitions/AutoTagClose";
+import ContextProvider from "./definitions/ContextProvider";
 import CellMLTokeniser from "./definitions/Tokeniser";
 import CellMLCompletionProvider from "./definitions/CompletionProvider";
 import CellMLDocumentFormattingProvider from "./definitions/FormattingProvider";
 import CellMLLanguageConfiguration from './definitions/LanguageConfiguration';
 import CellMLHoverProvider from './definitions/HoverProvider';
+import CellMLFormattingProvider from './definitions/FormattingProvider';
 import "./MonacoLoader";
 
 const CellMLID = "CellML2";
@@ -22,21 +26,33 @@ interface TEState {
 }
 
 export default class TextEditor extends React.Component<TEProps, TEState> {
+
+  private editorInstance: monaco.editor.IStandaloneCodeEditor;
+  private contextProvider: ContextProvider;
   constructor(props: TEProps) {
     super(props);
+    this.contextProvider = new ContextProvider()
   }
 
-  handleEditorWillMount(monaco: Monaco): void {
-    monaco.languages.register({ id: CellMLID });
-    monaco.languages.setMonarchTokensProvider(CellMLID, CellMLTokeniser);
-    monaco.languages.registerCompletionItemProvider(CellMLID, CellMLCompletionProvider);
-    monaco.languages.registerDocumentFormattingEditProvider(CellMLID, CellMLDocumentFormattingProvider);
-    monaco.languages.setLanguageConfiguration(CellMLID, CellMLLanguageConfiguration);
-    monaco.languages.registerHoverProvider(CellMLID, CellMLHoverProvider)
+  handleEditorWillMount(monacoInstance: Monaco): void {
+    monacoInstance.languages.register({ id: CellMLID });
+    monacoInstance.languages.setMonarchTokensProvider(CellMLID, CellMLTokeniser);
+    monacoInstance.languages.registerCompletionItemProvider(CellMLID, CellMLCompletionProvider(this.contextProvider));
+    monacoInstance.languages.registerDocumentFormattingEditProvider(CellMLID, CellMLDocumentFormattingProvider);
+    monacoInstance.languages.setLanguageConfiguration(CellMLID, CellMLLanguageConfiguration);
+    monacoInstance.languages.registerHoverProvider(CellMLID, CellMLHoverProvider)
+    monacoInstance.languages.registerDocumentFormattingEditProvider(CellMLID, CellMLFormattingProvider)
   }
 
-  handleEditorDidMount(): void {
+  handleEditorDidMount(editorInstance: monaco.editor.IStandaloneCodeEditor): void {
+    this.editorInstance = editorInstance; 
     this.props.onMountCallback();
+  }
+
+  handleContentOnChange(value: string, event: monaco.editor.IModelContentChangedEvent): void {
+    this.contextProvider.update(value);
+    autoTagClose(this.contextProvider, this.editorInstance, event);
+    this.props.onChangeCallback(value);
   }
 
   render(): React.ReactNode {
@@ -48,7 +64,7 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
         language={CellMLID}
         path={this.props.filepath}
         defaultValue={this.props.defaultValue}
-        onChange={this.props.onChangeCallback}
+        onChange={this.handleContentOnChange.bind(this)}
         beforeMount={this.handleEditorWillMount.bind(this)}
         onMount={this.handleEditorDidMount.bind(this)}
         options={{ minimap: { enabled: false } }}
