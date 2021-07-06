@@ -22,6 +22,10 @@ module.exports = [
         from: path.resolve(__dirname, "node_modules/monaco-editor/min/vs"),
         to: path.resolve(__dirname, "vs"),
       },
+      {
+        from: path.resolve(__dirname, "src", "static"),
+        to: path.resolve(__dirname, ".webpack/renderer", "static"),
+      },
     ].filter(Boolean),
   }),
 ];

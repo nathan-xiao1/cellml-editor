@@ -15,7 +15,8 @@
     "paths": {
       "*": ["node_modules/*"],
       "Types": ["src/types.d.ts"],
-      "IPCChannels": ["src/main/handlers/IpcChannels.ts"]
+      "IPCChannels": ["src/main/handlers/IpcChannels.ts"],
+      "src/*": ["src/*"],
     }
   },
   "include": [

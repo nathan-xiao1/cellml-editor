@@ -26,6 +26,7 @@ module.exports = {
     alias: {
       Types: path.resolve(__dirname, "src/types.d.ts"),
       IPCChannels: path.resolve(__dirname, "src/main/handlers/IpcChannels.ts"),
+      src: path.resolve(__dirname, "src"),
     },
   },
 };

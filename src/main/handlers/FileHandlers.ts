@@ -1,4 +1,5 @@
 import { ipcMain, dialog } from "electron";
+import { CellMLSpecification } from "src/data/EditorSystem";
 import { editorSystem } from "../index";
 import IPCChannel from "./IpcChannels";
 
@@ -111,4 +112,12 @@ ipcMain.handle(IPCChannel.GET_OPENED_FILEPATHS_ASYNC, async () => {
 */
 ipcMain.handle(IPCChannel.GET_FILE_STATE_ASYNC, (_, filepath) => {
   return editorSystem.getFile(filepath).getState();
+});
+
+ipcMain.on(IPCChannel.OPEN_CELLML_DOCUMENTATION, (event) => {
+  editorSystem.openFile(CellMLSpecification);
+  event.sender.send(
+    IPCChannel.RENDERER_UPDATE_OPENED_FILE,
+    editorSystem.getOpenedFilepaths()
+  );
 });

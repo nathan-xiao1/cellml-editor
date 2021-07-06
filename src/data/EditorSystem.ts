@@ -1,6 +1,9 @@
 import { IEditorSystem, IFile } from "Types";
 import CellMLParser from "../parser/parser";
-import File from "./File";
+import CellMLFile from "./CellMLFile";
+import PdfFile from "./PdfFile";
+
+export const CellMLSpecification = "CellML 2.0 Specification"
 
 export default class EditorSystem implements IEditorSystem {
   private unsavedFileIDAcc = 0;
@@ -33,13 +36,20 @@ export default class EditorSystem implements IEditorSystem {
   */
   public newFile(): boolean {
     const filename = `New-File-${this.unsavedFileIDAcc++}`;
-    this.openedFiles.set(filename, new File(filename, this.cellmlParser, false));
+    this.openedFiles.set(
+      filename,
+      new CellMLFile(filename, this.cellmlParser, false)
+    );
     return true;
   }
 
   public openFile(filepath: string): boolean {
     if (!this.openedFiles.has(filepath)) {
-      this.openedFiles.set(filepath, new File(filepath, this.cellmlParser));
+      const file =
+        filepath == CellMLSpecification
+          ? new PdfFile(filepath)
+          : new CellMLFile(filepath, this.cellmlParser);
+      this.openedFiles.set(filepath, file);
       console.log(`Opened: ${filepath}`);
       return true;
     } else {

@@ -13,7 +13,10 @@ export interface IFile {
   updateProblems(problems: IProblemItem[]): void;
   getState(): IFileState;
   notifyWebContents(): void;
+  getType(): FileType;
 }
+
+export type FileType = "CellML" | "PDF";
 
 export interface IEditorSystem {
   init(): void;
@@ -42,6 +45,7 @@ export interface IProblemItem {
 }
 
 export interface IFileState {
+  fileType: string;
   filepath: string;
   problems: IProblemItem[];
 }
@@ -52,6 +56,6 @@ export interface IContextProvider {
   readonly lastOpenedTag: string;
   readonly isAttributeSearch: boolean;
   readonly tagContext: TagContextType;
-  readonly lastTag: string
+  readonly lastTag: string;
   update(content: string): void;
 }

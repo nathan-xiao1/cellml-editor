@@ -1,24 +1,17 @@
 import fs from "fs";
 import IPCChannel from "IPCChannels";
 import { webContents } from "electron";
-import { IProblemItem, IFile, IFileState, ProblemSeverity } from "Types";
+import {
+  IProblemItem,
+  IFile,
+  IFileState,
+  ProblemSeverity,
+  FileType,
+} from "Types";
 import { Level } from "../parser/ILibcellml";
 import CellMLParser from "../parser/parser";
 
-const generateRandomProblem = (filepath?: string): IProblemItem => {
-  const severityArray: ProblemSeverity[] = ["warning", "error", "info", "hint"];
-  return {
-    title: "Test Error",
-    description: "Test Error Description for file: " + filepath,
-    severity: severityArray[Math.floor(Math.random() * severityArray.length)],
-    startColumn: 0,
-    endColumn: 5,
-    startLineNumber: 0,
-    endLineNumber: 0,
-  };
-};
-
-export default class File implements IFile {
+export default class CellMLFile implements IFile {
   private _parser: CellMLParser;
   private _filepath: string;
   private _dom: null; // Placeholder for DOM representation of model
@@ -95,6 +88,7 @@ export default class File implements IFile {
   */
   public getState(): IFileState {
     return {
+      fileType: this.getType(),
       filepath: this._filepath,
       problems: this.getProblems(),
     };
@@ -141,5 +135,9 @@ export default class File implements IFile {
     });
 
     this.updateProblems(problems);
+  }
+
+  getType(): FileType {
+    return "CellML";
   }
 }

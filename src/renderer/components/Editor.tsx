@@ -11,12 +11,14 @@ import Pane from "./Panes/Pane";
 import ProblemPane from "./Panes/ProblemPane";
 import TextEditor from "./TextEditor/TextEditor";
 import TitleMenuBar from "./TitleMenuBar/TitleMenuBar";
-import { IFileState, IProblemItem } from "Types";
+import PdfViewer from "./PdfViewer/PdfViewer";
+import { FileType, IFileState, IProblemItem } from "Types";
 
 interface EditorState {
   openedFilepaths: string[];
   activeFileIndex: number;
   activeFileProblems: IProblemItem[];
+  activeFileType: FileType;
 }
 
 export default class Editor extends React.Component<unknown, EditorState> {
@@ -26,11 +28,11 @@ export default class Editor extends React.Component<unknown, EditorState> {
   constructor(props: unknown) {
     super(props);
     this.initialisedFiles = new Set();
-
     this.state = {
       openedFilepaths: [],
       activeFileIndex: -1,
       activeFileProblems: [],
+      activeFileType: undefined,
     };
 
     // Set listener to update openedFile state
@@ -81,10 +83,11 @@ export default class Editor extends React.Component<unknown, EditorState> {
     if (newActiveFile != undefined) {
       ipcRenderer
         .invoke(IPCChannel.GET_FILE_STATE_ASYNC, newActiveFile)
-        .then((state) => {
+        .then((fileState: IFileState) => {
           this.setState({
             activeFileIndex: index,
-            activeFileProblems: state.problems,
+            activeFileProblems: fileState.problems,
+            activeFileType: fileState.fileType as FileType,
           });
         });
     } else {
@@ -99,6 +102,8 @@ export default class Editor extends React.Component<unknown, EditorState> {
   */
   closeFile(filepath: string): void {
     this.initialisedFiles.delete(filepath);
+    console.log(this.monaco.Uri.parse(filepath));
+    console.log(this.monaco.editor.getModels());
     this.monaco?.editor.getModel(this.monaco.Uri.parse(filepath)).dispose();
     ipcRenderer.send(IPCChannel.CLOSE_FILE, filepath);
   }
@@ -175,12 +180,20 @@ export default class Editor extends React.Component<unknown, EditorState> {
                 </ReflexElement>
                 <ReflexElement className="pane-middle-top primary-bg-dark">
                   <TextEditor
-                    hidden={this.state.openedFilepaths.length == 0}
+                    hidden={
+                      this.state.openedFilepaths.length == 0 ||
+                      this.state.activeFileType != "CellML"
+                    }
                     filepath={activeFilepath}
                     defaultValue={this.getDefaultContent(activeFilepath)}
                     onMountCallback={this.monacoOnMountCallback.bind(this)}
                     onChangeCallback={this.monacoOnChangeCallback.bind(this)}
                   />
+                  <PdfViewer
+                    hidden={
+                      this.state.openedFilepaths.length == 0 ||
+                      this.state.activeFileType != "PDF"
+                    }></PdfViewer>
                 </ReflexElement>
                 <ReflexSplitter className="primary-splitter splitter" />
                 <ReflexElement
