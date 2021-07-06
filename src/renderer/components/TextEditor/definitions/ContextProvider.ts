@@ -131,8 +131,7 @@ function _getTagContext(text: string): TagContextType {
 }
 
 function _getLastTag(text: string): string {
-  const matches = text.match(/<(?=\S*)([a-zA-Z-_]+)[^<\/>]*>/g);
-  if (!matches) return undefined;
-  const tag = matches[matches.length - 1];
-  return tag.substring(1, tag.length - 1);
+  const matches = text.match(/<(?=\S*)([a-zA-Z-_]+)[^<>]*\/?>/g);
+  if (!matches) return "root";
+  return matches[matches.length - 1].match(/<([a-zA-Z-_]+)/)[1];
 }
