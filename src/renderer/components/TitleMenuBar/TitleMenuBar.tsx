@@ -32,10 +32,25 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
                     accelerator: "CmdOrCtrl+N",
                   },
                   {
+                    label: "New from Template",
+                    submenu: [
+                      {
+                        label: "Empty Model",
+                        click: () =>
+                          ipcRenderer.send(
+                            IPCChannel.NEW_FROM_TEMPLATE,
+                            "emptyModel"
+                          ),
+                      },
+                    ],
+                  },
+                  { type: "separator" },
+                  {
                     label: "Open File",
                     click: () => ipcRenderer.send(IPCChannel.OPEN_FILE),
                     accelerator: "CmdOrCtrl+O",
                   },
+                  { type: "separator" },
                   {
                     label: "Save File",
                     click: () =>

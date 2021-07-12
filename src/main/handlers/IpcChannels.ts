@@ -7,6 +7,7 @@ const enum IPCChannel {
 
   /* FileHandlers.ts */
   NEW_FILE = "NEW_FILE",
+  NEW_FROM_TEMPLATE = "NEW_FROM_TEMPLATE",
   OPEN_FILE = "OPEN_FILE",
   CLOSE_FILE = "CLOSE_FILE",
   SAVE_FILE = "SAVE_FILE",

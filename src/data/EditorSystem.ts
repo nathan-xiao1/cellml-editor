@@ -2,8 +2,9 @@ import { IEditorSystem, IFile } from "Types";
 import CellMLParser from "../parser/parser";
 import CellMLFile from "./CellMLFile";
 import PdfFile from "./PdfFile";
+import { templates } from "./Templates";
 
-export const CellMLSpecification = "CellML 2.0 Specification"
+export const CellMLSpecification = "CellML 2.0 Specification";
 
 export default class EditorSystem implements IEditorSystem {
   private unsavedFileIDAcc = 0;
@@ -40,6 +41,18 @@ export default class EditorSystem implements IEditorSystem {
       filename,
       new CellMLFile(filename, this.cellmlParser, false)
     );
+    return true;
+  }
+
+  public newFileFromTemplate(template: string): boolean {
+    if (!templates.has(template)) {
+      console.log("Missing Template");
+      return false;
+    }
+    const filename = `New-File-${this.unsavedFileIDAcc++}`;
+    const file = new CellMLFile(filename, this.cellmlParser, false);
+    this.openedFiles.set(filename, file);
+    file.updateContent(templates.get(template));
     return true;
   }
 

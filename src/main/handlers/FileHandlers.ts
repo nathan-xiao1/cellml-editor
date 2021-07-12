@@ -16,6 +16,18 @@ ipcMain.on(IPCChannel.NEW_FILE, (event) => {
 });
 
 /*
+  Create new file using a template and asynchronously notify the 
+  renderer to update 
+*/
+ipcMain.on(IPCChannel.NEW_FROM_TEMPLATE, (event, templateName) => {
+  editorSystem.newFileFromTemplate(templateName);
+  event.sender.send(
+    IPCChannel.RENDERER_UPDATE_OPENED_FILE,
+    editorSystem.getOpenedFilepaths()
+  );
+});
+
+/*
   Instruct system to open an existing file via a dialog and asynchronously 
   notify the renderer to update the list of opened files
 */

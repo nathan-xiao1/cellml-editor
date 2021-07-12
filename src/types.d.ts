@@ -21,6 +21,7 @@ export type FileType = "CellML" | "PDF";
 export interface IEditorSystem {
   init(): void;
   newFile(): boolean;
+  newFileFromTemplate(template: string): boolean;
   openFile(filepath: string): boolean;
   openFiles(filepaths: string[]): boolean[];
   closeFile(filepath: string): boolean;
