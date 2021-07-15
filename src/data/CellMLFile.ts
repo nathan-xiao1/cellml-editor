@@ -17,14 +17,16 @@ export default class CellMLFile implements IFile {
   private _dom: null; // Placeholder for DOM representation of model
   private _content: string;
   private _problems: IProblemItem[];
-  private _saved: boolean; // Indicate new unsaved file
+  private _saved: boolean;
+  private _fileIsNew: boolean;
 
-  constructor(filepath: string, parser: CellMLParser, saved = true) {
+  constructor(filepath: string, parser: CellMLParser, isNewFile = false) {
     this._parser = parser;
     this._filepath = filepath;
-    this._content = saved ? fs.readFileSync(this._filepath, "utf8") : "";
+    this._content = isNewFile ? "" : fs.readFileSync(this._filepath, "utf8");
     this._problems = [];
-    this._saved = saved;
+    this._saved = !isNewFile;
+    this._fileIsNew = isNewFile;
     this._parse(this._content);
   }
 
@@ -48,8 +50,8 @@ export default class CellMLFile implements IFile {
     return this._saved;
   }
 
-  public setSaved(saved: boolean): void {
-    this._saved = saved;
+  public fileIsNew(): boolean {
+    return this._fileIsNew;
   }
 
   /*
@@ -59,6 +61,7 @@ export default class CellMLFile implements IFile {
   public updateContent(content: string): void {
     this._content = content;
     this._parse(this._content);
+    this._saved = false;
   }
 
   /*
@@ -68,6 +71,8 @@ export default class CellMLFile implements IFile {
     fs.writeFile(this._filepath, this._content, (error) => {
       if (error != null) console.log(error);
     });
+    this._saved = true;
+    this._fileIsNew = false;
   }
 
   public getProblems(): IProblemItem[] {

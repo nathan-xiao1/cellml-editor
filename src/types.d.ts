@@ -6,7 +6,7 @@ export interface IFile {
   getFilename(): string;
   getContent(): string;
   getSaved(): boolean;
-  setSaved(saved: boolean): void;
+  fileIsNew(): boolean;
   updateContent(content: string): void;
   saveContent(): void;
   getProblems(): IProblemItem[];
@@ -20,10 +20,10 @@ export type FileType = "CellML" | "PDF";
 
 export interface IEditorSystem {
   init(): void;
-  newFile(): boolean;
-  newFileFromTemplate(template: string): boolean;
-  openFile(filepath: string): boolean;
-  openFiles(filepaths: string[]): boolean[];
+  newFile(): IFile;
+  newFileFromTemplate(template: string): IFile;
+  openFile(filepath: string): IFile;
+  openFiles(filepaths: string[]): IFile[];
   closeFile(filepath: string): boolean;
   getFile(filepath: string): IFile;
   getOpenedFiles(): IFile[];
@@ -31,6 +31,7 @@ export interface IEditorSystem {
   saveFile(filepath: string): void;
   updateFileContent(filepath: string, content: string): void;
   fileIsSaved(filepath: string): boolean;
+  fileIsNew(filepath: string): boolean;
 }
 
 export type ProblemSeverity = "warning" | "error" | "info" | "hint";

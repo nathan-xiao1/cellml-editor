@@ -6,7 +6,6 @@ export default class PdfFile implements IFile {
   constructor(filepath: string) {
     this._filepath = filepath;
   }
-
   getFilepath(): string {
     return this._filepath;
   }
@@ -22,8 +21,8 @@ export default class PdfFile implements IFile {
   getSaved(): boolean {
     return true;
   }
-  setSaved(): void {
-    return;
+  fileIsNew(): boolean {
+    return false;
   }
   updateContent(): void {
     return;

@@ -74,7 +74,7 @@ ipcMain.on(IPCChannel.CLOSE_FILE, (event, filepath) => {
 ipcMain.on(IPCChannel.SAVE_FILE, (event, filepath) => {
   if (filepath == undefined) return;
   console.log(`Saving: ${filepath}`);
-  if (editorSystem.fileIsSaved(filepath)) {
+  if (!editorSystem.fileIsNew(filepath)) {
     editorSystem.saveFile(filepath);
   } else {
     dialog

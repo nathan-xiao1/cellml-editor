@@ -33,49 +33,47 @@ export default class EditorSystem implements IEditorSystem {
   }
 
   /*
-    Create a new file that is marked as unsaved
+    Create a new file
   */
-  public newFile(): boolean {
-    const filename = `New-File-${this.unsavedFileIDAcc++}`;
-    this.openedFiles.set(
-      filename,
-      new CellMLFile(filename, this.cellmlParser, false)
-    );
-    return true;
+  public newFile(): IFile {
+    const filename = `Untitled-${this.unsavedFileIDAcc++}`;
+    const file = new CellMLFile(filename, this.cellmlParser, true);
+    this.openedFiles.set(filename, file);
+    return file;
   }
 
-  public newFileFromTemplate(template: string): boolean {
+  public newFileFromTemplate(template: string): IFile {
     if (!templates.has(template)) {
       console.log("Missing Template");
-      return false;
+      return undefined;
     }
-    const filename = `New-File-${this.unsavedFileIDAcc++}`;
-    const file = new CellMLFile(filename, this.cellmlParser, false);
-    this.openedFiles.set(filename, file);
+    const file = this.newFile();
     file.updateContent(templates.get(template));
-    return true;
+    return file;
   }
 
-  public openFile(filepath: string): boolean {
+  public openFile(filepath: string): IFile {
     if (!this.openedFiles.has(filepath)) {
+      // File not opened yet
       const file =
         filepath == CellMLSpecification
           ? new PdfFile(filepath)
           : new CellMLFile(filepath, this.cellmlParser);
       this.openedFiles.set(filepath, file);
       console.log(`Opened: ${filepath}`);
-      return true;
+      return file;
     } else {
-      return false;
+      // File already opened
+      return null;
     }
   }
 
-  public openFiles(filepaths: string[]): boolean[] {
-    const success: boolean[] = [];
+  public openFiles(filepaths: string[]): IFile[] {
+    const files: IFile[] = [];
     for (const filepath of filepaths) {
-      success.push(this.openFile(filepath));
+      files.push(this.openFile(filepath));
     }
-    return success;
+    return files;
   }
 
   public closeFile(filepath: string): boolean {
@@ -112,7 +110,6 @@ export default class EditorSystem implements IEditorSystem {
     if (newFilepath != undefined) {
       this._renameFile(filepath, newFilepath);
     }
-    file.setSaved(true);
     file.saveContent();
   }
 
@@ -121,6 +118,10 @@ export default class EditorSystem implements IEditorSystem {
   }
 
   public fileIsSaved(filepath: string): boolean {
-    return this.openedFiles?.get(filepath).getSaved();
+    return this.openedFiles.get(filepath)?.getSaved();
+  }
+
+  public fileIsNew(filepath: string): boolean {
+    return this.openedFiles.get(filepath)?.fileIsNew();
   }
 }
