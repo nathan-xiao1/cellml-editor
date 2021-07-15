@@ -50,7 +50,14 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
   }
 
   handleContentOnChange(value: string, event: monaco.editor.IModelContentChangedEvent): void {
-    this.contextProvider.update(value);
+    const position = this.editorInstance.getPosition();
+    const textUntilPosition = this.editorInstance.getModel().getValueInRange({
+      startLineNumber: 1,
+      startColumn: 1,
+      endLineNumber: position.lineNumber,
+      endColumn: position.column,
+    })
+    this.contextProvider.update(textUntilPosition);
     autoTagClose(this.contextProvider, this.editorInstance, event);
     this.props.onChangeCallback(value);
   }

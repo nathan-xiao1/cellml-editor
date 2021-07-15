@@ -12,18 +12,7 @@ export default function getCompletionProvider(
 ): monaco.languages.CompletionItemProvider {
   return {
     triggerCharacters: ["<"],
-    provideCompletionItems: function (
-      model: monaco.editor.ITextModel,
-      position: monaco.Position
-    ) {
-      // Get editor content before the pointer
-      const textUntilPosition = model.getValueInRange({
-        startLineNumber: 1,
-        startColumn: 1,
-        endLineNumber: position.lineNumber,
-        endColumn: position.column,
-      });
-
+    provideCompletionItems: function () {
       // Get content info - are we inside of the area where we don't want suggestions,
       if (!contextProvider.isCompletionAvailable) {
         return { suggestions: [] };
@@ -32,7 +21,7 @@ export default function getCompletionProvider(
       // If we want suggestions, inside of which tag are we?
       const lastOpenedTag = contextProvider.lastOpenedTag;
       const lastTag = contextProvider.lastTag;
-      console.log("lastTag: ", lastTag)
+      console.log("lastTag: ", lastTag);
 
       // Autosuggest attributes
       if (lastOpenedTag && contextProvider.isAttributeSearch) {
