@@ -10,6 +10,7 @@ import {
 } from "Types";
 import { Level } from "../parser/ILibcellml";
 import CellMLParser from "../parser/parser";
+import libxmljs from "libxmljs2";
 
 export default class CellMLFile implements IFile {
   private _parser: CellMLParser;
@@ -112,20 +113,59 @@ export default class CellMLFile implements IFile {
     Parse the text using the libCellML parser and update the problem list
   */
   private _parse(content: string): void {
-    const result = this._parser.parse(content);
     const problems: IProblemItem[] = [];
-    [result.hints, result.errors, result.warnings].forEach((type) => {
-      type.forEach((error) => {
-        let level: ProblemSeverity;
-        switch (error.level()) {
-          case Level.ERROR:
-            level = "error";
+    // libXMLjs2 Parser
+    try {
+      const result = libxmljs.parseXmlString(content, { recover: true });
+      result.errors.forEach((error) => {
+        let severity: ProblemSeverity;
+        switch (error.code) {
+          case 0:
+            severity = "info";
             break;
-          case Level.WARNING:
+          case 1:
+            severity = "warning";
+            break;
+          default:
+            severity = "error";
+            break;
+        }
+        problems.push({
+          description: error.message,
+          severity: severity,
+          startColumn: error.column,
+          endColumn: error.column + 1,
+          startLineNumber: error.line,
+          endLineNumber: error.line,
+        });
+      });
+    } catch (error) {
+      problems.push({
+        description:
+          error.message.charAt(0).toUpperCase() + error.message.slice(1),
+        severity: "error",
+        startColumn: 0,
+        endColumn: 0,
+        startLineNumber: 0,
+        endLineNumber: 0,
+      });
+    }
+
+    // libCellML Parser
+    const result = this._parser.parse(content);
+    [result.hints, result.warnings, result.errors].forEach((type) => {
+      type.forEach((error, idx) => {
+        if (error.description().startsWith("LibXml2 error:")) return;
+        let level: ProblemSeverity;
+        switch (idx) {
+          case 0:
+            level = "hint";
+            break;
+          case 1:
             level = "warning";
             break;
-          case Level.HINT:
-            level = "hint";
+          default:
+            level = "error";
             break;
         }
         problems.push({

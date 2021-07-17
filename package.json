@@ -100,6 +100,7 @@
     "cross-env": "^7.0.3",
     "electron-squirrel-startup": "^1.0.0",
     "libcellml.js": "^0.2.0-dev.21",
+    "libxmljs2": "^0.27.0",
     "monaco-editor": "^0.23.0",
     "nedb": "^1.8.0",
     "react": "^17.0.2",

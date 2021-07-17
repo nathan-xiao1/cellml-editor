@@ -157,6 +157,10 @@ export default class Editor extends React.Component<unknown, EditorState> {
     ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_OPENED_FILE);
   }
 
+  getProblems(): IProblemItem[] {
+    return this.state.activeFileProblems;
+  }
+
   render(): React.ReactNode {
     const activeFilepath: string = this.getActiveFilepath();
     return (
@@ -186,6 +190,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                     }
                     filepath={activeFilepath}
                     defaultValue={this.getDefaultContent(activeFilepath)}
+                    getProblems={this.getProblems.bind(this)}
                     onMountCallback={this.monacoOnMountCallback.bind(this)}
                     onChangeCallback={this.monacoOnChangeCallback.bind(this)}
                   />
