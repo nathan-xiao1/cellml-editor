@@ -21,7 +21,7 @@ export default function getCompletionProvider(
       // If we want suggestions, inside of which tag are we?
       const lastOpenedTag = contextProvider.lastOpenedTag;
       const lastTag = contextProvider.lastTag;
-      console.log("lastTag: ", lastTag);
+      console.debug("lastTag: ", lastTag);
 
       // Autosuggest attributes
       if (lastOpenedTag && contextProvider.isAttributeSearch) {
@@ -61,7 +61,7 @@ export default function getCompletionProvider(
       const schemaTag = findElement2(lastTag);
       const nextTagContext = contextProvider.tagContext;
       if (schemaTag) {
-        console.log("schemaTag: ", schemaTag);
+        console.debug("schemaTag: ", schemaTag);
         const suggestions: monaco.languages.CompletionItem[] = [];
         if (nextTagContext == TagContextType.IN_CLOSE_TAG) {
           if (lastOpenedTag) {
@@ -109,7 +109,7 @@ export default function getCompletionProvider(
   in the editor.
 */
 function findElement(openedTags: string[]): IElement {
-  console.log("openedTags: ", openedTags);
+  console.debug("openedTags: ", openedTags);
   if (openedTags.length == 0) return CellMLSchema.get("root");
   let currentSchema: IElement = CellMLSchema.get("root");
   for (let i = 0; i < openedTags.length; i++) {

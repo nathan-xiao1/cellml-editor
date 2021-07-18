@@ -102,8 +102,6 @@ export default class Editor extends React.Component<unknown, EditorState> {
   */
   closeFile(filepath: string): void {
     this.initialisedFiles.delete(filepath);
-    console.log(this.monaco.Uri.parse(filepath));
-    console.log(this.monaco.editor.getModels());
     this.monaco?.editor.getModel(this.monaco.Uri.parse(filepath)).dispose();
     ipcRenderer.send(IPCChannel.CLOSE_FILE, filepath);
   }
@@ -114,10 +112,10 @@ export default class Editor extends React.Component<unknown, EditorState> {
   */
   getDefaultContent(filepath: string): string {
     if (this.initialisedFiles.has(filepath)) {
-      console.log(`${filepath} already initialised`);
+      console.debug(`${filepath} already initialised`);
       return null;
     }
-    console.log(`${filepath} not initialised`);
+    console.debug(`${filepath} not initialised`);
     this.initialisedFiles.add(filepath);
     return ipcRenderer.sendSync(
       IPCChannel.GET_FILE_CONTENT,
@@ -157,10 +155,6 @@ export default class Editor extends React.Component<unknown, EditorState> {
     ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_OPENED_FILE);
   }
 
-  getProblems(): IProblemItem[] {
-    return this.state.activeFileProblems;
-  }
-
   render(): React.ReactNode {
     const activeFilepath: string = this.getActiveFilepath();
     return (
@@ -190,7 +184,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                     }
                     filepath={activeFilepath}
                     defaultValue={this.getDefaultContent(activeFilepath)}
-                    getProblems={this.getProblems.bind(this)}
+                    problems={this.state.activeFileProblems}
                     onMountCallback={this.monacoOnMountCallback.bind(this)}
                     onChangeCallback={this.monacoOnChangeCallback.bind(this)}
                   />

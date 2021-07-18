@@ -1,6 +1,5 @@
 import monaco from "monaco-editor";
 import { IContextProvider } from "Types";
-import { TagContextType } from "./ContextProvider";
 
 export default function onDidChangeTextDocument(
   contextProvider: IContextProvider,
@@ -26,10 +25,11 @@ export default function onDidChangeTextDocument(
     startLineNumber: lastChange.range.startLineNumber,
     endLineNumber: lastChange.range.endLineNumber,
     startColumn: lastChange.range.startColumn + 1,
-    endColumn: lastChange.range.endColumn + text.length + 1,
+    endColumn: lastChange.range.endColumn + 1,
   };
   editor.executeEdits("auto-tag-close", [
     {
+      forceMoveMarkers: true,
       text: text,
       range: range,
     },

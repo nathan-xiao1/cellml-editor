@@ -19,7 +19,7 @@ interface TEProps {
   hidden?: boolean;
   filepath: string;
   defaultValue: string;
-  getProblems: () => IProblemItem[];
+  problems: IProblemItem[];
   onMountCallback?: () => void;
   onChangeCallback?: (content: string) => void;
 }
@@ -48,7 +48,7 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
     monacoInstance.languages.registerHoverProvider(CellMLID, CellMLHoverProvider);
     monacoInstance.languages.registerDocumentFormattingEditProvider(CellMLID, CellMLFormattingProvider);
     monacoInstance.editor.onDidCreateModel((model) => {
-      this.highlightErrors(model);
+      this.highlightErrors(this.props.problems, model);
     })
   }
 
@@ -68,19 +68,19 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
       startLineNumber: 1,
       startColumn: 1,
       endLineNumber: position.lineNumber,
-      endColumn: position.column,
+      endColumn: position.column + 1,
     });
     this.contextProvider.update(textUntilPosition);
-    autoTagClose(this.contextProvider, this.editorInstance, event);
     this.props.onChangeCallback(value);
-    this.highlightErrors();
+    autoTagClose(this.contextProvider, this.editorInstance, event);
   }
 
-  highlightErrors(model?: monaco.editor.ITextModel): void {
-    const errors = this.props.getProblems();
+  highlightErrors(
+    errors: IProblemItem[],
+    model?: monaco.editor.ITextModel
+  ): void {
     const markers: monaco.editor.IMarkerData[] = [];
     errors.forEach((error) => {
-      console.log(error.severity);
       let severity;
       switch (error.severity) {
         case "hint":
@@ -105,11 +105,15 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
         endLineNumber: error.endLineNumber,
       });
     });
-    this.monacoInstance.editor.setModelMarkers(
+    this.monacoInstance?.editor.setModelMarkers(
       model ? model : this.editorInstance.getModel(),
       CellMLID,
       markers
     );
+  }
+
+  componentDidUpdate(): void {
+    this.highlightErrors(this.props.problems);
   }
 
   render(): React.ReactNode {
