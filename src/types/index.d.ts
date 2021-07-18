@@ -1,4 +1,5 @@
 import { TagContextType } from "./renderer/components/TextEditor/definitions/ContextProvider";
+export * from "./ILibcellml" 
 
 export interface IFile {
   getFilepath(): string;

@@ -1,5 +1,5 @@
 import { IEditorSystem, IFile } from "Types";
-import CellMLParser from "../parser/parser";
+import CellMLParser from "../parser/Parser";
 import CellMLFile from "./CellMLFile";
 import PdfFile from "./PdfFile";
 import { templates } from "./Templates";
@@ -13,7 +13,7 @@ export default class EditorSystem implements IEditorSystem {
 
   public async init(): Promise<void> {
     this.cellmlParser = new CellMLParser();
-    return await this.cellmlParser.init();
+    return this.cellmlParser.init();
   }
 
   /*

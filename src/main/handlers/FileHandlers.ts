@@ -1,5 +1,5 @@
 import { ipcMain, dialog } from "electron";
-import { CellMLSpecification } from "src/data/EditorSystem";
+import { CellMLSpecification } from "src/main/data/EditorSystem";
 import { editorSystem } from "../index";
 import IPCChannel from "./IpcChannels";
 

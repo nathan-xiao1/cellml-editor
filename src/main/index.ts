@@ -1,6 +1,6 @@
 import { app, BrowserWindow } from "electron";
 import Datastore from "nedb";
-import EditorSystem from "../data/EditorSystem";
+import EditorSystem from "./data/EditorSystem";
 import { loadState, saveState } from "./utils";
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 
@@ -16,14 +16,14 @@ db.ensureIndex({ fieldName: "id", unique: true });
 // Load state from db after init
 editorSystem.init().then(() => {
   console.log("Loading state");
-  loadState(db, editorSystem);
+  // loadState(db, editorSystem);
 });
 
-// Save state to db on quit
-app.on("will-quit", async () => {
-  console.log("Saving state");
-  saveState(db, editorSystem);
-});
+// // Save state to db on quit
+// app.on("will-quit", async () => {
+//   console.log("Saving state");
+//   saveState(db, editorSystem);
+// });
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {

@@ -1,5 +1,5 @@
 import Nedb from "nedb";
-import EditorSystem from "src/data/EditorSystem";
+import EditorSystem from "src/main/data/EditorSystem";
 import { IFile } from "Types";
 
 const enum ID {

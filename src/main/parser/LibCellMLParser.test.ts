@@ -1,17 +1,17 @@
-import LibCellMLParser from "./parser";
-import { Issue } from './ILibcellml';
- 
-const printIssues = (issues : Issue[]) : void => {
-    for (let i = 0; i < issues.length; i++) {
-        console.log('Issue: '+ issues[i].description());
-    }
-}
+import LibCellMLParser from "./LibCellMLParser";
+import { Issue } from "Types";
 
-describe('CellML parser testing', () => {
-    const parser = new LibCellMLParser();
-    
-    test('parsing valid CellML 2.0', async () => {
-        const valid = `<?xml version="1.0" encoding="UTF-8"?>
+const printIssues = (issues: Issue[]): void => {
+  for (let i = 0; i < issues.length; i++) {
+    console.log("Issue: " + issues[i].description());
+  }
+};
+
+describe("CellML parser testing", () => {
+  const parser = new LibCellMLParser();
+
+  test("parsing valid CellML 2.0", async () => {
+    const valid = `<?xml version="1.0" encoding="UTF-8"?>
             <model xmlns="http://www.cellml.org/cellml/2.0#" 
               xmlns:cellml="http://www.cellml.org/cellml/2.0#" 
               xmlns:xlink="http://www.w3.org/1999/xlink" 
@@ -32,20 +32,20 @@ describe('CellML parser testing', () => {
                 </component_ref>
               </encapsulation>
             </model>`;
-        await parser.init();
-        expect(parser.print() === "");
-        const res = parser.parse(valid);
-        expect(res.model).toBeTruthy();
-        expect(res.errors.length === 0).toEqual(true);
-        expect(res.warnings.length === 0).toEqual(true);
-        expect(res.hints.length == 0).toEqual(true);
-        // console.log(res);
-        // const output = parser.print();
-        // console.log(output);
-    });
-    
-    test('parsing invalid CellML', async () => {
-        const invalid = `<?xml version="1.0" encoding="UTF-8"?>
+    await parser.init();
+    expect(parser.print() === "");
+    const res = parser.parse(valid);
+    expect(res.model).toBeTruthy();
+    expect(res.errors.length === 0).toEqual(true);
+    expect(res.warnings.length === 0).toEqual(true);
+    expect(res.hints.length == 0).toEqual(true);
+    // console.log(res);
+    // const output = parser.print();
+    // console.log(output);
+  });
+
+  test("parsing invalid CellML", async () => {
+    const invalid = `<?xml version="1.0" encoding="UTF-8"?>
             <model xmlns="http://www.cellml.org/cellml/2.0#" 
               xmlns:cellml="http://www.cellml.org/cellml/2.0#" 
               xmlns:xlink="http://www.w3.org/1999/xlink" 
@@ -66,18 +66,18 @@ describe('CellML parser testing', () => {
                 </component_ref>
               
             </model>`;
-        // await parser.init();
-        // expect(parser.print() === "");
-        const res = parser.parse(invalid);
-        expect(res.model).toBeTruthy();
-        // printIssues(res.errors);
-        // printIssues(res.warnings);
-        // printIssues(res.hints);
-        expect(res.errors.length !== 0).toEqual(true);
-        // expect(res.warnings.length !== 0).toEqual(true);
-        // expect(res.hints.length == 0);
-        // console.log(res);
-        // const output = parser.print();
-        // console.log(output);
-    });
+    // await parser.init();
+    // expect(parser.print() === "");
+    const res = parser.parse(invalid);
+    expect(res.model).toBeTruthy();
+    // printIssues(res.errors);
+    // printIssues(res.warnings);
+    // printIssues(res.hints);
+    expect(res.errors.length !== 0).toEqual(true);
+    // expect(res.warnings.length !== 0).toEqual(true);
+    // expect(res.hints.length == 0);
+    // console.log(res);
+    // const output = parser.print();
+    // console.log(output);
+  });
 });
