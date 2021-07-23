@@ -1,13 +1,13 @@
 import fs from "fs";
 import IPCChannel from "IPCChannels";
 import { webContents } from "electron";
-import { IProblemItem, IFile, IFileState, FileType } from "Types";
+import { IProblemItem, IFile, IFileState, FileType, IDOM } from "Types";
 import CellMLParser from "../parser/Parser";
 
 export default class CellMLFile implements IFile {
   private _parser: CellMLParser;
   private _filepath: string;
-  private _dom: null; // Placeholder for DOM representation of model
+  private _dom: IDOM;
   private _content: string;
   private _problems: IProblemItem[];
   private _saved: boolean;
@@ -86,6 +86,7 @@ export default class CellMLFile implements IFile {
   */
   public getState(): IFileState {
     return {
+      dom: this._dom,
       fileType: this.getType(),
       filepath: this._filepath,
       problems: this.getProblems(),
@@ -105,8 +106,9 @@ export default class CellMLFile implements IFile {
     Parse the text and update the problem list
   */
   private _parse(content: string): void {
-    const problems = this._parser.parse(content);
-    this.updateProblems(problems);
+    const result = this._parser.parse(content);
+    this._dom = result.dom;
+    this.updateProblems(result.problems);
   }
 
   getType(): FileType {

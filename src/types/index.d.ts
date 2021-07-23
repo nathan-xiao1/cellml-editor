@@ -1,5 +1,5 @@
 import { TagContextType } from "./renderer/components/TextEditor/definitions/ContextProvider";
-export * from "./ILibcellml" 
+export * from "./ILibcellml";
 
 export interface IFile {
   getFilepath(): string;
@@ -48,6 +48,7 @@ export interface IProblemItem {
 }
 
 export interface IFileState {
+  dom: IDOM;
   fileType: string;
   filepath: string;
   problems: IProblemItem[];
@@ -61,4 +62,21 @@ export interface IContextProvider {
   readonly tagContext: TagContextType;
   readonly lastTag: string;
   update(content: string): void;
+}
+
+export interface IDOM {
+  id: number;
+  name: string;
+  lineNumber: number;
+  children: IDOM[];
+}
+
+export interface IParserResult {
+  dom: IDOM;
+  problems: IProblemItem[];
+}
+
+export interface IParser {
+  init();
+  parse(content: string): ParserResult;
 }

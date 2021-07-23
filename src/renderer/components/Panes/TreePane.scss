@@ -1,0 +1,24 @@
+@use '../../theme/theme-dark.scss' as theme;
+
+.tree-pane {
+  margin-left: 8px;
+
+  .MuiTreeItem-label {
+    font-family: "Segoe UI";
+    text-align: left;
+    font-size: 11px;
+  }
+
+  .MuiTreeItem-group {
+    margin-left: 7px;
+    padding-left: 2px;
+    border-left: 1px dashed lighten(theme.$primary, 20%);
+  }
+
+  .MuiTreeItem-iconContainer {
+    margin: 0;
+    &:empty {
+      width: 10px;
+    }
+  }
+}

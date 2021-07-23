@@ -1,4 +1,4 @@
-import React from "react";
+import React, { createRef } from "react";
 import IPCChannel from "IPCChannels";
 import { ipcRenderer } from "electron";
 import { loader, Monaco } from "@monaco-editor/react";
@@ -12,17 +12,20 @@ import ProblemPane from "./Panes/ProblemPane";
 import TextEditor from "./TextEditor/TextEditor";
 import TitleMenuBar from "./TitleMenuBar/TitleMenuBar";
 import PdfViewer from "./PdfViewer/PdfViewer";
-import { FileType, IFileState, IProblemItem } from "Types";
+import { FileType, IDOM, IFileState, IProblemItem } from "Types";
+import TreePane from "./Panes/TreePane";
 
 interface EditorState {
   openedFilepaths: string[];
   activeFileIndex: number;
   activeFileProblems: IProblemItem[];
   activeFileType: FileType;
+  activeFileDOM: IDOM;
 }
 
 export default class Editor extends React.Component<unknown, EditorState> {
   private initialisedFiles: Set<string>;
+  private textEditorRef = createRef<TextEditor>();
   private monaco: Monaco;
 
   constructor(props: unknown) {
@@ -33,6 +36,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
       activeFileIndex: -1,
       activeFileProblems: [],
       activeFileType: undefined,
+      activeFileDOM: undefined,
     };
 
     // Set listener to update openedFile state
@@ -53,6 +57,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
       (_, fileState: IFileState) => {
         if (fileState.filepath == this.getActiveFilepath()) {
           this.setState(() => ({
+            activeFileDOM: fileState.dom,
             activeFileProblems: fileState.problems,
           }));
         }
@@ -85,6 +90,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
         .invoke(IPCChannel.GET_FILE_STATE_ASYNC, newActiveFile)
         .then((fileState: IFileState) => {
           this.setState({
+            activeFileDOM: fileState.dom,
             activeFileIndex: index,
             activeFileProblems: fileState.problems,
             activeFileType: fileState.fileType as FileType,
@@ -151,6 +157,10 @@ export default class Editor extends React.Component<unknown, EditorState> {
       });
   }
 
+  domTreeClickHandler(lineNum: number): void {
+    this.textEditorRef.current?.goToLine(lineNum);
+  }
+
   componentWillUnmount(): void {
     ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_OPENED_FILE);
   }
@@ -163,7 +173,24 @@ export default class Editor extends React.Component<unknown, EditorState> {
         <div className="editor-container primary-bg primary-text">
           <ReflexContainer orientation="vertical" windowResizeAware={true}>
             <ReflexElement className="pane-left" minSize={150} flex={0.15}>
-              Left
+              <ReflexContainer orientation="horizontal">
+                <ReflexElement className="pane-left-top">
+                  Left Top
+                </ReflexElement>
+                <ReflexSplitter className="primary-splitter splitter" />
+                <ReflexElement
+                  className="pane-left-bottom"
+                  minSize={50}
+                  flex={0.4}
+                >
+                  <Pane title="Tree View">
+                    <TreePane
+                      dom={this.state.activeFileDOM}
+                      onClickHandler={this.domTreeClickHandler.bind(this)}
+                    />
+                  </Pane>
+                </ReflexElement>
+              </ReflexContainer>
             </ReflexElement>
             <ReflexSplitter className="primary-splitter splitter" />
             <ReflexElement className="pane-middle">
@@ -178,6 +205,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                 </ReflexElement>
                 <ReflexElement className="pane-middle-top primary-bg-dark">
                   <TextEditor
+                    ref={this.textEditorRef}
                     hidden={
                       this.state.openedFilepaths.length == 0 ||
                       this.state.activeFileType != "CellML"
@@ -192,13 +220,15 @@ export default class Editor extends React.Component<unknown, EditorState> {
                     hidden={
                       this.state.openedFilepaths.length == 0 ||
                       this.state.activeFileType != "PDF"
-                    }></PdfViewer>
+                    }
+                  ></PdfViewer>
                 </ReflexElement>
                 <ReflexSplitter className="primary-splitter splitter" />
                 <ReflexElement
                   className="pane-middle-bottom"
                   minSize={50}
-                  flex={0.25}>
+                  flex={0.25}
+                >
                   <Pane title="Problem">
                     <ProblemPane problems={this.state.activeFileProblems} />
                   </Pane>

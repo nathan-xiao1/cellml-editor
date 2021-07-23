@@ -1,22 +1,33 @@
 import LibCellMLParser from "./LibCellMLParser";
 import libxmljs from "libxmljs2";
-import { IProblemItem, ProblemSeverity } from "Types";
+import {
+  IDOM,
+  IParser,
+  IParserResult,
+  IProblemItem,
+  ProblemSeverity,
+} from "Types";
 
-export default class Parser {
+export default class Parser implements IParser {
   private cellMLParser: LibCellMLParser;
+  private id: number;
 
   async init(): Promise<void> {
+    this.id = 0;
     this.cellMLParser = new LibCellMLParser();
     return this.cellMLParser.init();
   }
 
-  parse(content: string): IProblemItem[] {
+  parse(content: string): IParserResult {
     if (!this.cellMLParser)
       throw Error("Must call and await init() before parsing");
     const problems: IProblemItem[] = [];
     // libXMLjs2 Parser
+    let dom: IDOM;
     try {
       const result = libxmljs.parseXmlString(content, { recover: true });
+      this.id = 0;
+      dom = this.libxmljsToIDOM(result.root(), true);
       result.errors.forEach((error) => {
         let severity: ProblemSeverity;
         switch (error.code) {
@@ -40,6 +51,7 @@ export default class Parser {
         });
       });
     } catch (error) {
+      dom = null;
       problems.push({
         description:
           error.message.charAt(0).toUpperCase() + error.message.slice(1),
@@ -78,7 +90,24 @@ export default class Parser {
         });
       });
     });
+    return {
+      dom: dom,
+      problems: problems,
+    };
+  }
 
-    return problems;
+  private libxmljsToIDOM(root: libxmljs.Element, isRealRoot?: boolean): IDOM {
+    if (root.type() !== "element") return null;
+    const children: IDOM[] = [];
+    for (const node of root.childNodes()) {
+      const s = this.libxmljsToIDOM(node as libxmljs.Element);
+      if (s) children.push(s);
+    }
+    return {
+      id: isRealRoot ? -1 : this.id++,
+      name: root.name(),
+      lineNumber: root.line(),
+      children: children,
+    };
   }
 }

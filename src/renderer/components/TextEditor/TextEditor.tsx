@@ -112,6 +112,15 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
     );
   }
 
+  goToLine(lineNum: number): void {
+    this.editorInstance.focus();
+    this.editorInstance.revealLineInCenter(lineNum);
+    this.editorInstance.setPosition({
+      lineNumber: lineNum,
+      column: this.editorInstance.getModel().getLineLength(lineNum) + 1,
+    });
+  }
+
   componentDidUpdate(): void {
     this.highlightErrors(this.props.problems);
   }
