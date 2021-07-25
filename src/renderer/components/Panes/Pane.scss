@@ -15,6 +15,10 @@
     font-weight: bold;
     text-transform: uppercase;
     text-overflow: ellipsis;
+    &.no-icon {
+      margin-top: 5px;
+      margin-left: 6px;
+    }
   }
 
   .pane-header-expand-btn {

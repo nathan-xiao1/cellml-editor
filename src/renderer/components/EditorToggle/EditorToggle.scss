@@ -1,0 +1,19 @@
+@use '../../theme/theme-dark.scss' as theme;
+
+.view-toggle-button {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: Transparent;
+  background-repeat: no-repeat;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  outline: none;
+  color: theme.$primary-text-secondary;
+  .view-toggle-text {
+      font-size: 11px;
+      font-weight: 600;
+      margin: 0 0 0 4px;
+  }
+}

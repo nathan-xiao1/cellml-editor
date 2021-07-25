@@ -15,7 +15,10 @@ import PdfViewer from "./PdfViewer/PdfViewer";
 import { FileType, IDOM, IFileState, IProblemItem } from "Types";
 import TreePane from "./Panes/TreePane";
 
+type Mode = "text" | "graphical";
+
 interface EditorState {
+  currentMode: Mode;
   openedFilepaths: string[];
   activeFileIndex: number;
   activeFileProblems: IProblemItem[];
@@ -32,6 +35,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
     super(props);
     this.initialisedFiles = new Set();
     this.state = {
+      currentMode: "text",
       openedFilepaths: [],
       activeFileIndex: -1,
       activeFileProblems: [],
@@ -157,6 +161,15 @@ export default class Editor extends React.Component<unknown, EditorState> {
       });
   }
 
+  /*
+    Toggle between the Monaco text editor and the graphical editor view
+  */
+  toggleEditorView(): void {
+    this.setState((prevState) => ({
+      currentMode: prevState.currentMode == "text" ? "graphical" : "text",
+    }));
+  }
+
   domTreeClickHandler(lineNum: number): void {
     this.textEditorRef.current?.goToLine(lineNum);
   }
@@ -174,16 +187,16 @@ export default class Editor extends React.Component<unknown, EditorState> {
           <ReflexContainer orientation="vertical" windowResizeAware={true}>
             <ReflexElement className="pane-left" minSize={150} flex={0.15}>
               <ReflexContainer orientation="horizontal">
-                <ReflexElement className="pane-left-top">
-                  Left Top
+                <ReflexElement className="pane-left-top" minSize={25}>
+                  <Pane title="Left Top" collapsible={false}></Pane>
                 </ReflexElement>
                 <ReflexSplitter className="primary-splitter splitter" />
                 <ReflexElement
                   className="pane-left-bottom"
-                  minSize={50}
+                  minSize={25}
                   flex={0.4}
                 >
-                  <Pane title="Tree View">
+                  <Pane title="Tree View" collapsible={false}>
                     <TreePane
                       dom={this.state.activeFileDOM}
                       onClickHandler={this.domTreeClickHandler.bind(this)}
@@ -201,6 +214,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                     activeFileIndex={this.state.activeFileIndex}
                     onTabClick={this.setActiveFile.bind(this)}
                     onTabClose={this.closeFile.bind(this)}
+                    onViewToggle={this.toggleEditorView.bind(this)}
                   />
                 </ReflexElement>
                 <ReflexElement className="pane-middle-top primary-bg-dark">
@@ -208,7 +222,8 @@ export default class Editor extends React.Component<unknown, EditorState> {
                     ref={this.textEditorRef}
                     hidden={
                       this.state.openedFilepaths.length == 0 ||
-                      this.state.activeFileType != "CellML"
+                      this.state.activeFileType == "PDF" ||
+                      this.state.currentMode != "text"
                     }
                     filepath={activeFilepath}
                     defaultValue={this.getDefaultContent(activeFilepath)}
@@ -226,7 +241,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                 <ReflexSplitter className="primary-splitter splitter" />
                 <ReflexElement
                   className="pane-middle-bottom"
-                  minSize={50}
+                  minSize={25}
                   flex={0.25}
                 >
                   <Pane title="Problem">
@@ -237,7 +252,19 @@ export default class Editor extends React.Component<unknown, EditorState> {
             </ReflexElement>
             <ReflexSplitter className="primary-splitter splitter" />
             <ReflexElement className="pane-right" minSize={150} flex={0.15}>
-              Right
+              <ReflexContainer orientation="horizontal">
+                <ReflexElement className="pane-right-top" minSize={25}>
+                  <Pane title="Math View" collapsible={false}></Pane>
+                </ReflexElement>
+                <ReflexSplitter className="primary-splitter splitter" />
+                <ReflexElement
+                  className="pane-right-bottom"
+                  minSize={25}
+                  flex={0.4}
+                >
+                  <Pane title="Right Bottom" collapsible={false}></Pane>
+                </ReflexElement>
+              </ReflexContainer>
             </ReflexElement>
           </ReflexContainer>
         </div>
