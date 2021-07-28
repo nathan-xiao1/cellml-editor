@@ -56,6 +56,32 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
     editorInstance: monaco.editor.IStandaloneCodeEditor
   ): void {
     this.editorInstance = editorInstance;
+    // set up handler to check cursor position
+    this.editorInstance.onDidChangeCursorPosition((event) => {
+      // Do things
+      // console.log(JSON.stringify(event));
+      const model = this.editorInstance.getModel();
+      const offset = model.getOffsetAt(event.position);
+      console.log("Offset: " + offset.toString());
+
+      const open = model.findPreviousMatch('<math xmlns="http://www.w3.org/1998/Math/MathML">', event.position, false, false, null, false);
+      const close = model.findNextMatch('</math>', event.position, false, false, null, false);
+      // console.log(open);
+      // console.log(close);
+      
+      try {
+        if (open.range.endLineNumber < close.range.endLineNumber || (open.range.endLineNumber == close.range.endLineNumber && open.range.endColumn < close.range.endColumn)) {
+          const total = open.range.setEndPosition(close.range.endLineNumber, close.range.endColumn);
+          // console.log(total);
+          const mathstr = model.getValueInRange(total);
+          console.log(mathstr);
+        } else {
+          console.log('Nearest math element not found!');
+        }
+      } catch {
+        console.log('Nearest math element not found!');
+      }
+    });
     this.props.onMountCallback();
   }
 
