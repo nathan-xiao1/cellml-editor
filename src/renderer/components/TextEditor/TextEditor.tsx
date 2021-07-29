@@ -79,6 +79,7 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
     errors: IProblemItem[],
     model?: monaco.editor.ITextModel
   ): void {
+    if (!errors) return;
     const markers: monaco.editor.IMarkerData[] = [];
     errors.forEach((error) => {
       let severity;

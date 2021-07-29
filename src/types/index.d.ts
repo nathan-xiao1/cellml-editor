@@ -19,6 +19,8 @@ export interface IFile {
 
 export type FileType = "CellML" | "PDF";
 
+export type ViewMode = "text" | "graphical"
+
 export interface IEditorSystem {
   init(): void;
   newFile(): IFile;
@@ -60,6 +62,7 @@ export interface IContextProvider {
   readonly lastOpenedTag: string;
   readonly isAttributeSearch: boolean;
   readonly tagContext: TagContextType;
+  readonly tagContextPrev: TagContextType;
   readonly lastTag: string;
   update(content: string): void;
 }

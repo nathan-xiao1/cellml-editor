@@ -9,21 +9,17 @@
   padding: 3px 8px;
   font-size: 12px;
   color: theme.$primary-text-secondary;
-  background-color: darken(theme.$primary, 1%);
-
-  .problem-item-title {
-    text-transform: capitalize;
-  }
+  background-color: darken(theme.$primary, 0.5%);
 }
 
 .info-item, .hint-item {
-  border-left: 2px solid rgba(#fff, 0.6);
+  border-left: 1px solid rgba(#fff, 0.4);
 }
 
 .error-item {
-  border-left: 2px solid rgba(theme.$error, 0.6);
+  border-left: 1px solid rgba(theme.$error, 0.6);
 }
 
 .warning-item {
-  border-left: 2px solid rgba(theme.$warning, 0.6);
+  border-left: 1px solid rgba(theme.$warning, 0.6);
 }

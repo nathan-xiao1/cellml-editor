@@ -21,6 +21,11 @@ export default class Parser implements IParser {
   parse(content: string): IParserResult {
     if (!this.cellMLParser)
       throw Error("Must call and await init() before parsing");
+    if (!content)
+      return {
+        dom: null,
+        problems: [],
+      };
     const problems: IProblemItem[] = [];
     // libXMLjs2 Parser
     let dom: IDOM;
@@ -42,7 +47,7 @@ export default class Parser implements IParser {
             break;
         }
         problems.push({
-          description: error.message,
+          description: ensureCapital(error.message),
           severity: severity,
           startColumn: error.column,
           endColumn: error.column + 1,
@@ -53,8 +58,7 @@ export default class Parser implements IParser {
     } catch (error) {
       dom = null;
       problems.push({
-        description:
-          error.message.charAt(0).toUpperCase() + error.message.slice(1),
+        description: ensureCapital(error.message),
         severity: "error",
         startColumn: 0,
         endColumn: 0,
@@ -62,7 +66,7 @@ export default class Parser implements IParser {
         endLineNumber: 0,
       });
     }
-
+    
     // libCellML Parser
     const result = this.cellMLParser.parse(content);
     [result.hints, result.warnings, result.errors].forEach((type) => {
@@ -71,8 +75,6 @@ export default class Parser implements IParser {
         let level: ProblemSeverity;
         switch (idx) {
           case 0:
-            level = "hint";
-            break;
           case 1:
             level = "warning";
             break;
@@ -81,7 +83,7 @@ export default class Parser implements IParser {
             break;
         }
         problems.push({
-          description: error.description(),
+          description: ensureCapital(error.description()),
           severity: level,
           startColumn: 0,
           endColumn: 0,
@@ -110,4 +112,8 @@ export default class Parser implements IParser {
       children: children,
     };
   }
+}
+
+function ensureCapital(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }

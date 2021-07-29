@@ -101,6 +101,13 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
                     click: () =>
                       ipcRenderer.send(IPCChannel.OPEN_CELLML_DOCUMENTATION),
                   },
+                  {type: "separator"},
+                  {
+                    label: "Force Reload Window",
+                    click: () => {
+                      ipcRenderer.send(IPCChannel.FORCE_RELOAD_WINDOW)
+                    }
+                  }
                 ],
               },
             ]}

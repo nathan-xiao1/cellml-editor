@@ -13,6 +13,7 @@ export default class ContextProvider implements IContextProvider {
   private _lastOpenedTag: string;
   private _isAttributeSearch: boolean;
   private _tagContext: TagContextType;
+  private _tagContextPrev: TagContextType;
   private _lastTag: string;
 
   public get isCompletionAvailable(): boolean {
@@ -35,12 +36,17 @@ export default class ContextProvider implements IContextProvider {
     return this._tagContext;
   }
 
+  public get tagContextPrev(): TagContextType {
+    return this._tagContextPrev;
+  }
+
   public get lastTag(): string {
     return this._lastTag;
   }
 
   update(content: string): void {
     const areaInfo = _getAreaInfo(content);
+    this._tagContextPrev = this._tagContext;
     this._tagContext = _getTagContext(content);
     this._lastOpenedTag = _getLastOpenedTag(content)?.tagName;
     this._isCompletionAvailable = areaInfo.isCompletionAvailable;
@@ -118,7 +124,7 @@ function _getLastOpenedTag(text: string): {
 }
 
 function _getTagContext(text: string): TagContextType {
-  const match = text.match(/(<\/?|>)[^]*$/)?.[1];
+  const match = text.match(/(<\/?|>)[^</>]*$/)?.[1];
   if (!match) return TagContextType.NOT_IN_TAG;
   switch (match) {
     case "<":

@@ -12,13 +12,11 @@ import ProblemPane from "./Panes/ProblemPane";
 import TextEditor from "./TextEditor/TextEditor";
 import TitleMenuBar from "./TitleMenuBar/TitleMenuBar";
 import PdfViewer from "./PdfViewer/PdfViewer";
-import { FileType, IDOM, IFileState, IProblemItem } from "Types";
+import { FileType, IDOM, IFileState, IProblemItem, ViewMode } from "Types";
 import TreePane from "./Panes/TreePane";
 
-type Mode = "text" | "graphical";
-
 interface EditorState {
-  currentMode: Mode;
+  currentMode: ViewMode;
   openedFilepaths: string[];
   activeFileIndex: number;
   activeFileProblems: IProblemItem[];
@@ -46,11 +44,29 @@ export default class Editor extends React.Component<unknown, EditorState> {
     // Set listener to update openedFile state
     ipcRenderer.on(IPCChannel.RENDERER_UPDATE_OPENED_FILE, (_, arg) => {
       this.setState(
-        {
-          openedFilepaths: arg,
+        (prevState) => {
+          let newActiveFileIndex: number;
+          if (
+            arg.length > 0 &&
+            arg.length <= prevState.openedFilepaths.length &&
+            prevState.activeFileIndex >= 0 &&
+            prevState.activeFileIndex <= arg.length - 1
+          ) {
+            newActiveFileIndex = prevState.activeFileIndex;
+          } else {
+            newActiveFileIndex = arg.length - 1;
+          }
+          return {
+            openedFilepaths: arg,
+            activeFileIndex: newActiveFileIndex,
+          };
         },
         () => {
-          this.setActiveFile(arg.length - 1);
+          if (arg.activeFileIndex) {
+            this.setActiveFile(arg.activeFileIndex);
+          } else {
+            this.setActiveFile(this.state.activeFileIndex);
+          }
         }
       );
     });
@@ -102,7 +118,8 @@ export default class Editor extends React.Component<unknown, EditorState> {
         });
     } else {
       this.setState({
-        activeFileProblems: [],
+        activeFileDOM: undefined,
+        activeFileProblems: undefined,
       });
     }
   }
@@ -164,9 +181,9 @@ export default class Editor extends React.Component<unknown, EditorState> {
   /*
     Toggle between the Monaco text editor and the graphical editor view
   */
-  toggleEditorView(): void {
-    this.setState((prevState) => ({
-      currentMode: prevState.currentMode == "text" ? "graphical" : "text",
+  toggleEditorView(mode: ViewMode): void {
+    this.setState(() => ({
+      currentMode: mode,
     }));
   }
 
@@ -212,9 +229,13 @@ export default class Editor extends React.Component<unknown, EditorState> {
                   <Header
                     openedFiles={this.state.openedFilepaths}
                     activeFileIndex={this.state.activeFileIndex}
+                    showToggle={
+                      this.state.openedFilepaths.length > 0 &&
+                      this.state.activeFileType != "PDF"
+                    }
                     onTabClick={this.setActiveFile.bind(this)}
                     onTabClose={this.closeFile.bind(this)}
-                    onViewToggle={this.toggleEditorView.bind(this)}
+                    toggleViewMode={this.toggleEditorView.bind(this)}
                   />
                 </ReflexElement>
                 <ReflexElement className="pane-middle-top primary-bg-dark">
