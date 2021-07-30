@@ -98,6 +98,7 @@
     "@types/nedb": "^1.8.12",
     "@types/pdfjs-dist": "^2.7.3",
     "@types/react-pdf": "^5.0.4",
+    "@vscode/codicons": "0.0.20",
     "cross-env": "^7.0.3",
     "electron-squirrel-startup": "^1.0.0",
     "libcellml.js": "^0.2.0-dev.21",

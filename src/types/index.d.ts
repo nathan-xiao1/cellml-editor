@@ -70,6 +70,7 @@ export interface IContextProvider {
 export interface IDOM {
   id: number;
   name: string;
+  altName?: string;
   lineNumber: number;
   children: IDOM[];
 }

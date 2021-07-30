@@ -66,7 +66,7 @@ export default class Parser implements IParser {
         endLineNumber: 0,
       });
     }
-    
+
     // libCellML Parser
     const result = this.cellMLParser.parse(content);
     [result.hints, result.warnings, result.errors].forEach((type) => {
@@ -108,6 +108,7 @@ export default class Parser implements IParser {
     return {
       id: isRealRoot ? -1 : this.id++,
       name: root.name(),
+      altName: getAltName(root),
       lineNumber: root.line(),
       children: children,
     };
@@ -116,4 +117,13 @@ export default class Parser implements IParser {
 
 function ensureCapital(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function getAltName(element: libxmljs.Element): string {
+  const attributes = ["name", "component"];
+  let altName;
+  attributes.forEach((attribute) => {
+    if (element.attr(attribute)) altName = element.attr(attribute).value();
+  });
+  return altName;
 }
