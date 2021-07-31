@@ -14,6 +14,7 @@ import TitleMenuBar from "./TitleMenuBar/TitleMenuBar";
 import PdfViewer from "./PdfViewer/PdfViewer";
 import { FileType, IDOM, IFileState, IProblemItem, ViewMode } from "Types";
 import TreePane from "./Panes/TreePane";
+import ElementPane from "./Panes/ElementPane/ElementPane";
 
 interface EditorState {
   currentMode: ViewMode;
@@ -22,6 +23,7 @@ interface EditorState {
   activeFileProblems: IProblemItem[];
   activeFileType: FileType;
   activeFileDOM: IDOM;
+  activeFileCursorXPath: string;
 }
 
 export default class Editor extends React.Component<unknown, EditorState> {
@@ -39,6 +41,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
       activeFileProblems: [],
       activeFileType: undefined,
       activeFileDOM: undefined,
+      activeFileCursorXPath: undefined,
     };
 
     // Set listener to update openedFile state
@@ -178,6 +181,10 @@ export default class Editor extends React.Component<unknown, EditorState> {
       });
   }
 
+  monacoCursorPositionChangedCallback(path: string): void {
+    this.setState(() => ({ activeFileCursorXPath: path }));
+  }
+
   /*
     Toggle between the Monaco text editor and the graphical editor view
   */
@@ -205,7 +212,12 @@ export default class Editor extends React.Component<unknown, EditorState> {
             <ReflexElement className="pane-left" minSize={150} flex={0.15}>
               <ReflexContainer orientation="horizontal">
                 <ReflexElement className="pane-left-top" minSize={25}>
-                  <Pane title="Left Top" collapsible={false}></Pane>
+                  <Pane title="Element View" collapsible={false}>
+                    <ElementPane
+                      dom={this.state.activeFileDOM}
+                      path={this.state.activeFileCursorXPath}
+                    />
+                  </Pane>
                 </ReflexElement>
                 <ReflexSplitter className="primary-splitter splitter" />
                 <ReflexElement
@@ -251,6 +263,9 @@ export default class Editor extends React.Component<unknown, EditorState> {
                     problems={this.state.activeFileProblems}
                     onMountCallback={this.monacoOnMountCallback.bind(this)}
                     onChangeCallback={this.monacoOnChangeCallback.bind(this)}
+                    onCursorPositionChangedCallback={this.monacoCursorPositionChangedCallback.bind(
+                      this
+                    )}
                   />
                   <PdfViewer
                     hidden={

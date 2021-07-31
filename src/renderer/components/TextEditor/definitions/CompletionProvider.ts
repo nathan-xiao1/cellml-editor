@@ -1,7 +1,7 @@
 /* eslint-disable no-useless-escape */
 import monaco, { languages } from "monaco-editor";
 import { IContextProvider } from "Types";
-import CellMLSchema, { IElement, mathElements } from "./CellMLSchema";
+import CellMLSchema, { IElement, mathElements } from "src/commons/CellMLSchema";
 import { TagContextType } from "./ContextProvider";
 
 /*

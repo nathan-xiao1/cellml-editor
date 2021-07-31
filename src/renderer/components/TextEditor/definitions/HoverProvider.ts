@@ -1,5 +1,5 @@
 import monaco, { languages } from "monaco-editor";
-import CellMLSchema from "./CellMLSchema";
+import CellMLSchema from "src/commons/CellMLSchema";
 
 const hoverProvider: languages.HoverProvider = {
   provideHover: (

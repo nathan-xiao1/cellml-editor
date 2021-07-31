@@ -72,7 +72,13 @@ export interface IDOM {
   name: string;
   altName?: string;
   lineNumber: number;
+  attributes: IDOMAttributes[]
   children: IDOM[];
+}
+
+export interface IDOMAttributes {
+  key: string;
+  value: string
 }
 
 export interface IParserResult {

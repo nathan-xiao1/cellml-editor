@@ -9,6 +9,7 @@ import CellMLDocumentFormattingProvider from "./definitions/FormattingProvider";
 import CellMLLanguageConfiguration from "./definitions/LanguageConfiguration";
 import CellMLHoverProvider from "./definitions/HoverProvider";
 import CellMLFormattingProvider from "./definitions/FormattingProvider";
+import { getXPath } from "src/commons/utils/xpath";
 import { IProblemItem } from "Types";
 
 import "./MonacoLoader";
@@ -22,6 +23,7 @@ interface TEProps {
   problems: IProblemItem[];
   onMountCallback?: () => void;
   onChangeCallback?: (content: string) => void;
+  onCursorPositionChangedCallback?: (path: string) => void;
 }
 
 interface TEState {
@@ -57,6 +59,19 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
   ): void {
     this.editorInstance = editorInstance;
     this.props.onMountCallback();
+    this.editorInstance.onDidChangeCursorPosition(
+      (event: editor.ICursorPositionChangedEvent) => {
+        const model = this.editorInstance.getModel();
+        const textUntilPosition = model.getValueInRange({
+          startLineNumber: 1,
+          startColumn: 1,
+          endLineNumber: event.position.lineNumber,
+          endColumn: model.getLineLength(event.position.lineNumber) + 1,
+        });
+        const xpath = getXPath(textUntilPosition);
+        this.props.onCursorPositionChangedCallback(xpath);
+      }
+    );
   }
 
   handleContentOnChange(
