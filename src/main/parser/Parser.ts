@@ -2,11 +2,12 @@ import LibCellMLParser from "./LibCellMLParser";
 import libxmljs from "libxmljs2";
 import {
   IDOM,
+  IParsedDOM,
   IParser,
-  IParserResult,
   IProblemItem,
   ProblemSeverity,
 } from "Types";
+import ParsedDOM from "./ParsedDOM";
 
 export default class Parser implements IParser {
   private cellMLParser: LibCellMLParser;
@@ -18,22 +19,19 @@ export default class Parser implements IParser {
     return this.cellMLParser.init();
   }
 
-  parse(content: string): IParserResult {
+  parse(content: string): IParsedDOM {
     if (!this.cellMLParser)
       throw Error("Must call and await init() before parsing");
-    if (!content)
-      return {
-        dom: null,
-        problems: [],
-      };
+    if (!content) return new ParsedDOM(null, null, []);
     const problems: IProblemItem[] = [];
     // libXMLjs2 Parser
     let dom: IDOM;
+    let xmlDoc: libxmljs.Document;
     try {
-      const result = libxmljs.parseXmlString(content, { recover: true });
+      xmlDoc = libxmljs.parseXmlString(content, { recover: true });
       this.id = 0;
-      dom = this.libxmljsToIDOM(result.root(), true);
-      result.errors.forEach((error) => {
+      dom = this.libxmljsToIDOM(xmlDoc.root(), true);
+      xmlDoc.errors.forEach((error) => {
         let severity: ProblemSeverity;
         switch (error.code) {
           case 0:
@@ -92,10 +90,7 @@ export default class Parser implements IParser {
         });
       });
     });
-    return {
-      dom: dom,
-      problems: problems,
-    };
+    return new ParsedDOM(xmlDoc, dom, problems);
   }
 
   private libxmljsToIDOM(root: libxmljs.Element, isRealRoot?: boolean): IDOM {
@@ -110,6 +105,12 @@ export default class Parser implements IParser {
       name: root.name(),
       altName: getAltName(root),
       lineNumber: root.line(),
+      attributes: root.attrs().map((attribute: libxmljs.Attribute) => {
+        return {
+          key: attribute.name(),
+          value: attribute.value(),
+        };
+      }),
       children: children,
     };
   }

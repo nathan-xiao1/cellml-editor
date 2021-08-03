@@ -39,8 +39,8 @@ export default function onDidChangeTextDocument(
   // Insert the correct closing tag based on the context
   const text =
     lastCharacter === "/"
-      ? `${contextProvider.lastOpenedTag}|`
-      : `</${contextProvider.lastOpenedTag}|`;
+      ? `${contextProvider.lastOpenedTag}>`
+      : `</${contextProvider.lastOpenedTag}>`;
   const range = {
     startLineNumber: lastChange.range.startLineNumber,
     endLineNumber: lastChange.range.endLineNumber,

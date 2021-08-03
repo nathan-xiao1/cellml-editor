@@ -1,11 +1,10 @@
 import React from "react";
 import { IDOM } from "Types";
-import { getNodeFromXPath } from "src/commons/utils/xpath";
 import CellMLSchema from "src/commons/CellMLSchema";
 import "./ElementPane.scss";
 
 interface EPProps {
-  dom: IDOM;
+  node: IDOM;
   path: string;
 }
 
@@ -43,12 +42,11 @@ function ChildElementInfoDOM(props: CEIDProps): JSX.Element {
 
 export default class ElementPane extends React.Component<EPProps> {
   render(): React.ReactNode {
-    const node = getNodeFromXPath(this.props.dom, this.props.path);
-    if (!node) return null;
+    if (!this.props.node) return null;
     return (
       <div className="element-container">
         <p className="element-header">Name</p>
-        <p>&lt;{node.name}&gt;</p>
+        <p>&lt;{this.props.node.name}&gt;</p>
 
         <div className="element-divider"></div>
 
@@ -60,7 +58,7 @@ export default class ElementPane extends React.Component<EPProps> {
         <p className="element-header">Current Child Element(s)</p>
         <div className="element-child-container">
           <ul>
-            {node.children.map((child: IDOM, idx) => {
+            {this.props.node.children.map((child: IDOM, idx) => {
               return (
                 <li key={idx}>
                   <ChildElementInfoDOM child={child} />
@@ -75,7 +73,7 @@ export default class ElementPane extends React.Component<EPProps> {
         <p className="element-header">Add Child Element</p>
         <div className="element-child-container">
           <ul>
-            {CellMLSchema.get(node.name)?.children.map(
+            {CellMLSchema.get(this.props.node.name)?.children.map(
               (childName: string, idx) => {
                 return (
                   <li key={idx}>

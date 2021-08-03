@@ -3,6 +3,7 @@ import IPCChannel from "IPCChannels";
 import { ipcRenderer } from "electron";
 import { loader, Monaco } from "@monaco-editor/react";
 import { ReflexContainer, ReflexSplitter, ReflexElement } from "react-reflex";
+import { getNodeFromXPath } from "src/commons/utils/xpath";
 import "react-reflex/styles.css";
 import "./Editor.scss";
 
@@ -15,6 +16,7 @@ import PdfViewer from "./PdfViewer/PdfViewer";
 import { FileType, IDOM, IFileState, IProblemItem, ViewMode } from "Types";
 import TreePane from "./Panes/TreePane";
 import ElementPane from "./Panes/ElementPane/ElementPane";
+import AttributePane from "./Panes/AttributePane/AttributePane";
 
 interface EditorState {
   currentMode: ViewMode;
@@ -24,6 +26,7 @@ interface EditorState {
   activeFileType: FileType;
   activeFileDOM: IDOM;
   activeFileCursorXPath: string;
+  activeFileCursorIDOM: IDOM;
 }
 
 export default class Editor extends React.Component<unknown, EditorState> {
@@ -42,6 +45,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
       activeFileType: undefined,
       activeFileDOM: undefined,
       activeFileCursorXPath: undefined,
+      activeFileCursorIDOM: undefined,
     };
 
     // Set listener to update openedFile state
@@ -83,6 +87,16 @@ export default class Editor extends React.Component<unknown, EditorState> {
             activeFileDOM: fileState.dom,
             activeFileProblems: fileState.problems,
           }));
+        }
+      }
+    );
+
+    // Set listener to update/replace the content in the active editor
+    ipcRenderer.on(
+      IPCChannel.RENDERER_UPDATE_FILE_CONTENT,
+      (_, filepath, content) => {
+        if (filepath == this.getActiveFilepath()) {
+          this.textEditorRef?.current.setValue(content);
         }
       }
     );
@@ -181,8 +195,14 @@ export default class Editor extends React.Component<unknown, EditorState> {
       });
   }
 
+  /*
+    Callback to get the IDOM at the editor's cursor position
+  */
   monacoCursorPositionChangedCallback(path: string): void {
-    this.setState(() => ({ activeFileCursorXPath: path }));
+    this.setState((prevState) => ({
+      activeFileCursorXPath: path,
+      activeFileCursorIDOM: getNodeFromXPath(prevState.activeFileDOM, path),
+    }));
   }
 
   /*
@@ -194,12 +214,25 @@ export default class Editor extends React.Component<unknown, EditorState> {
     }));
   }
 
+  attributeEditHandler(key: string, value: string): void {
+    ipcRenderer.send(
+      IPCChannel.UPDATE_ATTRIBUTE,
+      this.getActiveFilepath(),
+      this.state.activeFileCursorXPath,
+      key,
+      value
+    );
+    console.log(`Editing: ${key} -> ${value}`);
+  }
+
   domTreeClickHandler(lineNum: number): void {
     this.textEditorRef.current?.goToLine(lineNum);
   }
 
   componentWillUnmount(): void {
     ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_OPENED_FILE);
+    ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_FILE_STATE);
+    ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_FILE_CONTENT);
   }
 
   render(): React.ReactNode {
@@ -214,7 +247,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                 <ReflexElement className="pane-left-top" minSize={25}>
                   <Pane title="Element View" collapsible={false}>
                     <ElementPane
-                      dom={this.state.activeFileDOM}
+                      node={this.state.activeFileCursorIDOM}
                       path={this.state.activeFileCursorXPath}
                     />
                   </Pane>
@@ -298,7 +331,14 @@ export default class Editor extends React.Component<unknown, EditorState> {
                   minSize={25}
                   flex={0.4}
                 >
-                  <Pane title="Right Bottom" collapsible={false}></Pane>
+                  <Pane title="Attributes" collapsible={false}>
+                    <AttributePane
+                      node={this.state.activeFileCursorIDOM}
+                      attributeEditHandler={this.attributeEditHandler.bind(
+                        this
+                      )}
+                    />
+                  </Pane>
                 </ReflexElement>
               </ReflexContainer>
             </ReflexElement>

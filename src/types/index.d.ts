@@ -9,6 +9,7 @@ export interface IFile {
   getSaved(): boolean;
   fileIsNew(): boolean;
   updateContent(content: string): void;
+  updateAttribute(xpath: string, key: string, value: string): void;
   saveContent(): void;
   getProblems(): IProblemItem[];
   updateProblems(problems: IProblemItem[]): void;
@@ -19,7 +20,7 @@ export interface IFile {
 
 export type FileType = "CellML" | "PDF";
 
-export type ViewMode = "text" | "graphical"
+export type ViewMode = "text" | "graphical";
 
 export interface IEditorSystem {
   init(): void;
@@ -72,18 +73,21 @@ export interface IDOM {
   name: string;
   altName?: string;
   lineNumber: number;
-  attributes: IDOMAttributes[]
+  attributes: IDOMAttributes[];
   children: IDOM[];
 }
 
 export interface IDOMAttributes {
   key: string;
-  value: string
+  value: string;
 }
 
-export interface IParserResult {
-  dom: IDOM;
-  problems: IProblemItem[];
+export interface IParsedDOM {
+  readonly xmlDoc;
+  readonly problems: IProblemItem[];
+  readonly IDOM: IDOM;
+  updateAttribute(xpath: string, key: string, value: string): void;
+  toString(): string;
 }
 
 export interface IParser {

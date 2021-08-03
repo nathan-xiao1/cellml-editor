@@ -113,6 +113,22 @@ ipcMain.on(IPCChannel.UPDATE_FILE_CONTENT, (_, filepath, content) => {
 });
 
 /*
+  Update an attribute for a file's parsed DOM
+*/
+ipcMain.on(
+  IPCChannel.UPDATE_ATTRIBUTE,
+  (event, filepath, xpath, key, value) => {
+    const file = editorSystem.getFile(filepath);
+    file.updateAttribute(xpath, key, value);
+    event.sender.send(
+      IPCChannel.RENDERER_UPDATE_FILE_CONTENT,
+      filepath,
+      file.getContent()
+    );
+  }
+);
+
+/*
   Return request to get an array of opened file paths
 */
 ipcMain.handle(IPCChannel.GET_OPENED_FILEPATHS_ASYNC, async () => {

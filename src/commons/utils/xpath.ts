@@ -1,4 +1,5 @@
 import { IDOM } from "Types";
+import libxmljs from "libxmljs2";
 
 export function getXPath(text: string): string {
   const dom = new DOMParser().parseFromString(text, "text/xml");
@@ -33,6 +34,7 @@ export function getNodeFromXPath(dom: IDOM, xpath: string): IDOM {
   const xpathNodes = xpath.split("/").slice(2);
   let node = dom;
   for (const xpathNodeName of xpathNodes) {
+    let found = false;
     let nodeName = xpathNodeName;
     let nth = 0;
     const match = xpathNodeName.match(/(.*)\[(\d)\]$/);
@@ -44,10 +46,45 @@ export function getNodeFromXPath(dom: IDOM, xpath: string): IDOM {
       if (child.name == nodeName) {
         if (--nth <= 0) {
           node = child;
+          found = true;
           break;
         }
       }
     }
+    if (!found) return null;
+  }
+  return node;
+}
+
+export function getNodeFromXPathLibXML(
+  doc: libxmljs.Document,
+  xpath: string
+): libxmljs.Element {
+  if (!doc || !xpath) return;
+  const xpathNodes = xpath.split("/").slice(2);
+  let node = doc.root();
+  for (const xpathNodeName of xpathNodes) {
+    let found = false;
+    let nodeName = xpathNodeName;
+    let nth = 0;
+    const match = xpathNodeName.match(/(.*)\[(\d)\]$/);
+    if (match) {
+      nodeName = match[1];
+      nth = Number.parseInt(match[2]);
+    }
+    for (const child of node.childNodes()) {
+      if (child.type() == "element") {
+        const childElement = child as libxmljs.Element;
+        if (childElement.name() == nodeName) {
+          if (--nth <= 0) {
+            node = childElement;
+            found = true;
+            break;
+          }
+        }
+      }
+    }
+    if (!found) return null;
   }
   return node;
 }
