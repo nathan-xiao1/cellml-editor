@@ -34,7 +34,7 @@ export default class AttributePane extends React.Component<APProps> {
           <tbody>
             {this.props.node &&
               this.props.node.attributes.map((attribute: IDOMAttributes) => (
-                <tr key={attribute.key}>
+                <tr key={this.props.node.id + attribute.key}>
                   <td className="attribute-table-key" title={attribute.key}>
                     {attribute.key}
                   </td>

@@ -16,11 +16,6 @@ export default class ParsedDOM implements IParsedDOM {
     this._problems = problems;
   }
 
-  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-  get xmlDoc(): any {
-    return this._xmlDoc;
-  }
-
   get IDOM(): IDOM {
     return this._idom;
   }

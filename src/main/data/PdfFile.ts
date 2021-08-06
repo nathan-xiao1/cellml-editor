@@ -27,6 +27,9 @@ export default class PdfFile implements IFile {
   updateContent(): void {
     return;
   }
+  updateAttribute(): void {
+    return;
+  }
   saveContent(): void {
     return;
   }

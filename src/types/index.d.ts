@@ -83,7 +83,6 @@ export interface IDOMAttributes {
 }
 
 export interface IParsedDOM {
-  readonly xmlDoc;
   readonly problems: IProblemItem[];
   readonly IDOM: IDOM;
   updateAttribute(xpath: string, key: string, value: string): void;
