@@ -30,6 +30,12 @@ export default class PdfFile implements IFile {
   updateAttribute(): void {
     return;
   }
+  addChildNode(): void {
+    return;
+  }
+  removeChildNode(): void {
+    return;
+  }
   saveContent(): void {
     return;
   }

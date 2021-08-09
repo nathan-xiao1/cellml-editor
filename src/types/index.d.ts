@@ -10,6 +10,8 @@ export interface IFile {
   fileIsNew(): boolean;
   updateContent(content: string): void;
   updateAttribute(xpath: string, key: string, value: string): void;
+  addChildNode(xpath: string, childName: string): void;
+  removeChildNode(xpath: string): void;
   saveContent(): void;
   getProblems(): IProblemItem[];
   updateProblems(problems: IProblemItem[]): void;
@@ -86,6 +88,8 @@ export interface IParsedDOM {
   readonly problems: IProblemItem[];
   readonly IDOM: IDOM;
   updateAttribute(xpath: string, key: string, value: string): void;
+  addChildNode(xpath: string, childName: string): void;
+  removeChildNode(xpath: string): void;
   toString(): string;
 }
 

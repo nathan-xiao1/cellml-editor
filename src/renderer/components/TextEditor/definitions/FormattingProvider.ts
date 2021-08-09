@@ -8,7 +8,9 @@ const formatter: monaco.languages.DocumentFormattingEditProvider = {
   ) => {
     return [
       {
-        text: xmlFormat(model.getValue()),
+        text: xmlFormat(model.getValue(), {
+          indentation: " ".repeat(options.tabSize),
+        }),
         range: model.getFullModelRange(),
       },
     ];

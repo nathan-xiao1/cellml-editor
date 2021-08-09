@@ -1,43 +1,15 @@
 import React from "react";
 import { IDOM } from "Types";
+import AddIcon from "@material-ui/icons/Add";
+import CloseIcon from "@material-ui/icons/Close";
 import CellMLSchema from "src/commons/CellMLSchema";
 import "./ElementPane.scss";
 
 interface EPProps {
   node: IDOM;
   path: string;
-}
-
-interface CEIProps {
-  childName: string;
-}
-
-interface CEIDProps {
-  child: IDOM;
-}
-
-function ChildElementInfo(props: CEIProps): JSX.Element {
-  return (
-    <div className="child-element-info-container">
-      <p className="child-element-info-header">
-        <span>&lt;{props.childName}&gt;</span>
-      </p>
-      <p className="child-element-info-description">
-        {CellMLSchema.get(props.childName)?.documentation.slice(0, 50) + "..."}
-      </p>
-    </div>
-  );
-}
-
-function ChildElementInfoDOM(props: CEIDProps): JSX.Element {
-  return (
-    <div className="child-element-info-container">
-      <p className="child-element-info-header">&lt;{props.child.name}&gt;</p>
-      <p className="child-element-info-description">
-        {props.child.altName ? props.child.altName : ""}
-      </p>
-    </div>
-  );
+  addChildHandler: (childName: string) => void;
+  removeChildHandler: (idx: number) => void;
 }
 
 export default class ElementPane extends React.Component<EPProps> {
@@ -61,15 +33,24 @@ export default class ElementPane extends React.Component<EPProps> {
             {this.props.node.children.map((child: IDOM, idx) => {
               return (
                 <li key={idx}>
-                  <ChildElementInfoDOM child={child} />
+                  <div className="child-element-info-container">
+                    <div className="child-element-info-header">
+                      <p>&lt;{child.name}&gt;</p>
+                      <CloseIcon
+                        style={{ fontSize: 12, cursor: "pointer" }}
+                        onClick={() => this.props.removeChildHandler(idx)}
+                      />
+                    </div>
+                    <p className="child-element-info-description">
+                      {child.altName ? child.altName : ""}
+                    </p>
+                  </div>
                 </li>
               );
             })}
           </ul>
         </div>
-
         <div className="element-divider"></div>
-
         <p className="element-header">Add Child Element</p>
         <div className="element-child-container">
           <ul>
@@ -77,7 +58,21 @@ export default class ElementPane extends React.Component<EPProps> {
               (childName: string, idx) => {
                 return (
                   <li key={idx}>
-                    <ChildElementInfo childName={childName} />
+                    <div className="child-element-info-container">
+                      <div className="child-element-info-header">
+                        <p>&lt;{childName}&gt;</p>
+                        <AddIcon
+                          style={{ fontSize: 12, cursor: "pointer" }}
+                          onClick={() => this.props.addChildHandler(childName)}
+                        />
+                      </div>
+                      <p className="child-element-info-description">
+                        {CellMLSchema.get(childName)?.documentation.slice(
+                          0,
+                          50
+                        ) + "..."}
+                      </p>
+                    </div>
                   </li>
                 );
               }

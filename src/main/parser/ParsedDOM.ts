@@ -1,5 +1,6 @@
 import { IDOM, IParsedDOM, IProblemItem } from "Types";
 import libxmljs from "libxmljs2";
+import CellMLSchema from "src/commons/CellMLSchema";
 import {
   getNodeFromXPath,
   getNodeFromXPathLibXML,
@@ -38,6 +39,30 @@ export default class ParsedDOM implements IParsedDOM {
             value: attribute.value(),
           };
         });
+    }
+  }
+
+  addChildNode(xpath: string, childName: string): void {
+    const libXMLNode = getNodeFromXPathLibXML(this._xmlDoc, xpath);
+    if (libXMLNode) {
+      const schema = CellMLSchema.get(childName);
+      const selfClosing = schema.children.length == 0;
+      const childElement = new libxmljs.Element(
+        this._xmlDoc,
+        childName,
+        selfClosing ? "" : "\n"
+      );
+      for (const attr of schema.attributes) {
+        childElement.attr(attr, "");
+      }
+      libXMLNode.addChild(childElement);
+    }
+  }
+
+  removeChildNode(xpath: string): void {
+    const libXMLNode = getNodeFromXPathLibXML(this._xmlDoc, xpath);
+    if (libXMLNode) {
+      libXMLNode.remove();
     }
   }
 

@@ -64,7 +64,7 @@ export const elements: IElement[] = [
   },
   {
     label: "import units",
-    insertText: "import",
+    insertText: "units",
     attributes: ["name", "units_ref"],
     children: [],
     documentation:
@@ -78,7 +78,7 @@ export const elements: IElement[] = [
   },
   {
     label: "import component",
-    insertText: "import",
+    insertText: "component",
     attributes: ["name", "component_ref"],
     children: [],
     documentation:

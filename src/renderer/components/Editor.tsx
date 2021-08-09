@@ -137,6 +137,8 @@ export default class Editor extends React.Component<unknown, EditorState> {
       this.setState({
         activeFileDOM: undefined,
         activeFileProblems: undefined,
+        activeFileCursorIDOM: undefined,
+        activeFileCursorXPath: undefined,
       });
     }
   }
@@ -214,6 +216,34 @@ export default class Editor extends React.Component<unknown, EditorState> {
     }));
   }
 
+  addChildNodeHandler(child: string): void {
+    ipcRenderer.send(
+      IPCChannel.ADD_CHILD_NODE,
+      this.getActiveFilepath(),
+      this.state.activeFileCursorXPath,
+      child
+    );
+    console.log(`Adding child: ${child}`);
+  }
+
+  removeChildNodeHandler(idx: number): void {
+    const dom = this.state.activeFileCursorIDOM;
+    let nth = 1;
+    for (let i = 0; i < idx; i++) {
+      if (dom.children[i].name == dom.children[idx].name) {
+        nth++;
+      }
+    }
+    const xpath =
+      this.state.activeFileCursorXPath + `/${dom.children[idx].name}[${nth}]`;
+    ipcRenderer.send(
+      IPCChannel.REMOVE_CHILD_NODE,
+      this.getActiveFilepath(),
+      xpath
+    );
+    console.log(`Removing child: ${xpath}`);
+  }
+
   attributeEditHandler(key: string, value: string): void {
     ipcRenderer.send(
       IPCChannel.UPDATE_ATTRIBUTE,
@@ -249,6 +279,8 @@ export default class Editor extends React.Component<unknown, EditorState> {
                     <ElementPane
                       node={this.state.activeFileCursorIDOM}
                       path={this.state.activeFileCursorXPath}
+                      addChildHandler={this.addChildNodeHandler.bind(this)}
+                      removeChildHandler={this.removeChildNodeHandler.bind(this)}
                     />
                   </Pane>
                 </ReflexElement>

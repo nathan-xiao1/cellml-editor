@@ -69,6 +69,16 @@ export default class CellMLFile implements IFile {
     this.updateContent(this._parsedDOM.toString());
   }
 
+  public addChildNode(xpath: string, childName: string): void {
+    this._parsedDOM.addChildNode(xpath, childName);
+    this.updateContent(this._parsedDOM.toString());
+  }
+
+  public removeChildNode(xpath: string): void {
+    this._parsedDOM.removeChildNode(xpath);
+    this.updateContent(this._parsedDOM.toString());
+  }
+
   /*
     Write the content (in memory) of the file to disk
   */
