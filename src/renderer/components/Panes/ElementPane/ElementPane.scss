@@ -1,0 +1,53 @@
+@use '../../../theme/theme-dark.scss' as theme;
+
+.element-container {
+  padding-left: 6px;
+  font-size: 12px;
+  user-select: none;
+
+  p {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    margin: 6px 0;
+  }
+
+  .element-divider {
+    border-top: 1px solid lighten(theme.$primary, 15%);
+    width: 100%;
+    margin: 6px 0;
+  }
+
+  .element-header {
+    font-size: 11px;
+    font-weight: bold;
+    margin-top: 4px;
+    margin-bottom: 4px;
+  }
+
+  .element-child-container ul {
+    margin: 0;
+    padding-left: 0px;
+    list-style-type: none;
+  }
+
+  .child-element-info-container {
+    padding: 3px 2px;
+    &:hover {
+      background-color: lighten(theme.$primary, 5%);
+    }
+    p {
+      margin: 0;
+    }
+    .child-element-info-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .child-element-info-description {
+      padding-left: 4px;
+      color: theme.$primary-text-secondary;
+    }
+  }
+}

@@ -2,6 +2,7 @@ import React from "react";
 import CloseIcon from "@material-ui/icons/Close";
 import "./Header.scss";
 import EditorToggle from "../EditorToggle/EditorToggle";
+import { ViewMode } from "Types";
 
 function filePathToName(filepath: string) {
   return filepath.split("\\").pop();
@@ -42,9 +43,10 @@ Tab.defaultProps = { active: false };
 interface HeaderProp {
   openedFiles: string[];
   activeFileIndex: number;
+  showToggle: boolean;
   onTabClick: (file: string) => void;
   onTabClose: (file: string) => void;
-  onViewToggle: () => void;
+  toggleViewMode: (mode: ViewMode) => void;
 }
 
 export default function Header(props: HeaderProp): JSX.Element {
@@ -61,9 +63,11 @@ export default function Header(props: HeaderProp): JSX.Element {
           />
         ))}
       </div>
-      <div className="header-control-container">
-        <EditorToggle onToggle={props.onViewToggle}/>
-      </div>
+      {props.showToggle && (
+        <div className="header-control-container">
+          <EditorToggle toggleViewMode={props.toggleViewMode} />
+        </div>
+      )}
     </div>
   );
 }

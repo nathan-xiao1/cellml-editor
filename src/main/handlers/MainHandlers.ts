@@ -22,6 +22,10 @@ ipcMain.on(IPCChannel.TOGGLE_DEVELOPER_TOOLS, (event) => {
   event.sender.toggleDevTools();
 });
 
+ipcMain.on(IPCChannel.FORCE_RELOAD_WINDOW, (event) => {
+  event.sender.reloadIgnoringCache();
+})
+
 // For debugging
 ipcMain.on("debug", () => {
   console.log(editorSystem.getOpenedFilepaths());

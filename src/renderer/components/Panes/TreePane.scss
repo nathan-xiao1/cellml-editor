@@ -3,10 +3,34 @@
 .tree-pane {
   margin-left: 8px;
 
+  .treeitem-label-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    .treeitem-label-icon {
+      color: theme.$primary-text !important;
+      font-size: 12px !important;
+      padding-top: 1px;
+      margin-right: 4px;
+    }
+    .treeitem-label-text {
+      font-size: 12px;
+      font-weight: normal;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .MuiTreeItem-root {
+    margin-top: 2px;
+  }
   .MuiTreeItem-label {
     font-family: "Segoe UI";
-    text-align: left;
-    font-size: 11px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   .MuiTreeItem-group {

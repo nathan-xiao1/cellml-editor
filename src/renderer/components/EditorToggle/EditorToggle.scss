@@ -1,8 +1,13 @@
 @use '../../theme/theme-dark.scss' as theme;
 
-.view-toggle-button {
+.view-toggle-container {
   display: flex;
   flex-direction: row;
+  align-items: center;
+}
+
+.view-toggle-button {
+  display: inline-flex;
   align-items: center;
   background-color: Transparent;
   background-repeat: no-repeat;
@@ -10,10 +15,14 @@
   cursor: pointer;
   overflow: hidden;
   outline: none;
+  color: darken(theme.$primary-text-secondary, 30%);
+  padding: 0 3px;
+}
+
+.view-toggle-button.active {
   color: theme.$primary-text-secondary;
-  .view-toggle-text {
-      font-size: 11px;
-      font-weight: 600;
-      margin: 0 0 0 4px;
-  }
+}
+
+.view-toggle-divider {
+  border-left: 1px solid theme.$primary-text-secondary;
 }

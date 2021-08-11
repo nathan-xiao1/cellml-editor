@@ -3,6 +3,7 @@ import IPCChannel from "IPCChannels";
 import { ipcRenderer } from "electron";
 import { loader, Monaco } from "@monaco-editor/react";
 import { ReflexContainer, ReflexSplitter, ReflexElement } from "react-reflex";
+import { getNodeFromXPath } from "src/commons/utils/xpath";
 import "react-reflex/styles.css";
 import "./Editor.scss";
 
@@ -12,18 +13,20 @@ import ProblemPane from "./Panes/ProblemPane";
 import TextEditor from "./TextEditor/TextEditor";
 import TitleMenuBar from "./TitleMenuBar/TitleMenuBar";
 import PdfViewer from "./PdfViewer/PdfViewer";
-import { FileType, IDOM, IFileState, IProblemItem } from "Types";
+import { FileType, IDOM, IFileState, IProblemItem, ViewMode } from "Types";
 import TreePane from "./Panes/TreePane";
-
-type Mode = "text" | "graphical";
+import ElementPane from "./Panes/ElementPane/ElementPane";
+import AttributePane from "./Panes/AttributePane/AttributePane";
 
 interface EditorState {
-  currentMode: Mode;
+  currentMode: ViewMode;
   openedFilepaths: string[];
   activeFileIndex: number;
   activeFileProblems: IProblemItem[];
   activeFileType: FileType;
   activeFileDOM: IDOM;
+  activeFileCursorXPath: string;
+  activeFileCursorIDOM: IDOM;
 }
 
 export default class Editor extends React.Component<unknown, EditorState> {
@@ -41,16 +44,36 @@ export default class Editor extends React.Component<unknown, EditorState> {
       activeFileProblems: [],
       activeFileType: undefined,
       activeFileDOM: undefined,
+      activeFileCursorXPath: undefined,
+      activeFileCursorIDOM: undefined,
     };
 
     // Set listener to update openedFile state
     ipcRenderer.on(IPCChannel.RENDERER_UPDATE_OPENED_FILE, (_, arg) => {
       this.setState(
-        {
-          openedFilepaths: arg,
+        (prevState) => {
+          let newActiveFileIndex: number;
+          if (
+            arg.length > 0 &&
+            arg.length <= prevState.openedFilepaths.length &&
+            prevState.activeFileIndex >= 0 &&
+            prevState.activeFileIndex <= arg.length - 1
+          ) {
+            newActiveFileIndex = prevState.activeFileIndex;
+          } else {
+            newActiveFileIndex = arg.length - 1;
+          }
+          return {
+            openedFilepaths: arg,
+            activeFileIndex: newActiveFileIndex,
+          };
         },
         () => {
-          this.setActiveFile(arg.length - 1);
+          if (arg.activeFileIndex) {
+            this.setActiveFile(arg.activeFileIndex);
+          } else {
+            this.setActiveFile(this.state.activeFileIndex);
+          }
         }
       );
     });
@@ -64,6 +87,16 @@ export default class Editor extends React.Component<unknown, EditorState> {
             activeFileDOM: fileState.dom,
             activeFileProblems: fileState.problems,
           }));
+        }
+      }
+    );
+
+    // Set listener to update/replace the content in the active editor
+    ipcRenderer.on(
+      IPCChannel.RENDERER_UPDATE_FILE_CONTENT,
+      (_, filepath, content) => {
+        if (filepath == this.getActiveFilepath()) {
+          this.textEditorRef?.current.setValue(content);
         }
       }
     );
@@ -102,7 +135,10 @@ export default class Editor extends React.Component<unknown, EditorState> {
         });
     } else {
       this.setState({
-        activeFileProblems: [],
+        activeFileDOM: undefined,
+        activeFileProblems: undefined,
+        activeFileCursorIDOM: undefined,
+        activeFileCursorXPath: undefined,
       });
     }
   }
@@ -162,12 +198,61 @@ export default class Editor extends React.Component<unknown, EditorState> {
   }
 
   /*
+    Callback to get the IDOM at the editor's cursor position
+  */
+  monacoCursorPositionChangedCallback(path: string): void {
+    this.setState((prevState) => ({
+      activeFileCursorXPath: path,
+      activeFileCursorIDOM: getNodeFromXPath(prevState.activeFileDOM, path),
+    }));
+  }
+
+  /*
     Toggle between the Monaco text editor and the graphical editor view
   */
-  toggleEditorView(): void {
-    this.setState((prevState) => ({
-      currentMode: prevState.currentMode == "text" ? "graphical" : "text",
+  toggleEditorView(mode: ViewMode): void {
+    this.setState(() => ({
+      currentMode: mode,
     }));
+  }
+
+  addChildNodeHandler(child: string): void {
+    ipcRenderer.send(
+      IPCChannel.ADD_CHILD_NODE,
+      this.getActiveFilepath(),
+      this.state.activeFileCursorXPath,
+      child
+    );
+    console.log(`Adding child: ${child}`);
+  }
+
+  removeChildNodeHandler(idx: number): void {
+    const dom = this.state.activeFileCursorIDOM;
+    let nth = 1;
+    for (let i = 0; i < idx; i++) {
+      if (dom.children[i].name == dom.children[idx].name) {
+        nth++;
+      }
+    }
+    const xpath =
+      this.state.activeFileCursorXPath + `/${dom.children[idx].name}[${nth}]`;
+    ipcRenderer.send(
+      IPCChannel.REMOVE_CHILD_NODE,
+      this.getActiveFilepath(),
+      xpath
+    );
+    console.log(`Removing child: ${xpath}`);
+  }
+
+  attributeEditHandler(key: string, value: string): void {
+    ipcRenderer.send(
+      IPCChannel.UPDATE_ATTRIBUTE,
+      this.getActiveFilepath(),
+      this.state.activeFileCursorXPath,
+      key,
+      value
+    );
+    console.log(`Editing: ${key} -> ${value}`);
   }
 
   domTreeClickHandler(lineNum: number): void {
@@ -176,6 +261,8 @@ export default class Editor extends React.Component<unknown, EditorState> {
 
   componentWillUnmount(): void {
     ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_OPENED_FILE);
+    ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_FILE_STATE);
+    ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_FILE_CONTENT);
   }
 
   render(): React.ReactNode {
@@ -188,7 +275,14 @@ export default class Editor extends React.Component<unknown, EditorState> {
             <ReflexElement className="pane-left" minSize={150} flex={0.15}>
               <ReflexContainer orientation="horizontal">
                 <ReflexElement className="pane-left-top" minSize={25}>
-                  <Pane title="Left Top" collapsible={false}></Pane>
+                  <Pane title="Element View" collapsible={false}>
+                    <ElementPane
+                      node={this.state.activeFileCursorIDOM}
+                      path={this.state.activeFileCursorXPath}
+                      addChildHandler={this.addChildNodeHandler.bind(this)}
+                      removeChildHandler={this.removeChildNodeHandler.bind(this)}
+                    />
+                  </Pane>
                 </ReflexElement>
                 <ReflexSplitter className="primary-splitter splitter" />
                 <ReflexElement
@@ -212,9 +306,13 @@ export default class Editor extends React.Component<unknown, EditorState> {
                   <Header
                     openedFiles={this.state.openedFilepaths}
                     activeFileIndex={this.state.activeFileIndex}
+                    showToggle={
+                      this.state.openedFilepaths.length > 0 &&
+                      this.state.activeFileType != "PDF"
+                    }
                     onTabClick={this.setActiveFile.bind(this)}
                     onTabClose={this.closeFile.bind(this)}
-                    onViewToggle={this.toggleEditorView.bind(this)}
+                    toggleViewMode={this.toggleEditorView.bind(this)}
                   />
                 </ReflexElement>
                 <ReflexElement className="pane-middle-top primary-bg-dark">
@@ -230,6 +328,9 @@ export default class Editor extends React.Component<unknown, EditorState> {
                     problems={this.state.activeFileProblems}
                     onMountCallback={this.monacoOnMountCallback.bind(this)}
                     onChangeCallback={this.monacoOnChangeCallback.bind(this)}
+                    onCursorPositionChangedCallback={this.monacoCursorPositionChangedCallback.bind(
+                      this
+                    )}
                   />
                   <PdfViewer
                     hidden={
@@ -262,7 +363,14 @@ export default class Editor extends React.Component<unknown, EditorState> {
                   minSize={25}
                   flex={0.4}
                 >
-                  <Pane title="Right Bottom" collapsible={false}></Pane>
+                  <Pane title="Attributes" collapsible={false}>
+                    <AttributePane
+                      node={this.state.activeFileCursorIDOM}
+                      attributeEditHandler={this.attributeEditHandler.bind(
+                        this
+                      )}
+                    />
+                  </Pane>
                 </ReflexElement>
               </ReflexContainer>
             </ReflexElement>

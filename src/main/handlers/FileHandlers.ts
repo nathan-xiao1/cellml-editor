@@ -113,6 +113,48 @@ ipcMain.on(IPCChannel.UPDATE_FILE_CONTENT, (_, filepath, content) => {
 });
 
 /*
+  Update an attribute for a file's parsed DOM
+*/
+ipcMain.on(
+  IPCChannel.UPDATE_ATTRIBUTE,
+  (event, filepath, xpath, key, value) => {
+    const file = editorSystem.getFile(filepath);
+    file.updateAttribute(xpath, key, value);
+    event.sender.send(
+      IPCChannel.RENDERER_UPDATE_FILE_CONTENT,
+      filepath,
+      file.getContent()
+    );
+  }
+);
+
+/*
+  Add a child node for the file's parsed DOM
+*/
+ipcMain.on(IPCChannel.ADD_CHILD_NODE, (event, filepath, xpath, childName) => {
+  const file = editorSystem.getFile(filepath);
+  file.addChildNode(xpath, childName);
+  event.sender.send(
+    IPCChannel.RENDERER_UPDATE_FILE_CONTENT,
+    filepath,
+    file.getContent()
+  );
+});
+
+/*
+  Remove a child node for the file's parsed DOM
+*/
+ipcMain.on(IPCChannel.REMOVE_CHILD_NODE, (event, filepath, xpath) => {
+  const file = editorSystem.getFile(filepath);
+  file.removeChildNode(xpath);
+  event.sender.send(
+    IPCChannel.RENDERER_UPDATE_FILE_CONTENT,
+    filepath,
+    file.getContent()
+  );
+});
+
+/*
   Return request to get an array of opened file paths
 */
 ipcMain.handle(IPCChannel.GET_OPENED_FILEPATHS_ASYNC, async () => {

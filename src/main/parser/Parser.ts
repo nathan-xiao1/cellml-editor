@@ -2,11 +2,12 @@ import LibCellMLParser from "./LibCellMLParser";
 import libxmljs from "libxmljs2";
 import {
   IDOM,
+  IParsedDOM,
   IParser,
-  IParserResult,
   IProblemItem,
   ProblemSeverity,
 } from "Types";
+import ParsedDOM from "./ParsedDOM";
 
 export default class Parser implements IParser {
   private cellMLParser: LibCellMLParser;
@@ -18,17 +19,19 @@ export default class Parser implements IParser {
     return this.cellMLParser.init();
   }
 
-  parse(content: string): IParserResult {
+  parse(content: string): IParsedDOM {
     if (!this.cellMLParser)
       throw Error("Must call and await init() before parsing");
+    if (!content) return new ParsedDOM(null, null, []);
     const problems: IProblemItem[] = [];
     // libXMLjs2 Parser
     let dom: IDOM;
+    let xmlDoc: libxmljs.Document;
     try {
-      const result = libxmljs.parseXmlString(content, { recover: true });
+      xmlDoc = libxmljs.parseXmlString(content, { recover: true });
       this.id = 0;
-      dom = this.libxmljsToIDOM(result.root(), true);
-      result.errors.forEach((error) => {
+      dom = this.libxmljsToIDOM(xmlDoc.root(), true);
+      xmlDoc.errors.forEach((error) => {
         let severity: ProblemSeverity;
         switch (error.code) {
           case 0:
@@ -42,7 +45,7 @@ export default class Parser implements IParser {
             break;
         }
         problems.push({
-          description: error.message,
+          description: ensureCapital(error.message),
           severity: severity,
           startColumn: error.column,
           endColumn: error.column + 1,
@@ -53,8 +56,7 @@ export default class Parser implements IParser {
     } catch (error) {
       dom = null;
       problems.push({
-        description:
-          error.message.charAt(0).toUpperCase() + error.message.slice(1),
+        description: ensureCapital(error.message),
         severity: "error",
         startColumn: 0,
         endColumn: 0,
@@ -71,8 +73,6 @@ export default class Parser implements IParser {
         let level: ProblemSeverity;
         switch (idx) {
           case 0:
-            level = "hint";
-            break;
           case 1:
             level = "warning";
             break;
@@ -81,7 +81,7 @@ export default class Parser implements IParser {
             break;
         }
         problems.push({
-          description: error.description(),
+          description: ensureCapital(error.description()),
           severity: level,
           startColumn: 0,
           endColumn: 0,
@@ -90,10 +90,7 @@ export default class Parser implements IParser {
         });
       });
     });
-    return {
-      dom: dom,
-      problems: problems,
-    };
+    return new ParsedDOM(xmlDoc, dom, problems);
   }
 
   private libxmljsToIDOM(root: libxmljs.Element, isRealRoot?: boolean): IDOM {
@@ -106,8 +103,28 @@ export default class Parser implements IParser {
     return {
       id: isRealRoot ? -1 : this.id++,
       name: root.name(),
+      altName: getAltName(root),
       lineNumber: root.line(),
+      attributes: root.attrs().map((attribute: libxmljs.Attribute) => {
+        return {
+          key: attribute.name(),
+          value: attribute.value(),
+        };
+      }),
       children: children,
     };
   }
+}
+
+function ensureCapital(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function getAltName(element: libxmljs.Element): string {
+  const attributes = ["name", "component"];
+  let altName;
+  attributes.forEach((attribute) => {
+    if (element.attr(attribute)) altName = element.attr(attribute).value();
+  });
+  return altName;
 }

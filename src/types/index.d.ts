@@ -9,6 +9,9 @@ export interface IFile {
   getSaved(): boolean;
   fileIsNew(): boolean;
   updateContent(content: string): void;
+  updateAttribute(xpath: string, key: string, value: string): void;
+  addChildNode(xpath: string, childName: string): void;
+  removeChildNode(xpath: string): void;
   saveContent(): void;
   getProblems(): IProblemItem[];
   updateProblems(problems: IProblemItem[]): void;
@@ -18,6 +21,8 @@ export interface IFile {
 }
 
 export type FileType = "CellML" | "PDF";
+
+export type ViewMode = "text" | "graphical";
 
 export interface IEditorSystem {
   init(): void;
@@ -60,6 +65,7 @@ export interface IContextProvider {
   readonly lastOpenedTag: string;
   readonly isAttributeSearch: boolean;
   readonly tagContext: TagContextType;
+  readonly tagContextPrev: TagContextType;
   readonly lastTag: string;
   update(content: string): void;
 }
@@ -67,13 +73,24 @@ export interface IContextProvider {
 export interface IDOM {
   id: number;
   name: string;
+  altName?: string;
   lineNumber: number;
+  attributes: IDOMAttributes[];
   children: IDOM[];
 }
 
-export interface IParserResult {
-  dom: IDOM;
-  problems: IProblemItem[];
+export interface IDOMAttributes {
+  key: string;
+  value: string;
+}
+
+export interface IParsedDOM {
+  readonly problems: IProblemItem[];
+  readonly IDOM: IDOM;
+  updateAttribute(xpath: string, key: string, value: string): void;
+  addChildNode(xpath: string, childName: string): void;
+  removeChildNode(xpath: string): void;
+  toString(): string;
 }
 
 export interface IParser {
