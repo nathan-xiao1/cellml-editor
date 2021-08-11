@@ -62,25 +62,30 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
       // console.log(JSON.stringify(event));
       const model = this.editorInstance.getModel();
       const offset = model.getOffsetAt(event.position);
-      console.log("Offset: " + offset.toString());
+      // console.log("Offset: " + offset.toString());
 
-      const open = model.findPreviousMatch('<math xmlns="http://www.w3.org/1998/Math/MathML">', event.position, false, false, null, false);
-      const close = model.findNextMatch('</math>', event.position, false, false, null, false);
-      // console.log(open);
-      // console.log(close);
+      const str = model.getValue();
+      const regex = /<math .*>[\s\S]*<\/math>/gm;
+
+      const matches = [...str.matchAll(regex)];
+      let isFound = false;
+      let m;
       
-      try {
-        if (open.range.endLineNumber < close.range.endLineNumber || (open.range.endLineNumber == close.range.endLineNumber && open.range.endColumn < close.range.endColumn)) {
-          const total = open.range.setEndPosition(close.range.endLineNumber, close.range.endColumn);
-          // console.log(total);
-          const mathstr = model.getValueInRange(total);
-          console.log(mathstr);
-        } else {
-          console.log('Nearest math element not found!');
+      for (const match of matches) {
+        const open = match.index;
+        const close = open + match[0].length;
+        if (open <= offset && offset <= close) {
+          isFound = true;
+          m = match;
+          break;
         }
-      } catch {
-        console.log('Nearest math element not found!');
       }
+
+      if (isFound) {
+        console.log("math found: " + m.index.toString() + "->" + (m.index + m[0].length).toString());
+        // console.log(m[0]);
+      }
+
     });
     this.props.onMountCallback();
   }

@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "lib": ["es2020.string"],
+    "downlevelIteration": true,
     "allowJs": true,
     "module": "commonjs",
     "skipLibCheck": true,
