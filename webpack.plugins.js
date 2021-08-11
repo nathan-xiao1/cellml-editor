@@ -6,26 +6,28 @@ const DEVELOPMENT = process.env.NODE_ENV == "development";
 
 console.log(`: NODE_ENV=${process.env.NODE_ENV} DEVELOPMENT=${DEVELOPMENT}`);
 
+const ROOT_PATH = DEVELOPMENT ? "" : "main_window"
+
 module.exports = [
   new ForkTsCheckerWebpackPlugin(),
   new CopyPlugin({
     patterns: [
-      !DEVELOPMENT && {
+      {
         from: path.resolve(__dirname, "node_modules/monaco-editor/min/vs"),
-        to: path.resolve(__dirname, ".webpack/renderer/main_window", "vs"),
-      },
-      DEVELOPMENT && {
-        from: path.resolve(__dirname, "node_modules/monaco-editor/min/vs"),
-        to: path.resolve(__dirname, ".webpack/renderer", "vs"),
+        to: path.resolve(__dirname, ".webpack/renderer", ROOT_PATH, "vs"),
       },
       DEVELOPMENT && {
         from: path.resolve(__dirname, "node_modules/monaco-editor/min/vs"),
         to: path.resolve(__dirname, "vs"),
       },
       {
-        from: path.resolve(__dirname, "src", "static"),
-        to: path.resolve(__dirname, ".webpack/renderer", "static"),
+        from: path.resolve(__dirname, "node_modules/pdfjs-dist/build/pdf.worker.min.js"),
+        to: path.resolve(__dirname, ".webpack/renderer", ROOT_PATH),
       },
+      {
+        from: path.resolve(__dirname, "src", "static"),
+        to: path.resolve(__dirname, ".webpack/renderer", ROOT_PATH, "static"),
+      }
     ].filter(Boolean),
   }),
 ];

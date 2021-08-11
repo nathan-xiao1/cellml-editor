@@ -1,11 +1,27 @@
-.pdf-viewer {
+@use '../../theme/theme-dark.scss' as theme;
+
+.pdf-viewer-container {
+  display: flex;
+  flex-direction: column;
   height: 100%;
-  width: 100%;
 }
 
-.react-pdf__Document {
-  height: 100%;
+.pdf-viewer {
+  flex: 1 1;
   overflow-y: scroll;
+}
+
+.pdf-viewer-control-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  height: 25px;
+  background-color: lighten(theme.$primary, 1%);
+  font-size: 12px;
+  .zoom-level-label {
+    margin: 0 12px;
+  }
 }
 
 .react-pdf__Page__canvas {

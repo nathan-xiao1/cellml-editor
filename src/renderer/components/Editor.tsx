@@ -148,7 +148,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
   */
   closeFile(filepath: string): void {
     this.initialisedFiles.delete(filepath);
-    this.monaco?.editor.getModel(this.monaco.Uri.parse(filepath)).dispose();
+    this.monaco?.editor.getModel(this.monaco.Uri.parse(filepath))?.dispose();
     ipcRenderer.send(IPCChannel.CLOSE_FILE, filepath);
   }
 
