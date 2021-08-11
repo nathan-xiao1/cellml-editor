@@ -67,10 +67,12 @@ export default class ElementPane extends React.Component<EPProps> {
                         />
                       </div>
                       <p className="child-element-info-description">
-                        {CellMLSchema.get(childName)?.documentation.slice(
-                          0,
-                          50
-                        ) + "..."}
+                        {CellMLSchema.get(childName)?.documentation
+                          ? CellMLSchema.get(childName).documentation.slice(
+                              0,
+                              50
+                            ) + "..."
+                          : ""}
                       </p>
                     </div>
                   </li>

@@ -45,15 +45,20 @@ export default class ParsedDOM implements IParsedDOM {
   addChildNode(xpath: string, childName: string): void {
     const libXMLNode = getNodeFromXPathLibXML(this._xmlDoc, xpath);
     if (libXMLNode) {
+      let selfClosing = false;
       const schema = CellMLSchema.get(childName);
-      const selfClosing = schema.children.length == 0;
+      if (schema) {
+        selfClosing = schema.children.length == 0;
+      }
       const childElement = new libxmljs.Element(
         this._xmlDoc,
         childName,
         selfClosing ? "" : "\n"
       );
-      for (const attr of schema.attributes) {
-        childElement.attr(attr, "");
+      if (schema) {
+        for (const attr of schema.attributes) {
+          childElement.attr(attr, "");
+        }
       }
       libXMLNode.addChild(childElement);
     }

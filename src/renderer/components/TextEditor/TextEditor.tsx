@@ -139,7 +139,13 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
 
   setValue(value: string): void {
     const position = this.editorInstance.getPosition();
-    this.editorInstance.getModel().setValue(value);
+    const range = this.editorInstance.getModel().getFullModelRange();
+    this.editorInstance.executeEdits(null, [
+      {
+        text: value,
+        range: range,
+      },
+    ]);
     this.editorInstance.getAction("editor.action.formatDocument").run();
     this.editorInstance.setPosition(position);
   }

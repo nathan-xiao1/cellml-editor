@@ -27,7 +27,7 @@ export default class AttributePane extends React.Component<APProps> {
           </colgroup>
           <thead>
             <tr>
-              <th>Key</th>
+              <th>Attribute</th>
               <th>Value</th>
             </tr>
           </thead>

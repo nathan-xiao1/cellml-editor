@@ -280,7 +280,9 @@ export default class Editor extends React.Component<unknown, EditorState> {
                       node={this.state.activeFileCursorIDOM}
                       path={this.state.activeFileCursorXPath}
                       addChildHandler={this.addChildNodeHandler.bind(this)}
-                      removeChildHandler={this.removeChildNodeHandler.bind(this)}
+                      removeChildHandler={this.removeChildNodeHandler.bind(
+                        this
+                      )}
                     />
                   </Pane>
                 </ReflexElement>
@@ -363,14 +365,10 @@ export default class Editor extends React.Component<unknown, EditorState> {
                   minSize={25}
                   flex={0.4}
                 >
-                  <Pane title="Attributes" collapsible={false}>
-                    <AttributePane
-                      node={this.state.activeFileCursorIDOM}
-                      attributeEditHandler={this.attributeEditHandler.bind(
-                        this
-                      )}
-                    />
-                  </Pane>
+                  <AttributePane
+                    node={this.state.activeFileCursorIDOM}
+                    attributeEditHandler={this.attributeEditHandler.bind(this)}
+                  />
                 </ReflexElement>
               </ReflexContainer>
             </ReflexElement>

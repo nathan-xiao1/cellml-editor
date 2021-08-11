@@ -1,4 +1,4 @@
-type ElementName =
+type CellMLElement =
   | "model"
   | "import"
   | "import units"
@@ -16,21 +16,276 @@ type ElementName =
   | "connection"
   | "map_variables";
 
+type MathMLElement =
+  | "ci"
+  | "cn"
+  | "sep"
+  | "apply"
+  | "piecewise"
+  | "piece"
+  | "otherwise"
+  | "eq"
+  | "neq"
+  | "gt"
+  | "lt"
+  | "geq"
+  | "leq"
+  | "and"
+  | "or"
+  | "xor"
+  | "not"
+  | "plus"
+  | "minus"
+  | "times"
+  | "divide"
+  | "power"
+  | "root"
+  | "abs"
+  | "exp"
+  | "ln"
+  | "log"
+  | "floor"
+  | "ceiling"
+  | "min"
+  | "max"
+  | "rem"
+  | "diff"
+  | "bvar"
+  | "logbase"
+  | "degree"
+  | "sin"
+  | "cos"
+  | "tan"
+  | "sec"
+  | "csc"
+  | "cot"
+  | "sinh"
+  | "cosh"
+  | "tanh"
+  | "sech"
+  | "csch"
+  | "coth"
+  | "arcsin"
+  | "arccos"
+  | "arctan"
+  | "arcsec"
+  | "arccsc"
+  | "arccot"
+  | "arcsinh"
+  | "arccosh"
+  | "arctanh"
+  | "arcsech"
+  | "arccsch"
+  | "arccoth"
+  | "pi"
+  | "exponentiale"
+  | "notanumber"
+  | "infinity"
+  | "true"
+  | "false";
+
+type UnitsElement =
+  | "ampere"
+  | "becquerel"
+  | "candela"
+  | "coulomb"
+  | "dimensionless"
+  | "farad"
+  | "gram"
+  | "gray"
+  | "henry"
+  | "hertz"
+  | "joule"
+  | "katal"
+  | "kelvi"
+  | "kilogram"
+  | "litre"
+  | "lumen"
+  | "lux"
+  | "metre"
+  | "mole"
+  | "newton"
+  | "ohm"
+  | "pascal"
+  | "radian"
+  | "second"
+  | "siemens"
+  | "sievert"
+  | "steradian"
+  | "tesla"
+  | "volt"
+  | "watt"
+  | "weber";
+
+type PrefixElement =
+  | "yotta"
+  | "zetta"
+  | "exa"
+  | "peta"
+  | "tera"
+  | "giga"
+  | "mega"
+  | "kilo"
+  | "hecto"
+  | "deca"
+  | "deci"
+  | "centi"
+  | "milli"
+  | "micro"
+  | "nano"
+  | "pico"
+  | "femto"
+  | "atto"
+  | "zepto"
+  | "yocto";
+
+type Element = CellMLElement | MathMLElement | UnitsElement | PrefixElement;
+
 export interface IElement {
-  label: string;
+  label: Element;
   insertText: string;
   insertSnippet?: string;
   attributes: string[];
-  children: ElementName[];
+  children: Element[];
   documentation?: string;
 }
+
+// prettier-ignore
+export const mathElements: IElement[] = [
+  { label: "ci", insertText: "ci", attributes: [], children: [] },
+  { label: "cn", insertText: "cn", attributes: [], children: [] },
+  { label: "sep", insertText: "sep", attributes: [], children: [] },
+  { label: "apply", insertText: "apply", attributes: [], children: [] },
+  { label: "piecewise", insertText: "piecewise", attributes: [], children: [] },
+  { label: "piece", insertText: "piece", attributes: [], children: [] },
+  { label: "otherwise", insertText: "otherwise", attributes: [], children: [] },
+  { label: "eq", insertText: "eq", attributes: [], children: [] },
+  { label: "neq", insertText: "neq", attributes: [], children: [] },
+  { label: "gt", insertText: "gt", attributes: [], children: [] },
+  { label: "lt", insertText: "lt", attributes: [], children: [] },
+  { label: "geq", insertText: "geq", attributes: [], children: [] },
+  { label: "leq", insertText: "leq", attributes: [], children: [] },
+  { label: "and", insertText: "and", attributes: [], children: [] },
+  { label: "or", insertText: "or", attributes: [], children: [] },
+  { label: "xor", insertText: "xor", attributes: [], children: [] },
+  { label: "not", insertText: "not", attributes: [], children: [] },
+  { label: "plus", insertText: "plus", attributes: [], children: [] },
+  { label: "minus", insertText: "minus", attributes: [], children: [] },
+  { label: "times", insertText: "times", attributes: [], children: [] },
+  { label: "divide", insertText: "divide", attributes: [], children: [] },
+  { label: "power", insertText: "power", attributes: [], children: [] },
+  { label: "root", insertText: "root", attributes: [], children: [] },
+  { label: "abs", insertText: "abs", attributes: [], children: [] },
+  { label: "exp", insertText: "exp", attributes: [], children: [] },
+  { label: "ln", insertText: "ln", attributes: [], children: [] },
+  { label: "log", insertText: "log", attributes: [], children: [] },
+  { label: "floor", insertText: "floor", attributes: [], children: [] },
+  { label: "ceiling", insertText: "ceiling", attributes: [], children: [] },
+  { label: "min", insertText: "min", attributes: [], children: [] },
+  { label: "max", insertText: "max", attributes: [], children: [] },
+  { label: "rem", insertText: "rem", attributes: [], children: [] },
+  { label: "diff", insertText: "diff", attributes: [], children: [] },
+  { label: "bvar", insertText: "bvar", attributes: [], children: [] },
+  { label: "logbase", insertText: "logbase", attributes: [], children: [] },
+  { label: "degree", insertText: "degree", attributes: [], children: [] },
+  { label: "sin", insertText: "sin", attributes: [], children: [] },
+  { label: "cos", insertText: "cos", attributes: [], children: [] },
+  { label: "tan", insertText: "tan", attributes: [], children: [] },
+  { label: "sec", insertText: "sec", attributes: [], children: [] },
+  { label: "csc", insertText: "csc", attributes: [], children: [] },
+  { label: "cot", insertText: "cot", attributes: [], children: [] },
+  { label: "sinh", insertText: "sinh", attributes: [], children: [] },
+  { label: "cosh", insertText: "cosh", attributes: [], children: [] },
+  { label: "tanh", insertText: "tanh", attributes: [], children: [] },
+  { label: "sech", insertText: "sech", attributes: [], children: [] },
+  { label: "csch", insertText: "csch", attributes: [], children: [] },
+  { label: "coth", insertText: "coth", attributes: [], children: [] },
+  { label: "arcsin", insertText: "arcsin", attributes: [], children: [] },
+  { label: "arccos", insertText: "arccos", attributes: [], children: [] },
+  { label: "arctan", insertText: "arctan", attributes: [], children: [] },
+  { label: "arcsec", insertText: "arcsec", attributes: [], children: [] },
+  { label: "arccsc", insertText: "arccsc", attributes: [], children: [] },
+  { label: "arccot", insertText: "arccot", attributes: [], children: [] },
+  { label: "arcsinh", insertText: "arcsinh", attributes: [], children: [] },
+  { label: "arccosh", insertText: "arccosh", attributes: [], children: [] },
+  { label: "arctanh", insertText: "arctanh", attributes: [], children: [] },
+  { label: "arcsech", insertText: "arcsech", attributes: [], children: [] },
+  { label: "arccsch", insertText: "arccsch", attributes: [], children: [] },
+  { label: "arccoth", insertText: "arccoth", attributes: [], children: [] },
+  { label: "pi", insertText: "pi", attributes: [], children: [] },
+  { label: "exponentiale", insertText: "exponentiale", attributes: [], children: [] },
+  { label: "notanumber",insertText: "notanumber", attributes: [], children: [] },
+  { label: "infinity", insertText: "infinity", attributes: [], children: [] },
+  { label: "true", insertText: "true", attributes: [], children: [] },
+  { label: "false", insertText: "false", attributes: [], children: [] },
+];
+
+// prettier-ignore
+export const units: IElement[] = [
+  { label: "ampere", insertText: "ampere", attributes: [], children: [] },
+  { label: "becquerel", insertText: "becquerel", attributes: [], children: [] },
+  { label: "candela", insertText: "candela", attributes: [], children: [] },
+  { label: "coulomb", insertText: "coulomb", attributes: [], children: [] },
+  { label: "dimensionless", insertText: "dimensionless", attributes: [], children: [] },
+  { label: "farad", insertText: "farad", attributes: [], children: [] },
+  { label: "gram", insertText: "gram", attributes: [], children: [] },
+  { label: "gray", insertText: "gray", attributes: [], children: [] },
+  { label: "henry", insertText: "henry", attributes: [], children: [] },
+  { label: "hertz", insertText: "hertz", attributes: [], children: [] },
+  { label: "joule", insertText: "joule", attributes: [], children: [] },
+  { label: "katal", insertText: "katal", attributes: [], children: [] },
+  { label: "kelvi", insertText: "kelvi", attributes: [], children: [] },
+  { label: "kilogram", insertText: "kilogram", attributes: [], children: [] },
+  { label: "litre", insertText: "litre", attributes: [], children: [] },
+  { label: "lumen", insertText: "lumen", attributes: [], children: [] },
+  { label: "lux", insertText: "lux", attributes: [], children: [] },
+  { label: "metre", insertText: "metre", attributes: [], children: [] },
+  { label: "mole", insertText: "mole", attributes: [], children: [] },
+  { label: "newton", insertText: "newton", attributes: [], children: [] },
+  { label: "ohm", insertText: "ohm", attributes: [], children: [] },
+  { label: "pascal", insertText: "pascal", attributes: [], children: [] },
+  { label: "radian", insertText: "radian", attributes: [], children: [] },
+  { label: "second", insertText: "second", attributes: [], children: [] },
+  { label: "siemens", insertText: "siemens", attributes: [], children: [] },
+  { label: "sievert", insertText: "sievert", attributes: [], children: [] },
+  { label: "steradian", insertText: "steradian", attributes: [], children: [] },
+  { label: "tesla", insertText: "tesla", attributes: [], children: [] },
+  { label: "volt", insertText: "volt", attributes: [], children: [] },
+  { label: "watt", insertText: "watt", attributes: [], children: [] },
+  { label: "weber", insertText: "weber", attributes: [], children: [] },
+];
+
+// prettier-ignore
+export const prefix: IElement[] = [
+  { label: "yotta", insertText: "yotta", attributes: [], children: [] },
+  { label: "zetta", insertText: "zetta", attributes: [], children: [] },
+  { label: "exa", insertText: "exa", attributes: [], children: [] },
+  { label: "peta", insertText: "peta", attributes: [], children: [] },
+  { label: "tera", insertText: "tera", attributes: [], children: [] },
+  { label: "giga", insertText: "giga", attributes: [], children: [] },
+  { label: "mega", insertText: "mega", attributes: [], children: [] },
+  { label: "kilo", insertText: "kilo", attributes: [], children: [] },
+  { label: "hecto", insertText: "hecto", attributes: [], children: [] },
+  { label: "deca", insertText: "deca", attributes: [], children: [] },
+  { label: "deci", insertText: "deci", attributes: [], children: [] },
+  { label: "centi", insertText: "centi", attributes: [], children: [] },
+  { label: "milli", insertText: "milli", attributes: [], children: [] },
+  { label: "micro", insertText: "micro", attributes: [], children: [] },
+  { label: "nano", insertText: "nano", attributes: [], children: [] },
+  { label: "pico", insertText: "pico", attributes: [], children: [] },
+  { label: "femto", insertText: "femto", attributes: [], children: [] },
+  { label: "atto", insertText: "atto", attributes: [], children: [] },
+  { label: "zepto", insertText: "zepto", attributes: [], children: [] },
+  { label: "yocto", insertText: "yocto", attributes: [], children: [] },
+];
 
 export const elements: IElement[] = [
   { label: "root", insertText: null, attributes: [], children: ["model"] },
   {
     label: "model",
     insertText: "model",
-    insertSnippet: '<model xmlns="http://www.cellml.org/cellml/2.0#" name="$1">\n\t$0\n</model>',
+    insertSnippet:
+      '<model xmlns="http://www.cellml.org/cellml/2.0#" name="$1">\n\t$0\n</model>',
     attributes: ["name", "xmlns"],
     children: ["component", "connection", "encapsulation", "import", "units"],
     documentation:
@@ -48,7 +303,8 @@ export const elements: IElement[] = [
   {
     label: "import",
     insertText: "import",
-    insertSnippet: '<import xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="$1>\n\t$0</import>',
+    insertSnippet:
+      '<import xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="$1>\n\t$0</import>',
     attributes: ["href"],
     children: ["import component", "import units"],
     documentation:
@@ -187,9 +443,10 @@ export const elements: IElement[] = [
   {
     label: "math",
     insertText: "math",
-    insertSnippet: '<math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:cellml="http://www.cellml.org/cellml/2.0#">$0</math>',
+    insertSnippet:
+      '<math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:cellml="http://www.cellml.org/cellml/2.0#">$0</math>',
     attributes: ["xmlns"],
-    children: [],
+    children: mathElements.map((e) => e.label),
     documentation:
       "A `math` element information item (referred to in this specification as a `math` element) is an element in the MathML namespace, which appears as a child of a `component` element, a `test_value` element, or a `reset_value` element.\n" +
       "1. A `math` element MUST be the top-level element of a Content MathML tree, as described in MathML 2.0.\n" +
@@ -248,135 +505,6 @@ export const elements: IElement[] = [
       "   * The value of the `variable_2` attribute MUST be a valid `variable` reference, as defined in 3.5 Variable references.\n" +
       "3. A `connection` element MUST NOT contain more than one `map_variables` element with a given `variable_1` attribute value and `variable_2` attribute value pair.\n",
   },
-];
-
-// prettier-ignore
-export const mathElements: IElement[] = [
-  { label: "ci", insertText: "ci", attributes: [], children: [] },
-  { label: "cn", insertText: "cn", attributes: [], children: [] },
-  { label: "sep", insertText: "sep", attributes: [], children: [] },
-  { label: "apply", insertText: "apply", attributes: [], children: [] },
-  { label: "piecewise", insertText: "piecewise", attributes: [], children: [] },
-  { label: "piece", insertText: "piece", attributes: [], children: [] },
-  { label: "otherwise", insertText: "otherwise", attributes: [], children: [] },
-  { label: "eq", insertText: "eq", attributes: [], children: [] },
-  { label: "neq", insertText: "neq", attributes: [], children: [] },
-  { label: "gt", insertText: "gt", attributes: [], children: [] },
-  { label: "lt", insertText: "lt", attributes: [], children: [] },
-  { label: "geq", insertText: "geq", attributes: [], children: [] },
-  { label: "leq", insertText: "leq", attributes: [], children: [] },
-  { label: "and", insertText: "and", attributes: [], children: [] },
-  { label: "or", insertText: "or", attributes: [], children: [] },
-  { label: "xor", insertText: "xor", attributes: [], children: [] },
-  { label: "not", insertText: "not", attributes: [], children: [] },
-  { label: "plus", insertText: "plus", attributes: [], children: [] },
-  { label: "minus", insertText: "minus", attributes: [], children: [] },
-  { label: "times", insertText: "times", attributes: [], children: [] },
-  { label: "divide", insertText: "divide", attributes: [], children: [] },
-  { label: "power", insertText: "power", attributes: [], children: [] },
-  { label: "root", insertText: "root", attributes: [], children: [] },
-  { label: "abs", insertText: "abs", attributes: [], children: [] },
-  { label: "exp", insertText: "exp", attributes: [], children: [] },
-  { label: "ln", insertText: "ln", attributes: [], children: [] },
-  { label: "log", insertText: "log", attributes: [], children: [] },
-  { label: "floor", insertText: "floor", attributes: [], children: [] },
-  { label: "ceiling", insertText: "ceiling", attributes: [], children: [] },
-  { label: "min", insertText: "min", attributes: [], children: [] },
-  { label: "max", insertText: "max", attributes: [], children: [] },
-  { label: "rem", insertText: "rem", attributes: [], children: [] },
-  { label: "diff", insertText: "diff", attributes: [], children: [] },
-  { label: "bvar", insertText: "bvar", attributes: [], children: [] },
-  { label: "logbase", insertText: "logbase", attributes: [], children: [] },
-  { label: "degree", insertText: "degree", attributes: [], children: [] },
-  { label: "sin", insertText: "sin", attributes: [], children: [] },
-  { label: "cos", insertText: "cos", attributes: [], children: [] },
-  { label: "tan", insertText: "tan", attributes: [], children: [] },
-  { label: "sec", insertText: "sec", attributes: [], children: [] },
-  { label: "csc", insertText: "csc", attributes: [], children: [] },
-  { label: "cot", insertText: "cot", attributes: [], children: [] },
-  { label: "sinh", insertText: "sinh", attributes: [], children: [] },
-  { label: "cosh", insertText: "cosh", attributes: [], children: [] },
-  { label: "tanh", insertText: "tanh", attributes: [], children: [] },
-  { label: "sech", insertText: "sech", attributes: [], children: [] },
-  { label: "csch", insertText: "csch", attributes: [], children: [] },
-  { label: "coth", insertText: "coth", attributes: [], children: [] },
-  { label: "arcsin", insertText: "arcsin", attributes: [], children: [] },
-  { label: "arccos", insertText: "arccos", attributes: [], children: [] },
-  { label: "arctan", insertText: "arctan", attributes: [], children: [] },
-  { label: "arcsec", insertText: "arcsec", attributes: [], children: [] },
-  { label: "arccsc", insertText: "arccsc", attributes: [], children: [] },
-  { label: "arccot", insertText: "arccot", attributes: [], children: [] },
-  { label: "arcsinh", insertText: "arcsinh", attributes: [], children: [] },
-  { label: "arccosh", insertText: "arccosh", attributes: [], children: [] },
-  { label: "arctanh", insertText: "arctanh", attributes: [], children: [] },
-  { label: "arcsech", insertText: "arcsech", attributes: [], children: [] },
-  { label: "arccsch", insertText: "arccsch", attributes: [], children: [] },
-  { label: "arccoth", insertText: "arccoth", attributes: [], children: [] },
-  { label: "pi", insertText: "pi", attributes: [], children: [] },
-  { label: "exponentiale", insertText: "exponentiale", attributes: [], children: [] },
-  { label: "notanumber",insertText: "notanumber", attributes: [], children: [] },
-  { label: "infinity", insertText: "infinity", attributes: [], children: [] },
-  { label: "true", insertText: "true", attributes: [], children: [] },
-  { label: "false", insertText: "false", attributes: [], children: [] },
-];
-
-// prettier-ignore
-export const units: IElement[] = [
-  { label: "ampere", insertText: "ampere", attributes: [], children: [] },
-  { label: "becquerel", insertText: "becquerel", attributes: [], children: [] },
-  { label: "candela", insertText: "candela", attributes: [], children: [] },
-  { label: "coulomb", insertText: "coulomb", attributes: [], children: [] },
-  { label: "dimensionless", insertText: "dimensionless", attributes: [], children: [] },
-  { label: "farad", insertText: "farad", attributes: [], children: [] },
-  { label: "gram", insertText: "gram", attributes: [], children: [] },
-  { label: "gray", insertText: "gray", attributes: [], children: [] },
-  { label: "henry", insertText: "henry", attributes: [], children: [] },
-  { label: "hertz", insertText: "hertz", attributes: [], children: [] },
-  { label: "joule", insertText: "joule", attributes: [], children: [] },
-  { label: "katal", insertText: "katal", attributes: [], children: [] },
-  { label: "kelvi", insertText: "kelvi", attributes: [], children: [] },
-  { label: "kilogram", insertText: "kilogram", attributes: [], children: [] },
-  { label: "litre", insertText: "litre", attributes: [], children: [] },
-  { label: "lumen", insertText: "lumen", attributes: [], children: [] },
-  { label: "lux", insertText: "lux", attributes: [], children: [] },
-  { label: "metre", insertText: "metre", attributes: [], children: [] },
-  { label: "mole", insertText: "mole", attributes: [], children: [] },
-  { label: "newton", insertText: "newton", attributes: [], children: [] },
-  { label: "ohm", insertText: "ohm", attributes: [], children: [] },
-  { label: "pascal", insertText: "pascal", attributes: [], children: [] },
-  { label: "radian", insertText: "radian", attributes: [], children: [] },
-  { label: "second", insertText: "second", attributes: [], children: [] },
-  { label: "siemens", insertText: "siemens", attributes: [], children: [] },
-  { label: "sievert", insertText: "sievert", attributes: [], children: [] },
-  { label: "steradian", insertText: "steradian", attributes: [], children: [] },
-  { label: "tesla", insertText: "tesla", attributes: [], children: [] },
-  { label: "volt", insertText: "volt", attributes: [], children: [] },
-  { label: "watt", insertText: "watt", attributes: [], children: [] },
-  { label: "weber", insertText: "weber", attributes: [], children: [] },
-];
-
-// prettier-ignore
-export const prefix: IElement[] = [
-  { label: "yotta", insertText: "yotta", attributes: [], children: [] },
-  { label: "zetta", insertText: "zetta", attributes: [], children: [] },
-  { label: "exa", insertText: "exa", attributes: [], children: [] },
-  { label: "peta", insertText: "peta", attributes: [], children: [] },
-  { label: "tera", insertText: "tera", attributes: [], children: [] },
-  { label: "giga", insertText: "giga", attributes: [], children: [] },
-  { label: "mega", insertText: "mega", attributes: [], children: [] },
-  { label: "kilo", insertText: "kilo", attributes: [], children: [] },
-  { label: "hecto", insertText: "hecto", attributes: [], children: [] },
-  { label: "deca", insertText: "deca", attributes: [], children: [] },
-  { label: "deci", insertText: "deci", attributes: [], children: [] },
-  { label: "centi", insertText: "centi", attributes: [], children: [] },
-  { label: "milli", insertText: "milli", attributes: [], children: [] },
-  { label: "micro", insertText: "micro", attributes: [], children: [] },
-  { label: "nano", insertText: "nano", attributes: [], children: [] },
-  { label: "pico", insertText: "pico", attributes: [], children: [] },
-  { label: "femto", insertText: "femto", attributes: [], children: [] },
-  { label: "atto", insertText: "atto", attributes: [], children: [] },
-  { label: "zepto", insertText: "zepto", attributes: [], children: [] },
-  { label: "yocto", insertText: "yocto", attributes: [], children: [] },
 ];
 
 /*
