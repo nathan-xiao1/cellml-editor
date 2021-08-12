@@ -95,6 +95,11 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
     model?: monaco.editor.ITextModel
   ): void {
     if (!errors) return;
+    if (!model) {
+      model = this.editorInstance?.getModel();
+      if (!model) return;
+    }
+    const fullRange = model.getFullModelRange();
     const markers: monaco.editor.IMarkerData[] = [];
     errors.forEach((error) => {
       let severity;
@@ -112,20 +117,23 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
           severity = MarkerSeverity.Error;
           break;
       }
+      if (
+        error.startLineNumber < fullRange.startLineNumber ||
+        error.endLineNumber > fullRange.endLineNumber
+      )
+        return;
       markers.push({
         severity: severity,
         message: error.description,
-        startColumn: error.startColumn,
-        endColumn: error.endColumn,
+        startColumn: model.getLineFirstNonWhitespaceColumn(
+          error.startLineNumber
+        ),
+        endColumn: model.getLineLastNonWhitespaceColumn(error.endLineNumber),
         startLineNumber: error.startLineNumber,
         endLineNumber: error.endLineNumber,
       });
     });
-    this.monacoInstance?.editor.setModelMarkers(
-      model ? model : this.editorInstance.getModel(),
-      CellMLID,
-      markers
-    );
+    this.monacoInstance?.editor.setModelMarkers(model, CellMLID, markers);
   }
 
   goToLine(lineNum: number): void {
@@ -150,8 +158,10 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
     this.editorInstance.setPosition(position);
   }
 
-  componentDidUpdate(): void {
-    this.highlightErrors(this.props.problems);
+  componentDidUpdate(prevProps: TEProps): void {
+    if (prevProps.problems != this.props.problems) {
+      this.highlightErrors(this.props.problems);
+    }
   }
 
   render(): React.ReactNode {

@@ -53,9 +53,10 @@ export default {
         ["attribute.name", "", "attribute.value"],
       ],
       [/@qualifiedName/, "attribute.name"],
-      [/\?>/, { token: "delimiter", next: "@pop" }],
+      [/\/?>/, { token: "delimiter", next: "@pop" }],
       [/(\/)(>)/, [{ token: "tag" }, { token: "delimiter", next: "@pop" }]],
       [/>/, { token: "delimiter", next: "@pop" }],
+      
     ],
   },
 } as languages.IMonarchLanguage;

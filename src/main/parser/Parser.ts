@@ -44,13 +44,16 @@ export default class Parser implements IParser {
             severity = "error";
             break;
         }
+        const lineNum = Number.parseInt(
+          error.message.match(/line (\d+)/i)?.[1]
+        );
         problems.push({
           description: ensureCapital(error.message),
           severity: severity,
           startColumn: error.column,
           endColumn: error.column + 1,
-          startLineNumber: error.line,
-          endLineNumber: error.line,
+          startLineNumber: lineNum ? lineNum : error.line,
+          endLineNumber: lineNum ? lineNum : error.line,
         });
       });
     } catch (error) {
