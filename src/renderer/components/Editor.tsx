@@ -218,9 +218,11 @@ export default class Editor extends React.Component<unknown, EditorState> {
   monacoCursorPositionChangedMath(mathstr: string) : void {
     const cleanedAttributes = mathstr.replace(/cellml:[^</>)]*/mg, '');
     console.log(cleanedAttributes);
-    this.setState(() => ({
-      activeMathString: cleanedAttributes,
-    }));
+    if (cleanedAttributes != this.state.activeMathString) {
+      this.setState(() => ({
+        activeMathString: cleanedAttributes,
+      }));
+    }
     // console.log(mathstr);
   }
 
