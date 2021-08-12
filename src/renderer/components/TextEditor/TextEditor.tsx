@@ -78,7 +78,7 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
         const xpath = getXPath(textUntilPosition);
         this.props.onCursorPositionChangedCallback(xpath);
         const offset = model.getOffsetAt(event.position);
-      // console.log("Offset: " + offset.toString());
+        // console.log("Offset: " + offset.toString());
         const str = model.getValue();
         const regex = /<math .*>[\s\S]*<\/math>/gm;
 
@@ -97,13 +97,6 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
         }
 
         if (isFound) {
-          // // console.log("math found: " + m.index.toString() + "->" + (m.index + m[0].length).toString());
-          // // console.log(m[0]);
-          // // this.currentMathElement = m[0];
-          // ipcRenderer.send(
-          //   IPCChannel.MATH_VIEWER_UPDATE,
-          //   m[0]
-          // );
           this.props.onCursorPositionChangedMath(m[0]);
         } else {
           this.props.onCursorPositionChangedMath("");
