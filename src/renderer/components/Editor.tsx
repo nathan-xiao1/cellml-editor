@@ -17,6 +17,12 @@ import { FileType, IDOM, IFileState, IProblemItem, ViewMode } from "Types";
 import TreePane from "./Panes/TreePane";
 import ElementPane from "./Panes/ElementPane/ElementPane";
 import AttributePane from "./Panes/AttributePane/AttributePane";
+import EquationViewer from "./EquationViewer/EquationViewer";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+// const EquationViewer = require("./EquationViewer/EquationViewer");
+// import "./EquationViewer/EquationViewer.d.ts";
+// import EquationPane from "./Panes/EquationPane/EquationPane";
+// import "./EquationViewer/index.d.ts";
 
 interface EditorState {
   currentMode: ViewMode;
@@ -27,6 +33,7 @@ interface EditorState {
   activeFileDOM: IDOM;
   activeFileCursorXPath: string;
   activeFileCursorIDOM: IDOM;
+  activeMathString?: string;
 }
 
 export default class Editor extends React.Component<unknown, EditorState> {
@@ -46,6 +53,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
       activeFileDOM: undefined,
       activeFileCursorXPath: undefined,
       activeFileCursorIDOM: undefined,
+      activeMathString: "",
     };
 
     // Set listener to update openedFile state
@@ -207,6 +215,15 @@ export default class Editor extends React.Component<unknown, EditorState> {
     }));
   }
 
+  monacoCursorPositionChangedMath(mathstr: string) : void {
+    const cleanedAttributes = mathstr.replace(/cellml:[^</>)]*/mg, '');
+    console.log(cleanedAttributes);
+    this.setState(() => ({
+      activeMathString: cleanedAttributes,
+    }));
+    // console.log(mathstr);
+  }
+
   /*
     Toggle between the Monaco text editor and the graphical editor view
   */
@@ -331,6 +348,9 @@ export default class Editor extends React.Component<unknown, EditorState> {
                     onCursorPositionChangedCallback={this.monacoCursorPositionChangedCallback.bind(
                       this
                     )}
+                    onCursorPositionChangedMath={this.monacoCursorPositionChangedMath.bind(
+                      this
+                    )}
                   />
                   <PdfViewer
                     hidden={
@@ -355,7 +375,16 @@ export default class Editor extends React.Component<unknown, EditorState> {
             <ReflexElement className="pane-right" minSize={150} flex={0.15}>
               <ReflexContainer orientation="horizontal">
                 <ReflexElement className="pane-right-top" minSize={25}>
-                  <Pane title="Math View" collapsible={false}></Pane>
+                  <Pane title="Math View" collapsible={false}>
+                    {/* {this.textEditorRef?.current.currentMathElement} */}
+                    {/* { this.state.activeMathElement } */}
+                    {/* <EquationViewer str={this.state.activeMathElement}/> */}
+                    {/* <EquationPane
+                      node={this.state.activeFileCursorIDOM}
+                      path={this.state.activeFileCursorXPath}
+                      /> */}
+                    <EquationViewer str={this.state.activeMathString}/>
+                  </Pane>
                 </ReflexElement>
                 <ReflexSplitter className="primary-splitter splitter" />
                 <ReflexElement

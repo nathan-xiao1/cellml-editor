@@ -11,8 +11,10 @@ import CellMLHoverProvider from "./definitions/HoverProvider";
 import CellMLFormattingProvider from "./definitions/FormattingProvider";
 import { getXPath } from "src/commons/utils/xpath";
 import { IProblemItem } from "Types";
+import IPCChannel from "IPCChannels";
 
 import "./MonacoLoader";
+import { ipcRenderer } from "electron";
 
 const CellMLID = "CellML2";
 
@@ -24,6 +26,7 @@ interface TEProps {
   onMountCallback?: () => void;
   onChangeCallback?: (content: string) => void;
   onCursorPositionChangedCallback?: (path: string) => void;
+  onCursorPositionChangedMath?: (mathstr: string) => void;
 }
 
 interface TEState {
@@ -34,9 +37,11 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
   private monacoInstance: Monaco;
   private editorInstance: monaco.editor.IStandaloneCodeEditor;
   private contextProvider: ContextProvider;
+  // public currentMathElement: string;
   constructor(props: TEProps) {
     super(props);
     this.contextProvider = new ContextProvider();
+    // this.currentMathElement = "";
   }
 
   // prettier-ignore
@@ -59,36 +64,7 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
   ): void {
     this.editorInstance = editorInstance;
     // set up handler to check cursor position
-    this.editorInstance.onDidChangeCursorPosition((event) => {
-      // Do things
-      // console.log(JSON.stringify(event));
-      const model = this.editorInstance.getModel();
-      const offset = model.getOffsetAt(event.position);
-      // console.log("Offset: " + offset.toString());
 
-      const str = model.getValue();
-      const regex = /<math .*>[\s\S]*<\/math>/gm;
-
-      const matches = [...str.matchAll(regex)];
-      let isFound = false;
-      let m;
-      
-      for (const match of matches) {
-        const open = match.index;
-        const close = open + match[0].length;
-        if (open <= offset && offset <= close) {
-          isFound = true;
-          m = match;
-          break;
-        }
-      }
-
-      if (isFound) {
-        console.log("math found: " + m.index.toString() + "->" + (m.index + m[0].length).toString());
-        // console.log(m[0]);
-      }
-
-    });
     this.props.onMountCallback();
     this.editorInstance.onDidChangeCursorPosition(
       (event: editor.ICursorPositionChangedEvent) => {
@@ -101,6 +77,37 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
         });
         const xpath = getXPath(textUntilPosition);
         this.props.onCursorPositionChangedCallback(xpath);
+        const offset = model.getOffsetAt(event.position);
+      // console.log("Offset: " + offset.toString());
+        const str = model.getValue();
+        const regex = /<math .*>[\s\S]*<\/math>/gm;
+
+        const matches = [...str.matchAll(regex)];
+        let isFound = false;
+        let m;
+        
+        for (const match of matches) {
+          const open = match.index;
+          const close = open + match[0].length;
+          if (open <= offset && offset <= close) {
+            isFound = true;
+            m = match;
+            break;
+          }
+        }
+
+        if (isFound) {
+          // // console.log("math found: " + m.index.toString() + "->" + (m.index + m[0].length).toString());
+          // // console.log(m[0]);
+          // // this.currentMathElement = m[0];
+          // ipcRenderer.send(
+          //   IPCChannel.MATH_VIEWER_UPDATE,
+          //   m[0]
+          // );
+          this.props.onCursorPositionChangedMath(m[0]);
+        } else {
+          this.props.onCursorPositionChangedMath("");
+        }
       }
     );
   }

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": ["es2020.string"],
+    "lib": ["es2020.string", "DOM"],
     "downlevelIteration": true,
     "allowJs": true,
     "module": "commonjs",
@@ -17,6 +17,7 @@
     "paths": {
       "*": ["node_modules/*"],
       "Types": ["src/types/index.d.ts"],
+      // "Types": ["src/types/index.d.ts", "src/types/EquationViewer.d.ts"],
       "IPCChannels": ["src/main/handlers/IpcChannels.ts"],
       "src/*": ["src/*"],
     }
