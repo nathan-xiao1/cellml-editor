@@ -9,12 +9,12 @@ import "./Editor.scss";
 
 import Header from "./Header/Header";
 import Pane from "./Panes/Pane";
-import ProblemPane from "./Panes/ProblemPane";
+import ProblemPane from "./Panes/ProblemPane/ProblemPane";
 import TextEditor from "./TextEditor/TextEditor";
 import TitleMenuBar from "./TitleMenuBar/TitleMenuBar";
 import PdfViewer from "./PdfViewer/PdfViewer";
 import { FileType, IDOM, IFileState, IProblemItem, ViewMode } from "Types";
-import TreePane from "./Panes/TreePane";
+import TreePane from "./Panes/TreePane/TreePane";
 import ElementPane from "./Panes/ElementPane/ElementPane";
 import AttributePane from "./Panes/AttributePane/AttributePane";
 
