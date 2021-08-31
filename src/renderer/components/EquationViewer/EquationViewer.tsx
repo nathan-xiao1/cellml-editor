@@ -1,8 +1,16 @@
 import React from 'react';
 import { MathJaxContext, MathJax, MathJax2Config } from 'better-react-mathjax';
+import { MathMLInputProcessor } from 'better-react-mathjax/MathJax2';
+
+interface MathMLInputProcessorE extends MathMLInputProcessor {
+    useMathMLspacing?: boolean;
+    extensions?: string[];
+}
+
+const extensions : MathMLInputProcessorE = { extensions: ["content-mathml.js"]};
 
 const config : MathJax2Config = {
-    MathML: { extensions: ["content-mathml.js"]}
+    MathML: extensions
 }
 
 // Props:
