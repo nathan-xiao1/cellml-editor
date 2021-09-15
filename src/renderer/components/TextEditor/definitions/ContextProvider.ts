@@ -87,7 +87,7 @@ function _getLastOpenedTag(text: string): {
   // Get all tags inside of the content
   const tags = text.match(/<\/*(?=\S*)([a-zA-Z-_]+)/g);
   if (!tags) {
-    return undefined;
+    return { tagName: "root", isAttributeSearch: false };
   }
   // Need to know which tags are closed
   const closingTags = [];

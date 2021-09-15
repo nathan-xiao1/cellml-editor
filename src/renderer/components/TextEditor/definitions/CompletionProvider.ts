@@ -20,7 +20,7 @@ export default function getCompletionProvider(
 
       // If we want suggestions, inside of which tag are we?
       const lastOpenedTag = contextProvider.lastOpenedTag;
-      const lastTag = contextProvider.lastTag;
+      const lastTag = contextProvider.lastOpenedTag;
       console.debug("lastTag: ", lastTag);
 
       // Autosuggest attributes
