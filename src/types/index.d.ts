@@ -8,7 +8,7 @@ export interface IFile {
   getContent(): string;
   getSaved(): boolean;
   fileIsNew(): boolean;
-  updateContent(content: string): void;
+  updateContent(content: string, notify?: boolean): void;
   updateAttribute(xpath: string, key: string, value: string): void;
   addChildNode(xpath: string, childName: string): void;
   removeChildNode(xpath: string): void;

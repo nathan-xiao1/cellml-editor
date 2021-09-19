@@ -58,10 +58,11 @@ export default class CellMLFile implements IFile {
     Update the content (in memory) of the file. Called when the content 
     of the file's Monaco model is changed
   */
-  public updateContent(content: string): void {
+  public updateContent(content: string, notify = true): void {
     this._content = content;
     this._parse(this._content);
     this._saved = false;
+    if (notify) this.notifyWebContents();
   }
 
   public updateAttribute(xpath: string, key: string, value: string): void {
@@ -100,7 +101,6 @@ export default class CellMLFile implements IFile {
   */
   public updateProblems(problems: IProblemItem[]): void {
     this._problems = problems;
-    this.notifyWebContents();
   }
 
   /*

@@ -29,9 +29,17 @@ export default class ParsedDOM implements IParsedDOM {
     const libXMLNode = getNodeFromXPathLibXML(this._xmlDoc, xpath);
     if (libXMLNode) {
       // Update libxmljs's DOM document
-      libXMLNode.attr(key)?.value(value);
+      const libXMLNodeAttr = libXMLNode.attr(key);
+      if (!libXMLNodeAttr) {
+        libXMLNode.attr(key, value);
+      } else if (!value) {
+        libXMLNodeAttr.remove();
+      } else {
+        libXMLNodeAttr.value(value);
+      }
       // Update IDOM's representation
-      getNodeFromXPath(this._idom, xpath).attributes = libXMLNode
+      const idomNode = getNodeFromXPath(this._idom, xpath);
+      idomNode.attributes = libXMLNode
         .attrs()
         .map((attribute: libxmljs.Attribute) => {
           return {
@@ -57,7 +65,7 @@ export default class ParsedDOM implements IParsedDOM {
       );
       if (schema) {
         for (const attr of schema.attributes) {
-          childElement.attr(attr, "");
+          childElement.attr(attr.name, "");
         }
       }
       libXMLNode.addChild(childElement);

@@ -145,9 +145,14 @@ export interface IElement {
   label: Element;
   insertText: string;
   insertSnippet?: string;
-  attributes: string[];
+  attributes: IAttribute[];
   children: Element[];
   documentation?: string;
+}
+
+export interface IAttribute {
+  name: string;
+  required: boolean;
 }
 
 // prettier-ignore
@@ -286,7 +291,10 @@ export const elements: IElement[] = [
     insertText: "model",
     insertSnippet:
       '<model xmlns="http://www.cellml.org/cellml/2.0#" name="$1">\n\t$0\n</model>',
-    attributes: ["name", "xmlns"],
+    attributes: [
+      { name: "name", required: true },
+      { name: "xmlns", required: false },
+    ],
     children: ["component", "connection", "encapsulation", "import", "units"],
     documentation:
       "The top-level element information item in a CellML infoset MUST be an element in the CellML namespace with a local name equal to model.\n" +
@@ -305,7 +313,7 @@ export const elements: IElement[] = [
     insertText: "import",
     insertSnippet:
       '<import xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="$1>\n\t$0</import>',
-    attributes: ["href"],
+    attributes: [{ name: "href", required: true }],
     children: ["import component", "import units"],
     documentation:
       "An import element information item (referred to in this specification as an import element) is an element in the CellML namespace with a local name equal to `import`, which appears as a child of a `model` element.\n" +
@@ -321,7 +329,10 @@ export const elements: IElement[] = [
   {
     label: "import units",
     insertText: "units",
-    attributes: ["name", "units_ref"],
+    attributes: [
+      { name: "name", required: true },
+      { name: "units_ref", required: true },
+    ],
     children: [],
     documentation:
       "An `import units` element information item (referred to in this specification as an import units element) is an element in the CellML namespace with a local name equal to `units`, which appears as a child of an `import` element.\n" +
@@ -335,7 +346,10 @@ export const elements: IElement[] = [
   {
     label: "import component",
     insertText: "component",
-    attributes: ["name", "component_ref"],
+    attributes: [
+      { name: "name", required: true },
+      { name: "component_ref", required: true },
+    ],
     children: [],
     documentation:
       "An `import component` element information item (referred to in this specification as an `import component` element) is an element in the CellML namespace with a local name equal to `component`, which appears as a child of an `import` element.\n" +
@@ -349,7 +363,7 @@ export const elements: IElement[] = [
   {
     label: "units",
     insertText: "units",
-    attributes: ["name"],
+    attributes: [{ name: "name", required: true }],
     children: ["unit"],
     documentation:
       "A `units` element information item (referred to in this specification as a `units` element) is an element in the CellML namespace with a local name equal to `units`, which appears as a child of a `model` element.\n" +
@@ -362,7 +376,12 @@ export const elements: IElement[] = [
   {
     label: "unit",
     insertText: "unit",
-    attributes: ["units", "prefix", "multiplier", "exponent"],
+    attributes: [
+      { name: "units", required: true },
+      { name: "prefix", required: false },
+      { name: "multiplier", required: false },
+      { name: "exponent", required: false },
+    ],
     children: [],
     documentation:
       "A `unit` element information item (referred to in this specification as a `unit` element) is an element in the CellML namespace with a local name equal to `unit`, which appears as a child of a `units` element.\n" +
@@ -379,7 +398,10 @@ export const elements: IElement[] = [
   {
     label: "component",
     insertText: "component",
-    attributes: ["name", "component_ref"],
+    attributes: [
+      { name: "name", required: true },
+      { name: "component_ref", required: false },
+    ],
     children: ["math", "reset", "variable"],
     documentation:
       "A `component` element information item (referred to in this specification as a `component` element) is an element in the CellML namespace with a local name equal to component, which appears as a child of a `model` element.\n" +
@@ -394,7 +416,12 @@ export const elements: IElement[] = [
   {
     label: "variable",
     insertText: "variable",
-    attributes: ["name", "units", "interface", "initial_value"],
+    attributes: [
+      { name: "name", required: true },
+      { name: "units", required: true },
+      { name: "interface", required: false },
+      { name: "initial_value", required: false },
+    ],
     children: [],
     documentation:
       "A `variable` element information item (referred to in this specification as a `variable` element) is an element in the CellML namespace with a local name equal to `variable`, which appears as a child of a `component` element.\n" +
@@ -409,7 +436,11 @@ export const elements: IElement[] = [
   {
     label: "reset",
     insertText: "reset",
-    attributes: ["variable", "test_variable", "order"],
+    attributes: [
+      { name: "variable", required: true },
+      { name: "test_variable", required: true },
+      { name: "order", required: true },
+    ],
     children: ["reset_value", "test_value"],
     documentation:
       "A `reset` element information item (referred to in this specification as a `reset` element) is an element in the CellML namespace with a local name equal to `reset`, which appears as a child of a `component` element.\n" +
@@ -445,7 +476,7 @@ export const elements: IElement[] = [
     insertText: "math",
     insertSnippet:
       '<math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:cellml="http://www.cellml.org/cellml/2.0#">$0</math>',
-    attributes: ["xmlns"],
+    attributes: [{ name: "xmlns", required: true }],
     children: mathElements.map((e) => e.label),
     documentation:
       "A `math` element information item (referred to in this specification as a `math` element) is an element in the MathML namespace, which appears as a child of a `component` element, a `test_value` element, or a `reset_value` element.\n" +
@@ -480,7 +511,10 @@ export const elements: IElement[] = [
   {
     label: "connection",
     insertText: "connection",
-    attributes: ["component_1", "component_2"],
+    attributes: [
+      { name: "component_1", required: true },
+      { name: "component_2", required: true },
+    ],
     children: ["map_variables"],
     documentation:
       "A `connection` element information item (referred to in this specification as a `connection` element) is an element in the CellML namespace with a local name equal to `connection`, which appears as a child of a `model` element.\n" +
@@ -495,7 +529,10 @@ export const elements: IElement[] = [
   {
     label: "map_variables",
     insertText: "map_variables",
-    attributes: ["variable_1", "variable_2"],
+    attributes: [
+      { name: "variable_1", required: true },
+      { name: "variable_2", required: true },
+    ],
     children: [],
     documentation:
       "A `map_variables` element information item (referred to in this specification as a `map_variables` element) is an element in the CellML namespace with a local name equal to `map_variables`, which appears as a child of a `connection` element.\n" +
