@@ -17,6 +17,7 @@ import { FileType, IDOM, IFileState, IProblemItem, ViewMode } from "Types";
 import TreePane from "./Panes/TreePane/TreePane";
 import ElementPane from "./Panes/ElementPane/ElementPane";
 import AttributePane from "./Panes/AttributePane/AttributePane";
+import ImportPane from "./Panes/ImportPane/ImportPane";
 
 interface EditorState {
   currentMode: ViewMode;
@@ -288,9 +289,24 @@ export default class Editor extends React.Component<unknown, EditorState> {
                 </ReflexElement>
                 <ReflexSplitter className="primary-splitter splitter" />
                 <ReflexElement
+                  className="pane-left-middle"
+                  minSize={25}
+                  flex={0.3}
+                >
+                  <Pane title="Import Component" collapsible={false}>
+                    <ImportPane
+                      filepath={
+                        this.state.openedFilepaths[this.state.activeFileIndex]
+                      }
+                      xpath={this.state.activeFileCursorXPath}
+                    />
+                  </Pane>
+                </ReflexElement>
+                <ReflexSplitter className="primary-splitter splitter" />
+                <ReflexElement
                   className="pane-left-bottom"
                   minSize={25}
-                  flex={0.4}
+                  flex={0.25}
                 >
                   <Pane title="Tree View" collapsible={false}>
                     <TreePane

@@ -59,6 +59,8 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
   ): void {
     this.editorInstance = editorInstance;
     this.props.onMountCallback();
+
+    // Register callback for cursor position change event
     this.editorInstance.onDidChangeCursorPosition(
       (event: editor.ICursorPositionChangedEvent) => {
         const model = this.editorInstance.getModel();
@@ -72,6 +74,17 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
         this.props.onCursorPositionChangedCallback(xpath);
       }
     );
+
+    // Register new context menu action
+    this.editorInstance.addAction({
+      id: "export-component",
+      label: "Export component",
+      contextMenuGroupId: "import-export",
+      contextMenuOrder: 0,
+      run: () => {
+        alert("Export component");
+      },
+    });
   }
 
   handleContentOnChange(

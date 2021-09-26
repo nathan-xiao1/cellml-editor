@@ -1,4 +1,4 @@
-import { ipcMain, BrowserWindow } from "electron";
+import { ipcMain, BrowserWindow, dialog } from "electron";
 import { editorSystem } from "../index";
 import IPCChannel from "./IpcChannels";
 
@@ -24,7 +24,15 @@ ipcMain.on(IPCChannel.TOGGLE_DEVELOPER_TOOLS, (event) => {
 
 ipcMain.on(IPCChannel.FORCE_RELOAD_WINDOW, (event) => {
   event.sender.reloadIgnoringCache();
-})
+});
+
+ipcMain.handle(IPCChannel.ACTION_CONFIRM, (_, message) => {
+  return dialog.showMessageBoxSync(null, {
+    type: "question",
+    buttons: ["No", "Yes"],
+    message: message,
+  });
+});
 
 // For debugging
 ipcMain.on("debug", () => {

@@ -1,9 +1,12 @@
 import { app, BrowserWindow } from "electron";
 import Datastore from "nedb";
 import EditorSystem from "./data/EditorSystem";
+import Library from "./data/Library";
 import { loadState, saveState } from "./utils";
+
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 
+export const library = new Library();
 export const editorSystem = new EditorSystem();
 
 // Create or load the database for persistent state
@@ -78,3 +81,4 @@ app.on("activate", () => {
 // code. You can also put them in separate files and import them here.
 import("./handlers/MainHandlers");
 import("./handlers/FileHandlers");
+import("./handlers/LibraryHandlers");

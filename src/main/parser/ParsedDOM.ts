@@ -1,4 +1,4 @@
-import { IDOM, IParsedDOM, IProblemItem } from "Types";
+import { IComponent, IDOM, IParsedDOM, IProblemItem } from "Types";
 import libxmljs from "libxmljs2";
 import CellMLSchema from "src/commons/CellMLSchema";
 import {
@@ -76,6 +76,19 @@ export default class ParsedDOM implements IParsedDOM {
     const libXMLNode = getNodeFromXPathLibXML(this._xmlDoc, xpath);
     if (libXMLNode) {
       libXMLNode.remove();
+    }
+  }
+
+  importComponent(xpath: string, component: IComponent): void {
+    try {
+      const newNode = libxmljs.parseXmlString(component.content, {
+        recover: true,
+        doctype: false,
+      }).root();
+      const insertNode = getNodeFromXPathLibXML(this._xmlDoc, xpath);
+      insertNode.addChild(newNode);
+    } catch (e) {
+      console.log(e);
     }
   }
 

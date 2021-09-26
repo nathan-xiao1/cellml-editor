@@ -12,6 +12,7 @@ export interface IFile {
   updateAttribute(xpath: string, key: string, value: string): void;
   addChildNode(xpath: string, childName: string): void;
   removeChildNode(xpath: string): void;
+  importComponent(xpath, componentId: string): Promise<void>;
   saveContent(): void;
   getProblems(): IProblemItem[];
   updateProblems(problems: IProblemItem[]): void;
@@ -38,6 +39,20 @@ export interface IEditorSystem {
   updateFileContent(filepath: string, content: string): void;
   fileIsSaved(filepath: string): boolean;
   fileIsNew(filepath: string): boolean;
+}
+
+export interface ILibrary {
+  getComponents(): Promise<IComponent[]>;
+  getComponent(componentId: string): Promise<IComponent>;
+  addComponent(component: IComponent): Promise<boolean>;
+  removeComponent(componentId: string): Promise<boolean>;
+}
+
+export interface IComponent {
+  _id?: string;
+  name: string;
+  rootTag: string;
+  content: string;
 }
 
 export type ProblemSeverity = "warning" | "error" | "info" | "hint";
@@ -90,6 +105,7 @@ export interface IParsedDOM {
   updateAttribute(xpath: string, key: string, value: string): void;
   addChildNode(xpath: string, childName: string): void;
   removeChildNode(xpath: string): void;
+  importComponent(xpath: string, component: IComponent): void;
   toString(): string;
 }
 

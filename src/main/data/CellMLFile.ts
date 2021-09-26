@@ -8,8 +8,10 @@ import {
   FileType,
   IDOM,
   IParsedDOM,
+  IComponent,
 } from "Types";
 import CellMLParser from "../parser/Parser";
+import { library } from "../index";
 
 export default class CellMLFile implements IFile {
   private _parser: CellMLParser;
@@ -77,6 +79,12 @@ export default class CellMLFile implements IFile {
 
   public removeChildNode(xpath: string): void {
     this._parsedDOM.removeChildNode(xpath);
+    this.updateContent(this._parsedDOM.toString());
+  }
+
+  public async importComponent(xpath: string, componentId: string): Promise<void> {
+    const component = await library.getComponent(componentId);
+    this._parsedDOM.importComponent(xpath, component);
     this.updateContent(this._parsedDOM.toString());
   }
 

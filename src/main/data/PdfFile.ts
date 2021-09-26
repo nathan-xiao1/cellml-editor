@@ -1,4 +1,4 @@
-import { FileType, IFile, IFileState, IProblemItem } from "Types";
+import { FileType, IComponent, IFile, IFileState, IProblemItem } from "Types";
 
 export default class PdfFile implements IFile {
   private _filepath: string;
@@ -34,6 +34,9 @@ export default class PdfFile implements IFile {
     return;
   }
   removeChildNode(): void {
+    return;
+  }
+  importComponent(): void {
     return;
   }
   saveContent(): void {
