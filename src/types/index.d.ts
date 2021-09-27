@@ -13,6 +13,7 @@ export interface IFile {
   addChildNode(xpath: string, childName: string): void;
   removeChildNode(xpath: string): void;
   importComponent(xpath, componentId: string): Promise<void>;
+  exportComponent(xpath: string, name: string): Promise<boolean>;
   saveContent(): void;
   getProblems(): IProblemItem[];
   updateProblems(problems: IProblemItem[]): void;
@@ -106,6 +107,7 @@ export interface IParsedDOM {
   addChildNode(xpath: string, childName: string): void;
   removeChildNode(xpath: string): void;
   importComponent(xpath: string, component: IComponent): void;
+  exportComponent(xpath: string): IComponent;
   toString(): string;
 }
 

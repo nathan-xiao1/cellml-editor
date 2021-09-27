@@ -82,10 +82,22 @@ export default class CellMLFile implements IFile {
     this.updateContent(this._parsedDOM.toString());
   }
 
-  public async importComponent(xpath: string, componentId: string): Promise<void> {
+  public async importComponent(
+    xpath: string,
+    componentId: string
+  ): Promise<void> {
     const component = await library.getComponent(componentId);
     this._parsedDOM.importComponent(xpath, component);
     this.updateContent(this._parsedDOM.toString());
+  }
+
+  public async exportComponent(xpath: string, name: string): Promise<boolean> {
+    const component = this._parsedDOM.exportComponent(xpath);
+    return library.addComponent({
+      name: name,
+      rootTag: component.name,
+      content: component.content,
+    });
   }
 
   /*

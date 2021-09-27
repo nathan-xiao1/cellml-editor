@@ -260,6 +260,15 @@ export default class Editor extends React.Component<unknown, EditorState> {
     this.textEditorRef.current?.goToLine(lineNum);
   }
 
+  exportComponent(): void {
+    ipcRenderer.send(
+      IPCChannel.LIBRARY_ADD_COMPONENT,
+      this.getActiveFilepath(),
+      this.state.activeFileCursorXPath,
+      "test"
+    );
+  }
+
   componentWillUnmount(): void {
     ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_OPENED_FILE);
     ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_FILE_STATE);
@@ -344,6 +353,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                     filepath={activeFilepath}
                     defaultValue={this.getDefaultContent(activeFilepath)}
                     problems={this.state.activeFileProblems}
+                    exportComponentHandler={this.exportComponent.bind(this)}
                     onMountCallback={this.monacoOnMountCallback.bind(this)}
                     onChangeCallback={this.monacoOnChangeCallback.bind(this)}
                     onCursorPositionChangedCallback={this.monacoCursorPositionChangedCallback.bind(

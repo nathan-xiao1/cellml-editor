@@ -33,14 +33,6 @@ export default class ImportPane extends React.Component<IPProps, IPState> {
     });
   }
 
-  addComponent(): void {
-    ipcRenderer.send(IPCChannel.LIBRARY_ADD_COMPONENT, {
-      name: "test",
-      rootTag: "test",
-      content: "<test></test>",
-    });
-  }
-
   async removeComponent(component: IComponent): Promise<void> {
     if (
       await ipcRenderer.invoke(
@@ -115,7 +107,6 @@ export default class ImportPane extends React.Component<IPProps, IPState> {
             );
           })}
         </ul>
-        <button onClick={this.addComponent}>add</button>
       </div>
     );
   }

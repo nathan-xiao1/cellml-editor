@@ -81,15 +81,26 @@ export default class ParsedDOM implements IParsedDOM {
 
   importComponent(xpath: string, component: IComponent): void {
     try {
-      const newNode = libxmljs.parseXmlString(component.content, {
-        recover: true,
-        doctype: false,
-      }).root();
+      const newNode = libxmljs
+        .parseXmlString(component.content, {
+          recover: true,
+          doctype: false,
+        })
+        .root();
       const insertNode = getNodeFromXPathLibXML(this._xmlDoc, xpath);
       insertNode.addChild(newNode);
     } catch (e) {
       console.log(e);
     }
+  }
+
+  exportComponent(xpath: string): IComponent {
+    const node = getNodeFromXPathLibXML(this._xmlDoc, xpath);
+    return {
+      name: node.name(),
+      rootTag: node.name(),
+      content: node.toString(),
+    };
   }
 
   toString(): string {

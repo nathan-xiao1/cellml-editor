@@ -36,7 +36,10 @@ export default class PdfFile implements IFile {
   removeChildNode(): void {
     return;
   }
-  importComponent(): void {
+  importComponent(): Promise<void> {
+    return;
+  }
+  exportComponent(): Promise<boolean> {
     return;
   }
   saveContent(): void {

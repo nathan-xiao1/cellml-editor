@@ -21,6 +21,7 @@ interface TEProps {
   filepath: string;
   defaultValue: string;
   problems: IProblemItem[];
+  exportComponentHandler: () => void;
   onMountCallback?: () => void;
   onChangeCallback?: (content: string) => void;
   onCursorPositionChangedCallback?: (path: string) => void;
@@ -82,7 +83,7 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
       contextMenuGroupId: "import-export",
       contextMenuOrder: 0,
       run: () => {
-        alert("Export component");
+        this.props.exportComponentHandler();
       },
     });
   }

@@ -11,9 +11,14 @@ ipcMain.on(IPCChannel.LIBRARY_GET_COMPONENTS, (event) => {
     );
 });
 
-ipcMain.on(IPCChannel.LIBRARY_ADD_COMPONENT, (event, component) => {
-  Promise.all([library.addComponent(component), library.getComponents()]).then(
-    (results) => event.reply(IPCChannel.RENDERER_UPDATE_COMPONENT, results[1])
+ipcMain.on(IPCChannel.LIBRARY_ADD_COMPONENT, (event, filepath, xpath, name) => {
+  console.log("HERE")
+  const file = editorSystem.getFile(filepath);
+  Promise.all([
+    file.exportComponent(xpath, name),
+    library.getComponents(),
+  ]).then((results) =>
+    event.reply(IPCChannel.RENDERER_UPDATE_COMPONENT, results[1])
   );
 });
 
