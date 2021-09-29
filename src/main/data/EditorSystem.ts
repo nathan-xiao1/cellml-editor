@@ -43,6 +43,14 @@ export default class EditorSystem implements IEditorSystem {
     return file;
   }
 
+  public newFileReadonly(id: string, filename: string, content: string): IFile {
+    const filepath = `${id}\\${filename}`
+    const file = new CellMLFile(filepath, this.cellmlParser, true, true);
+    this.openedFiles.set(filepath, file);
+    if (content) file.updateContent(content);
+    return file;
+  }
+
   public newFileFromTemplate(template: string): IFile {
     if (!templates.has(template)) {
       console.log("Missing Template");

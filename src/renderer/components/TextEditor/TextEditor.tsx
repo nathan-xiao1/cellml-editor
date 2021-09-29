@@ -18,6 +18,7 @@ const CellMLID = "CellML2";
 
 interface TEProps {
   hidden?: boolean;
+  readonly: boolean;
   filepath: string;
   defaultValue: string;
   problems: IProblemItem[];
@@ -190,7 +191,7 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
         onChange={this.handleContentOnChange.bind(this)}
         beforeMount={this.handleEditorWillMount.bind(this)}
         onMount={this.handleEditorDidMount.bind(this)}
-        options={{ minimap: { enabled: false } }}
+        options={{ minimap: { enabled: false }, readOnly: this.props.readonly }}
       />
     );
   }

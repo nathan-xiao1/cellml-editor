@@ -12,6 +12,7 @@ import "./ImportPane.scss";
 interface IPProps {
   filepath: string;
   xpath: string;
+  openLibraryComponent: (componentId: string) => void;
 }
 
 interface IPState {
@@ -68,6 +69,10 @@ export default class ImportPane extends React.Component<IPProps, IPState> {
     );
   }
 
+  viewComponent(componentId: string): void {
+    this.props.openLibraryComponent(componentId);
+  }
+
   componentDidMount(): void {
     ipcRenderer.send(IPCChannel.LIBRARY_GET_COMPONENTS);
   }
@@ -85,21 +90,30 @@ export default class ImportPane extends React.Component<IPProps, IPState> {
               <li key={component._id}>
                 <div className="import-component-item">
                   <div className="import-component-item-text">
-                    <p>{component.name}</p>
-                    <p className="content-preview">
-                      {component.content.slice(0, 15)}
+                    <p
+                      className="import-component-title"
+                      onClick={() => this.viewComponent(component._id)}
+                    >
+                      {component.name}
                     </p>
+                    <p className="import-component-subtitle">{component._id}</p>
                   </div>
                   <div className="import-component-item-action">
                     <DeleteIcon
                       className="remove-component-btn"
                       style={{ fontSize: 14, cursor: "pointer" }}
-                      onClick={() => this.removeComponent(component)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        this.removeComponent(component);
+                      }}
                     />
                     <AddIcon
                       className="import-component-btn"
                       style={{ fontSize: 14, cursor: "pointer" }}
-                      onClick={() => this.importComponent(component)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        this.importComponent(component);
+                      }}
                     />
                   </div>
                 </div>

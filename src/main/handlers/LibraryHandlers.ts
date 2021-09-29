@@ -12,7 +12,6 @@ ipcMain.on(IPCChannel.LIBRARY_GET_COMPONENTS, (event) => {
 });
 
 ipcMain.on(IPCChannel.LIBRARY_ADD_COMPONENT, (event, filepath, xpath, name) => {
-  console.log("HERE")
   const file = editorSystem.getFile(filepath);
   Promise.all([
     file.exportComponent(xpath, name),
@@ -46,3 +45,13 @@ ipcMain.on(
       );
   }
 );
+
+ipcMain.on(IPCChannel.LIBRARY_OPEN_COMPONENT, (event, componentId) => {
+  library.getComponent(componentId).then((component) => {
+    editorSystem.newFileReadonly(component._id, component.name, component.content);
+    event.reply(
+      IPCChannel.RENDERER_UPDATE_OPENED_FILE,
+      editorSystem.getOpenedFilepaths()
+    );
+  });
+});

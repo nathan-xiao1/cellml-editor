@@ -29,6 +29,7 @@ export type ViewMode = "text" | "graphical";
 export interface IEditorSystem {
   init(): void;
   newFile(content?: string): IFile;
+  newFileReadonly(id: string, filename: string, content: string): void;
   newFileFromTemplate(template: string): IFile;
   openFile(filepath: string): IFile;
   openFiles(filepaths: string[]): IFile[];
@@ -70,6 +71,7 @@ export interface IProblemItem {
 
 export interface IFileState {
   dom: IDOM;
+  readonly: boolean;
   fileType: string;
   filepath: string;
   problems: IProblemItem[];

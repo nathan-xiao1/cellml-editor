@@ -54,6 +54,7 @@ export default class PdfFile implements IFile {
   getState(): IFileState {
     return {
       dom: undefined,
+      readonly: false,
       fileType: this.getType(),
       filepath: this._filepath,
       problems: this.getProblems(),

@@ -5,13 +5,14 @@ import EditorToggle from "../EditorToggle/EditorToggle";
 import { ViewMode } from "Types";
 
 function filePathToName(filepath: string) {
-  return filepath.split("\\").pop();
+  return filepath.split('\\').pop().split('/').pop();
 }
 
 /* HeaderTab Class */
 interface TabProps {
   title: string;
   active: boolean;
+  readonly: boolean;
   onTabClick: (file: string) => void;
   onTabClose: (file: string) => void;
 }
@@ -24,7 +25,7 @@ function Tab(props: TabProps): JSX.Element {
         title={props.title}
         onClick={() => props.onTabClick(props.title)}
       >
-        {filePathToName(props.title)}
+        {filePathToName(props.title)}{props.readonly && " (Read-only)"}
       </div>
       <CloseIcon
         className="tab-close-btn"
@@ -43,6 +44,7 @@ Tab.defaultProps = { active: false };
 interface HeaderProp {
   openedFiles: string[];
   activeFileIndex: number;
+  activeFileReadonly: boolean;
   showToggle: boolean;
   onTabClick: (file: string) => void;
   onTabClose: (file: string) => void;
@@ -57,6 +59,7 @@ export default function Header(props: HeaderProp): JSX.Element {
           <Tab
             title={file}
             key={index}
+            readonly={props.activeFileReadonly}
             active={props.activeFileIndex == index ? true : false}
             onTabClick={props.onTabClick}
             onTabClose={props.onTabClose}

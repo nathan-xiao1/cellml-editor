@@ -1,15 +1,7 @@
 import fs from "fs";
 import IPCChannel from "IPCChannels";
 import { webContents } from "electron";
-import {
-  IProblemItem,
-  IFile,
-  IFileState,
-  FileType,
-  IDOM,
-  IParsedDOM,
-  IComponent,
-} from "Types";
+import { IProblemItem, IFile, IFileState, FileType, IParsedDOM } from "Types";
 import CellMLParser from "../parser/Parser";
 import { library } from "../index";
 
@@ -21,14 +13,21 @@ export default class CellMLFile implements IFile {
   private _problems: IProblemItem[];
   private _saved: boolean;
   private _fileIsNew: boolean;
+  private _readonly: boolean;
 
-  constructor(filepath: string, parser: CellMLParser, isNewFile = false) {
+  constructor(
+    filepath: string,
+    parser: CellMLParser,
+    isNewFile = false,
+    readonly = false
+  ) {
     this._parser = parser;
     this._filepath = filepath;
     this._content = isNewFile ? "" : fs.readFileSync(this._filepath, "utf8");
     this._problems = [];
     this._saved = !isNewFile;
     this._fileIsNew = isNewFile;
+    this._readonly = readonly;
     this._parse(this._content);
   }
 
@@ -41,7 +40,7 @@ export default class CellMLFile implements IFile {
   }
 
   public getFilename(): string {
-    return this._filepath.split("\\").pop();
+    return this._filepath.split("\\").pop().split("/").pop();
   }
 
   public getContent(): string {
@@ -129,6 +128,7 @@ export default class CellMLFile implements IFile {
   public getState(): IFileState {
     return {
       dom: this._parsedDOM.IDOM,
+      readonly: this._readonly,
       fileType: this.getType(),
       filepath: this._filepath,
       problems: this.getProblems(),

@@ -4,6 +4,8 @@ import CloseIcon from "@material-ui/icons/Close";
 import "./Prompt.scss";
 
 interface PProps {
+  title: string;
+  label: string;
   onClose: () => void;
   onSubmit: (url: string) => void;
 }
@@ -25,21 +27,24 @@ class Prompt extends React.Component<PProps> {
       <div className="prompt">
         <div className="prompt-body">
           <div className="prompt-toolbar">
-            <p className="prompt-title">Open File from URL</p>
+            <p className="prompt-title">{this.props.title}</p>
             <CloseIcon
               className="prompt-close-btn"
               onClick={this.props.onClose}
             />
           </div>
           <div className="prompt-input-container">
-            <p>URL:</p>
+            <p>{this.props.label}</p>
             <input ref={this.input}></input>
           </div>
           <div className="prompt-action-btns">
             <button className="prompt-btn" onClick={this.submit.bind(this)}>
               Ok
             </button>
-            <button className="prompt-btn" onClick={this.props.onClose.bind(this)}>
+            <button
+              className="prompt-btn"
+              onClick={this.props.onClose.bind(this)}
+            >
               Cancel
             </button>
           </div>

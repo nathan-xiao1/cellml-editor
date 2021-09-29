@@ -27,9 +27,17 @@ interface EditorState {
   activeFileProblems: IProblemItem[];
   activeFileType: FileType;
   activeFileDOM: IDOM;
+  activeFileReadonly: boolean;
   activeFileCursorXPath: string;
   activeFileCursorIDOM: IDOM;
-  showPrompt: boolean;
+  promptShow: boolean;
+  promptState: PromptState;
+}
+
+interface PromptState {
+  title: string;
+  label: string;
+  onSubmit: () => void;
 }
 
 export default class Editor extends React.Component<unknown, EditorState> {
@@ -47,9 +55,11 @@ export default class Editor extends React.Component<unknown, EditorState> {
       activeFileProblems: [],
       activeFileType: undefined,
       activeFileDOM: undefined,
+      activeFileReadonly: false,
       activeFileCursorXPath: undefined,
       activeFileCursorIDOM: undefined,
-      showPrompt: false,
+      promptShow: false,
+      promptState: undefined,
     };
 
     // Set listener to update openedFile state
@@ -133,6 +143,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
           this.setState({
             activeFileDOM: fileState.dom,
             activeFileIndex: index,
+            activeFileReadonly: fileState.readonly,
             activeFileProblems: fileState.problems,
             activeFileType: fileState.fileType as FileType,
           });
@@ -141,6 +152,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
       this.setState({
         activeFileDOM: undefined,
         activeFileProblems: undefined,
+        activeFileReadonly: false,
         activeFileCursorIDOM: undefined,
         activeFileCursorXPath: undefined,
       });
@@ -264,23 +276,47 @@ export default class Editor extends React.Component<unknown, EditorState> {
   }
 
   exportComponent(): void {
-    ipcRenderer.send(
-      IPCChannel.LIBRARY_ADD_COMPONENT,
-      this.getActiveFilepath(),
-      this.state.activeFileCursorXPath,
-      "test"
+    this.openPrompt(
+      "Export Component",
+      "Export Component Name:",
+      (name: string) => {
+        ipcRenderer.send(
+          IPCChannel.LIBRARY_ADD_COMPONENT,
+          this.getActiveFilepath(),
+          this.state.activeFileCursorXPath,
+          name
+        );
+        this.closePrompt();
+      }
     );
+  }
+
+  openLibraryComponent(componentId: string): void {
+    ipcRenderer.send(IPCChannel.LIBRARY_OPEN_COMPONENT, componentId);
   }
 
   openFileFromUrl(url: string): void {
     ipcRenderer.send(IPCChannel.OPEN_FROM_URL, url);
-    this.togglePrompt(false);
+    this.closePrompt();
   }
 
-  togglePrompt(show: boolean): void {
+  openPrompt(
+    title: string,
+    label: string,
+    onSubmit: (...args: unknown[]) => void
+  ): void {
     this.setState({
-      showPrompt: show,
+      promptShow: true,
+      promptState: {
+        title: title,
+        label: label,
+        onSubmit: onSubmit,
+      },
     });
+  }
+
+  closePrompt(): void {
+    this.setState({ promptShow: false });
   }
 
   componentWillUnmount(): void {
@@ -295,12 +331,20 @@ export default class Editor extends React.Component<unknown, EditorState> {
       <React.Fragment>
         <TitleMenuBar
           getActiveFilepath={this.getActiveFilepath.bind(this)}
-          openPrompt={() => this.togglePrompt(true)}
+          openPrompt={() =>
+            this.openPrompt(
+              "Open File from URL",
+              "URL:",
+              this.openFileFromUrl.bind(this)
+            )
+          }
         />
-        {this.state.showPrompt && (
+        {this.state.promptShow && (
           <Prompt
-            onSubmit={this.openFileFromUrl.bind(this)}
-            onClose={() => this.togglePrompt(false)}
+            title={this.state.promptState.title}
+            label={this.state.promptState.label}
+            onSubmit={this.state.promptState.onSubmit}
+            onClose={this.closePrompt.bind(this)}
           ></Prompt>
         )}
         <div className="editor-container primary-bg primary-text">
@@ -327,6 +371,9 @@ export default class Editor extends React.Component<unknown, EditorState> {
                 >
                   <Pane title="Import Component" collapsible={false}>
                     <ImportPane
+                      openLibraryComponent={this.openLibraryComponent.bind(
+                        this
+                      )}
                       filepath={
                         this.state.openedFilepaths[this.state.activeFileIndex]
                       }
@@ -356,6 +403,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                   <Header
                     openedFiles={this.state.openedFilepaths}
                     activeFileIndex={this.state.activeFileIndex}
+                    activeFileReadonly={this.state.activeFileReadonly}
                     showToggle={
                       this.state.openedFilepaths.length > 0 &&
                       this.state.activeFileType != "PDF"
@@ -373,6 +421,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                       this.state.activeFileType == "PDF" ||
                       this.state.currentMode != "text"
                     }
+                    readonly={this.state.activeFileReadonly}
                     filepath={activeFilepath}
                     defaultValue={this.getDefaultContent(activeFilepath)}
                     problems={this.state.activeFileProblems}
