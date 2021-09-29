@@ -28,7 +28,7 @@ export type ViewMode = "text" | "graphical";
 
 export interface IEditorSystem {
   init(): void;
-  newFile(): IFile;
+  newFile(content?: string): IFile;
   newFileFromTemplate(template: string): IFile;
   openFile(filepath: string): IFile;
   openFiles(filepaths: string[]): IFile[];

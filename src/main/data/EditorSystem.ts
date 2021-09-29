@@ -35,10 +35,11 @@ export default class EditorSystem implements IEditorSystem {
   /*
     Create a new file
   */
-  public newFile(): IFile {
+  public newFile(content?: string): IFile {
     const filename = `Untitled-${this.unsavedFileIDAcc++}`;
     const file = new CellMLFile(filename, this.cellmlParser, true);
     this.openedFiles.set(filename, file);
+    if (content) file.updateContent(content);
     return file;
   }
 

@@ -9,7 +9,8 @@ import { MenuBar } from "react-electron-window-menu";
 import "./TitleMenuBar.scss";
 
 interface TMBProps {
-  getActiveFilepath(): () => string;
+  getActiveFilepath: () => string;
+  openPrompt: () => void;
 }
 
 export default class TitleMenuBar extends React.Component<TMBProps> {
@@ -49,6 +50,12 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
                     label: "Open File",
                     click: () => ipcRenderer.send(IPCChannel.OPEN_FILE),
                     accelerator: "CmdOrCtrl+O",
+                  },
+                  {
+                    label: "Open from URL",
+                    click: () => {
+                      this.props.openPrompt();
+                    },
                   },
                   { type: "separator" },
                   {
@@ -101,13 +108,13 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
                     click: () =>
                       ipcRenderer.send(IPCChannel.OPEN_CELLML_DOCUMENTATION),
                   },
-                  {type: "separator"},
+                  { type: "separator" },
                   {
                     label: "Force Reload Window",
                     click: () => {
-                      ipcRenderer.send(IPCChannel.FORCE_RELOAD_WINDOW)
-                    }
-                  }
+                      ipcRenderer.send(IPCChannel.FORCE_RELOAD_WINDOW);
+                    },
+                  },
                 ],
               },
             ]}
@@ -122,19 +129,22 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
           <div
             id="minimise-btn"
             className="window-btn"
-            onClick={() => ipcRenderer.send(IPCChannel.MINIMISE_WINDOW)}>
+            onClick={() => ipcRenderer.send(IPCChannel.MINIMISE_WINDOW)}
+          >
             <RemoveIcon style={{ fontSize: 18 }} />
           </div>
           <div
             id="expand-btn"
             className="window-btn"
-            onClick={() => ipcRenderer.send(IPCChannel.EXPAND_WINDOW)}>
+            onClick={() => ipcRenderer.send(IPCChannel.EXPAND_WINDOW)}
+          >
             <StopOutlinedIcon style={{ fontSize: 18 }} />
           </div>
           <div
             id="close-btn"
             className="window-btn"
-            onClick={() => ipcRenderer.send(IPCChannel.CLOSE_WINDOW)}>
+            onClick={() => ipcRenderer.send(IPCChannel.CLOSE_WINDOW)}
+          >
             <CloseIcon style={{ fontSize: 18 }} />
           </div>
         </div>

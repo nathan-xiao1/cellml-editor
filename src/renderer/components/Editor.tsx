@@ -18,6 +18,7 @@ import TreePane from "./Panes/TreePane/TreePane";
 import ElementPane from "./Panes/ElementPane/ElementPane";
 import AttributePane from "./Panes/AttributePane/AttributePane";
 import ImportPane from "./Panes/ImportPane/ImportPane";
+import Prompt from "./Prompt/Prompt";
 
 interface EditorState {
   currentMode: ViewMode;
@@ -28,6 +29,7 @@ interface EditorState {
   activeFileDOM: IDOM;
   activeFileCursorXPath: string;
   activeFileCursorIDOM: IDOM;
+  showPrompt: boolean;
 }
 
 export default class Editor extends React.Component<unknown, EditorState> {
@@ -47,6 +49,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
       activeFileDOM: undefined,
       activeFileCursorXPath: undefined,
       activeFileCursorIDOM: undefined,
+      showPrompt: false,
     };
 
     // Set listener to update openedFile state
@@ -269,6 +272,17 @@ export default class Editor extends React.Component<unknown, EditorState> {
     );
   }
 
+  openFileFromUrl(url: string): void {
+    ipcRenderer.send(IPCChannel.OPEN_FROM_URL, url);
+    this.togglePrompt(false);
+  }
+
+  togglePrompt(show: boolean): void {
+    this.setState({
+      showPrompt: show,
+    });
+  }
+
   componentWillUnmount(): void {
     ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_OPENED_FILE);
     ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_FILE_STATE);
@@ -279,7 +293,16 @@ export default class Editor extends React.Component<unknown, EditorState> {
     const activeFilepath: string = this.getActiveFilepath();
     return (
       <React.Fragment>
-        <TitleMenuBar getActiveFilepath={this.getActiveFilepath.bind(this)} />
+        <TitleMenuBar
+          getActiveFilepath={this.getActiveFilepath.bind(this)}
+          openPrompt={() => this.togglePrompt(true)}
+        />
+        {this.state.showPrompt && (
+          <Prompt
+            onSubmit={this.openFileFromUrl.bind(this)}
+            onClose={() => this.togglePrompt(false)}
+          ></Prompt>
+        )}
         <div className="editor-container primary-bg primary-text">
           <ReflexContainer orientation="vertical" windowResizeAware={true}>
             <ReflexElement className="pane-left" minSize={150} flex={0.15}>

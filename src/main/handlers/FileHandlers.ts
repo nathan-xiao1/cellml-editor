@@ -1,6 +1,7 @@
 import { ipcMain, dialog } from "electron";
 import { CellMLSpecification } from "src/main/data/EditorSystem";
 import { editorSystem } from "../index";
+import fetch from "electron-fetch";
 import IPCChannel from "./IpcChannels";
 
 /*
@@ -25,6 +26,24 @@ ipcMain.on(IPCChannel.NEW_FROM_TEMPLATE, (event, templateName) => {
     IPCChannel.RENDERER_UPDATE_OPENED_FILE,
     editorSystem.getOpenedFilepaths()
   );
+});
+
+/*
+  Create new file from an URL
+*/
+ipcMain.on(IPCChannel.OPEN_FROM_URL, (event, url) => {
+  
+  fetch(url)
+    .then((res) => res.text())
+    .then((body) => {
+      console.log("HERE")
+      editorSystem.newFile(body);
+      event.sender.send(
+        IPCChannel.RENDERER_UPDATE_OPENED_FILE,
+        editorSystem.getOpenedFilepaths()
+      );
+    })
+    .catch((err) => console.log(err));
 });
 
 /*
