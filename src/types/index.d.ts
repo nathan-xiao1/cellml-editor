@@ -71,6 +71,7 @@ export interface IProblemItem {
 
 export interface IFileState {
   dom: IDOM;
+  saved: boolean;
   readonly: boolean;
   fileType: string;
   filepath: string;

@@ -32,11 +32,10 @@ ipcMain.on(IPCChannel.NEW_FROM_TEMPLATE, (event, templateName) => {
   Create new file from an URL
 */
 ipcMain.on(IPCChannel.OPEN_FROM_URL, (event, url) => {
-  
   fetch(url)
     .then((res) => res.text())
     .then((body) => {
-      console.log("HERE")
+      console.log("HERE");
       editorSystem.newFile(body);
       event.sender.send(
         IPCChannel.RENDERER_UPDATE_OPENED_FILE,
@@ -77,13 +76,23 @@ ipcMain.on(IPCChannel.OPEN_FILE, (event) => {
   Instruct system to close an opened file asynchronously notify the 
   renderer to update the list of opened files
 */
-ipcMain.on(IPCChannel.CLOSE_FILE, (event, filepath) => {
-  if (editorSystem.closeFile(filepath)) {
-    event.sender.send(
-      IPCChannel.RENDERER_UPDATE_OPENED_FILE,
-      editorSystem.getOpenedFilepaths()
-    );
+ipcMain.handle(IPCChannel.CLOSE_FILE, (event, filepath) => {
+  const file = editorSystem.getFile(filepath);
+  if (!file.getSaved()) {
+    const action = dialog.showMessageBoxSync(null, {
+      type: "question",
+      buttons: ["Cancel", "Save", "Don't Save"],
+      message: "File has been modified, save changes?",
+    });
+    if (action == 0) return false;
+    else if (action == 1) file.saveContent();
   }
+  editorSystem.closeFile(filepath);
+  event.sender.send(
+    IPCChannel.RENDERER_UPDATE_OPENED_FILE,
+    editorSystem.getOpenedFilepaths()
+  );
+  return true;
 });
 
 /*

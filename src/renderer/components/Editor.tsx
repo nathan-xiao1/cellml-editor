@@ -28,6 +28,7 @@ interface EditorState {
   activeFileType: FileType;
   activeFileDOM: IDOM;
   activeFileReadonly: boolean;
+  activeFileSaved: boolean;
   activeFileCursorXPath: string;
   activeFileCursorIDOM: IDOM;
   promptShow: boolean;
@@ -56,6 +57,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
       activeFileType: undefined,
       activeFileDOM: undefined,
       activeFileReadonly: false,
+      activeFileSaved: false,
       activeFileCursorXPath: undefined,
       activeFileCursorIDOM: undefined,
       promptShow: false,
@@ -100,6 +102,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
           this.setState(() => ({
             activeFileDOM: fileState.dom,
             activeFileProblems: fileState.problems,
+            activeFileSaved: fileState.saved,
           }));
         }
       }
@@ -143,6 +146,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
           this.setState({
             activeFileDOM: fileState.dom,
             activeFileIndex: index,
+            activeFileSaved: fileState.saved,
             activeFileReadonly: fileState.readonly,
             activeFileProblems: fileState.problems,
             activeFileType: fileState.fileType as FileType,
@@ -153,6 +157,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
         activeFileDOM: undefined,
         activeFileProblems: undefined,
         activeFileReadonly: false,
+        activeFileSaved: false,
         activeFileCursorIDOM: undefined,
         activeFileCursorXPath: undefined,
       });
@@ -163,9 +168,11 @@ export default class Editor extends React.Component<unknown, EditorState> {
    Close a file by notifying ipcMain and deleting Monaco's model of the fle
   */
   closeFile(filepath: string): void {
-    this.initialisedFiles.delete(filepath);
-    this.monaco?.editor.getModel(this.monaco.Uri.parse(filepath))?.dispose();
-    ipcRenderer.send(IPCChannel.CLOSE_FILE, filepath);
+    ipcRenderer.invoke(IPCChannel.CLOSE_FILE, filepath).then((confirmed) => {
+      if (!confirmed) return;
+      this.initialisedFiles.delete(filepath);
+      this.monaco?.editor.getModel(this.monaco.Uri.parse(filepath))?.dispose();
+    });
   }
 
   /*
@@ -403,6 +410,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                   <Header
                     openedFiles={this.state.openedFilepaths}
                     activeFileIndex={this.state.activeFileIndex}
+                    activeFileSaved={this.state.activeFileSaved}
                     activeFileReadonly={this.state.activeFileReadonly}
                     showToggle={
                       this.state.openedFilepaths.length > 0 &&

@@ -1,8 +1,9 @@
 import fs from "fs";
-import IPCChannel from "IPCChannels";
 import { webContents } from "electron";
-import { IProblemItem, IFile, IFileState, FileType, IParsedDOM } from "Types";
+import IPCChannel from "IPCChannels";
 import CellMLParser from "../parser/Parser";
+import { IProblemItem, IFile, IFileState, FileType, IParsedDOM } from "Types";
+import { filePathToName } from "src/commons/utils/filename";
 import { library } from "../index";
 
 export default class CellMLFile implements IFile {
@@ -40,7 +41,7 @@ export default class CellMLFile implements IFile {
   }
 
   public getFilename(): string {
-    return this._filepath.split("\\").pop().split("/").pop();
+    return filePathToName(this._filepath);
   }
 
   public getContent(): string {
@@ -128,6 +129,7 @@ export default class CellMLFile implements IFile {
   public getState(): IFileState {
     return {
       dom: this._parsedDOM.IDOM,
+      saved: this._saved,
       readonly: this._readonly,
       fileType: this.getType(),
       filepath: this._filepath,

@@ -64,4 +64,8 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+
+  &.modified {
+    font-style: italic;
+  }
 }
