@@ -332,12 +332,22 @@ export default class Editor extends React.Component<unknown, EditorState> {
     ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_FILE_CONTENT);
   }
 
+  undo(): void {
+    this.textEditorRef?.current?.undo();
+  }
+
+  redo(): void {
+    this.textEditorRef?.current?.redo();
+  }
+
   render(): React.ReactNode {
     const activeFilepath: string = this.getActiveFilepath();
     return (
       <React.Fragment>
         <TitleMenuBar
           getActiveFilepath={this.getActiveFilepath.bind(this)}
+          redoHandler={this.redo.bind(this)}
+          undoHandler={this.undo.bind(this)}
           openPrompt={() =>
             this.openPrompt(
               "Open File from URL",

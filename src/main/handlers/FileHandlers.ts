@@ -104,6 +104,10 @@ ipcMain.on(IPCChannel.SAVE_FILE, (event, filepath) => {
   console.log(`Saving: ${filepath}`);
   if (!editorSystem.fileIsNew(filepath)) {
     editorSystem.saveFile(filepath);
+    event.reply(
+      IPCChannel.RENDERER_UPDATE_FILE_STATE,
+      editorSystem.getFile(filepath).getState()
+    );
   } else {
     dialog
       .showSaveDialog({
@@ -121,6 +125,10 @@ ipcMain.on(IPCChannel.SAVE_FILE, (event, filepath) => {
             editorSystem.getOpenedFilepaths()
           );
         }
+        event.reply(
+          IPCChannel.RENDERER_UPDATE_FILE_STATE,
+          editorSystem.getFile(filepath).getState()
+        );
       });
   }
 });

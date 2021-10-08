@@ -1,4 +1,5 @@
 import React from "react";
+import Mousetrap from "mousetrap";
 import IPCChannel from "IPCChannels";
 import { ipcRenderer } from "electron";
 import CloseIcon from "@material-ui/icons/Close";
@@ -9,11 +10,36 @@ import { MenuBar } from "react-electron-window-menu";
 import "./TitleMenuBar.scss";
 
 interface TMBProps {
+  redoHandler: () => void;
+  undoHandler: () => void;
   getActiveFilepath: () => string;
   openPrompt: () => void;
 }
 
 export default class TitleMenuBar extends React.Component<TMBProps> {
+  componentDidMount(): void {
+    // Register hortcut keys
+    Mousetrap.bind("mod+s", this.saveFile);
+    Mousetrap.bind("mod+o", this.openFile);
+    Mousetrap.bind("mod+n", this.newFile);
+  }
+
+  newFile(): void {
+    ipcRenderer.send(IPCChannel.NEW_FILE);
+  }
+
+  newFileFromTemplate(id: string): void {
+    ipcRenderer.send(IPCChannel.NEW_FROM_TEMPLATE, id);
+  }
+
+  openFile(): void {
+    ipcRenderer.send(IPCChannel.OPEN_FILE);
+  }
+
+  saveFile(): void {
+    ipcRenderer.send(IPCChannel.SAVE_FILE, this.props.getActiveFilepath());
+  }
+
   render(): React.ReactNode {
     return (
       <div className="title-menu-bar primary-text">
@@ -29,7 +55,7 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
                 submenu: [
                   {
                     label: "New File",
-                    click: () => ipcRenderer.send(IPCChannel.NEW_FILE),
+                    click: this.newFile,
                     accelerator: "CmdOrCtrl+N",
                   },
                   {
@@ -37,18 +63,14 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
                     submenu: [
                       {
                         label: "Empty Model",
-                        click: () =>
-                          ipcRenderer.send(
-                            IPCChannel.NEW_FROM_TEMPLATE,
-                            "emptyModel"
-                          ),
+                        click: () => this.newFileFromTemplate("emptyModel"),
                       },
                     ],
                   },
                   { type: "separator" },
                   {
                     label: "Open File",
-                    click: () => ipcRenderer.send(IPCChannel.OPEN_FILE),
+                    click: this.openFile,
                     accelerator: "CmdOrCtrl+O",
                   },
                   {
@@ -60,11 +82,7 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
                   { type: "separator" },
                   {
                     label: "Save File",
-                    click: () =>
-                      ipcRenderer.send(
-                        IPCChannel.SAVE_FILE,
-                        this.props.getActiveFilepath()
-                      ),
+                    click: this.saveFile,
                     accelerator: "CmdOrCtrl+S",
                   },
                 ],
@@ -74,12 +92,12 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
                 submenu: [
                   {
                     label: "Undo",
-                    click: () => console.log("TODO: Not Implemented"),
+                    click: this.props.undoHandler,
                     accelerator: "CmdOrCtrl+Z",
                   },
                   {
                     label: "Redo",
-                    click: () => console.log("TODO: Not Implemented"),
+                    click: this.props.redoHandler,
                     accelerator: "CmdOrCtrl+Y",
                   },
                 ],

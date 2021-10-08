@@ -13,6 +13,8 @@ import { getXPath } from "src/commons/utils/xpath";
 import { IProblemItem } from "Types";
 
 import "./MonacoLoader";
+import { ipcRenderer } from "electron";
+import IPCChannel from "IPCChannels";
 
 const CellMLID = "CellML2";
 
@@ -86,6 +88,32 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
       run: () => {
         this.props.exportComponentHandler();
       },
+    });
+
+    // Register shortcuts
+    this.editorInstance.addAction({
+      id: "save-file",
+      label: "Save file",
+      keybindings: [
+        this.monacoInstance.KeyMod.CtrlCmd | this.monacoInstance.KeyCode.KEY_S,
+      ],
+      run: () => ipcRenderer.send(IPCChannel.SAVE_FILE, this.props.filepath),
+    });
+    this.editorInstance.addAction({
+      id: "open-file",
+      label: "Open file",
+      keybindings: [
+        this.monacoInstance.KeyMod.CtrlCmd | this.monacoInstance.KeyCode.KEY_O,
+      ],
+      run: () => ipcRenderer.send(IPCChannel.OPEN_FILE),
+    });
+    this.editorInstance.addAction({
+      id: "new-file",
+      label: "New file",
+      keybindings: [
+        this.monacoInstance.KeyMod.CtrlCmd | this.monacoInstance.KeyCode.KEY_N,
+      ],
+      run: () => ipcRenderer.send(IPCChannel.NEW_FILE),
     });
   }
 
@@ -177,6 +205,15 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
     if (prevProps.problems != this.props.problems) {
       this.highlightErrors(this.props.problems);
     }
+  }
+
+  undo(): void {
+    this.editorInstance.trigger("keyboard", "undo", null);
+    this.editorInstance.focus();
+  }
+
+  redo(): void {
+    this.editorInstance.trigger("keyboard", "redo", null);
   }
 
   render(): React.ReactNode {
