@@ -48,6 +48,7 @@ export interface ILibrary {
   getComponent(componentId: string): Promise<IComponent>;
   addComponent(component: IComponent): Promise<boolean>;
   removeComponent(componentId: string): Promise<boolean>;
+  reset(): Promise<boolean>;
 }
 
 export interface IComponent {
