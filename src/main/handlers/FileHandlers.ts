@@ -78,7 +78,7 @@ ipcMain.on(IPCChannel.OPEN_FILE, (event) => {
 */
 ipcMain.handle(IPCChannel.CLOSE_FILE, (event, filepath) => {
   const file = editorSystem.getFile(filepath);
-  if (!file.getSaved()) {
+  if (!file.getSaved() && !file.isReadonly()) {
     const action = dialog.showMessageBoxSync(null, {
       type: "question",
       buttons: ["Cancel", "Save", "Don't Save"],

@@ -20,6 +20,7 @@ export interface IFile {
   getState(): IFileState;
   notifyWebContents(): void;
   getType(): FileType;
+  isReadonly(): boolean;
 }
 
 export type FileType = "CellML" | "PDF";

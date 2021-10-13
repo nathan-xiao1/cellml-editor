@@ -158,4 +158,8 @@ export default class CellMLFile implements IFile {
   getType(): FileType {
     return "CellML";
   }
+
+  isReadonly(): boolean {
+    return this._readonly;
+  }
 }

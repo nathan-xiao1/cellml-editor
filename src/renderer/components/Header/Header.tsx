@@ -28,7 +28,7 @@ function Tab(props: TabProps): JSX.Element {
       >
         {filePathToName(props.title)}
         {!props.saved && !props.readonly && "*"}
-        {props.readonly && " (Read-only)"}
+        {props.active && props.readonly && " (Read-only)"}
       </div>
       <CloseIcon
         className="tab-close-btn"

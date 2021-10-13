@@ -68,4 +68,8 @@ export default class PdfFile implements IFile {
   getType(): FileType {
     return "PDF";
   }
+
+  isReadonly(): boolean {
+    return true;
+  }
 }
