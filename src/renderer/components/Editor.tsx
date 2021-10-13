@@ -15,7 +15,14 @@ import PdfViewer from "./PdfViewer/PdfViewer";
 import { FileType, IDOM, IFileState, IProblemItem } from "Types";
 import TreePane from "./Panes/TreePane";
 
+import VisualPane from "./Panes/VisualPane";
+import CreateImgModel from "./CreateImgModel";
+
 type Mode = "text" | "graphical";
+
+let graphics_or_text = 0;
+
+const testpath123 = "C:\\Users\\admin\\Downloads\\finalversion\\cellml-editor\\example\\SodiumChannelModel.cellml";
 
 interface EditorState {
   currentMode: Mode;
@@ -33,6 +40,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
 
   constructor(props: unknown) {
     super(props);
+
     this.initialisedFiles = new Set();
     this.state = {
       currentMode: "text",
@@ -178,6 +186,43 @@ export default class Editor extends React.Component<unknown, EditorState> {
     ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_OPENED_FILE);
   }
 
+
+
+
+  changemodel(): void {
+    console.log('change model');
+    console.log(graphics_or_text);
+    // change mode to allow the user to generate their own model 
+    (graphics_or_text === 0) ? graphics_or_text = 1: graphics_or_text = 0;
+    console.log(graphics_or_text);
+
+    // if changed to text --> deafult text view
+    if (graphics_or_text === 0) {
+      document.getElementById("user_model_creator").style.display = 'none';
+
+      const pmh = document.getElementsByClassName('pane-middle-header') as HTMLCollectionOf<HTMLElement>;
+      pmh[0].style.display = 'block';
+      const pmt = document.getElementsByClassName('pane-middle-top') as HTMLCollectionOf<HTMLElement>;
+      pmt[0].style.display = 'block';
+      const pmb = document.getElementsByClassName('pane-middle-bottom') as HTMLCollectionOf<HTMLElement>;
+      pmb[0].style.display = 'block';
+    } 
+    // if in graphics view then display create page panel
+    else {
+      document.getElementById("user_model_creator").style.display = 'block';
+      
+      const pmh = document.getElementsByClassName('pane-middle-header') as HTMLCollectionOf<HTMLElement>;
+      pmh[0].style.display = 'none';
+      const pmt = document.getElementsByClassName('pane-middle-top') as HTMLCollectionOf<HTMLElement>;
+      pmt[0].style.display = 'none';
+      const pmb = document.getElementsByClassName('pane-middle-bottom') as HTMLCollectionOf<HTMLElement>;
+      pmb[0].style.display = 'none';
+      
+    }
+  }
+
+  
+
   render(): React.ReactNode {
     const activeFilepath: string = this.getActiveFilepath();
     return (
@@ -208,46 +253,62 @@ export default class Editor extends React.Component<unknown, EditorState> {
             <ReflexSplitter className="primary-splitter splitter" />
             <ReflexElement className="pane-middle">
               <ReflexContainer orientation="horizontal">
-                <ReflexElement className="pane-middle-header" size={35}>
-                  <Header
-                    openedFiles={this.state.openedFilepaths}
-                    activeFileIndex={this.state.activeFileIndex}
-                    onTabClick={this.setActiveFile.bind(this)}
-                    onTabClose={this.closeFile.bind(this)}
-                    onViewToggle={this.toggleEditorView.bind(this)}
-                  />
-                </ReflexElement>
-                <ReflexElement className="pane-middle-top primary-bg-dark">
-                  <TextEditor
-                    ref={this.textEditorRef}
-                    hidden={
-                      this.state.openedFilepaths.length == 0 ||
-                      this.state.activeFileType == "PDF" ||
-                      this.state.currentMode != "text"
-                    }
-                    filepath={activeFilepath}
-                    defaultValue={this.getDefaultContent(activeFilepath)}
-                    problems={this.state.activeFileProblems}
-                    onMountCallback={this.monacoOnMountCallback.bind(this)}
-                    onChangeCallback={this.monacoOnChangeCallback.bind(this)}
-                  />
-                  <PdfViewer
-                    hidden={
-                      this.state.openedFilepaths.length == 0 ||
-                      this.state.activeFileType != "PDF"
-                    }
-                  ></PdfViewer>
-                </ReflexElement>
-                <ReflexSplitter className="primary-splitter splitter" />
-                <ReflexElement
-                  className="pane-middle-bottom"
-                  minSize={25}
-                  flex={0.25}
-                >
-                  <Pane title="Problem">
-                    <ProblemPane problems={this.state.activeFileProblems} />
-                  </Pane>
-                </ReflexElement>
+
+             {/*<button onClick={()=>{console.log(activeFilepath); this.setActiveFile(testpath123)}}></button>*/}   
+
+                <button id="create_new_model_img" onClick={this.changemodel}>Create New Model</button>
+                <div id="tempposition">
+                  -
+                </div>
+
+                <div id="user_model_creator">
+                  <CreateImgModel></CreateImgModel>
+                </div>
+                
+                  <ReflexElement className="pane-middle-header" size={25}>
+                    <Header
+                      openedFiles={this.state.openedFilepaths}
+                      activeFileIndex={this.state.activeFileIndex}
+                      onTabClick={this.setActiveFile.bind(this)}
+                      onTabClose={this.closeFile.bind(this)}
+                      onViewToggle={this.toggleEditorView.bind(this)}
+                    />
+                  </ReflexElement>
+                  <ReflexElement className="pane-middle-top primary-bg-dark">
+                    {/*<button onClick={()=>console.log(activeFilepath)}>TestBtn</button>*/}
+                    <TextEditor
+                      ref={this.textEditorRef}
+                      hidden={
+                        this.state.openedFilepaths.length == 0 ||
+                        this.state.activeFileType == "PDF" ||
+                        this.state.currentMode != "text"
+                      }
+                      filepath={activeFilepath}
+                      defaultValue={this.getDefaultContent(activeFilepath)}
+                      problems={this.state.activeFileProblems}
+                      onMountCallback={this.monacoOnMountCallback.bind(this)}
+                      onChangeCallback={this.monacoOnChangeCallback.bind(this)}
+                    />
+                    
+                    <PdfViewer
+                      hidden={
+                        this.state.openedFilepaths.length == 0 ||
+                        this.state.activeFileType != "PDF"
+                      }
+                    ></PdfViewer>
+                  </ReflexElement>
+                  <ReflexSplitter className="primary-splitter splitter" />
+                  <ReflexElement
+                    className="pane-middle-bottom"
+                    minSize={25}
+                    flex={0.25}
+                  >
+                    <Pane title="Problem">
+                      <ProblemPane problems={this.state.activeFileProblems} />
+                    </Pane>
+                  </ReflexElement>
+                   
+          
               </ReflexContainer>
             </ReflexElement>
             <ReflexSplitter className="primary-splitter splitter" />
@@ -262,7 +323,13 @@ export default class Editor extends React.Component<unknown, EditorState> {
                   minSize={25}
                   flex={0.4}
                 >
-                  <Pane title="Right Bottom" collapsible={false}></Pane>
+                  <Pane title="Right Bottom" collapsible={false}>
+                    <VisualPane
+                      dom={this.state.activeFileDOM}
+                      filepath={activeFilepath}
+                      onClickHandler={this.domTreeClickHandler.bind(this)}
+                    />
+                  </Pane>
                 </ReflexElement>
               </ReflexContainer>
             </ReflexElement>

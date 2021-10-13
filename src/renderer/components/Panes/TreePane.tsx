@@ -23,7 +23,7 @@ export default class TreePane extends React.Component<TPProps> {
           event.preventDefault();
           this.props.onClickHandler(dom.lineNumber);
         }}
-      >
+      > 
         {dom.children.length > 0
           ? dom.children.map((element) => this.domToTreeItem(element))
           : null}

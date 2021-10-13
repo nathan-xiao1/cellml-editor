@@ -17,7 +17,7 @@
     <unit exponent="-1" prefix="milli" units="second"/>
   </units>
   <units name="per_mV_ms">
-    <unit exponent="-1" prefix="milli" units="second"/>
+    <unit exponent="-1" prefix="1000" units="second"/>
     <unit exponent="-1" prefix="milli" units="volt"/>
   </units>
   <units name="microA_per_cm2">

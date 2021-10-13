@@ -1,0 +1,340 @@
+@use './../theme/theme-dark.scss' as theme;
+
+.pane-header {
+  height: 20px;
+  min-width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+}
+
+#element_properties {
+	color: 'red';
+	font-weight: bold;
+  font-size: 2em;
+  text-align: center;
+}
+
+#model_container {
+	display: table;
+}
+#model_title {
+	display: table-cell;
+}
+#model_name {
+	display: table-cell;
+}
+
+
+/* 
+   The container for the different elements 
+   that a user can drag and drop 
+*/
+.flex-container {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  border: 5px solid silver;
+  border-radius: 7px;
+  -ms-box-orient: horizontal;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -moz-flex;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-wrap: wrap;
+  flex-wrap: wrap;
+}
+
+/*
+   Flex item is just the box containing the
+   draggable element and the name
+*/
+.flex-item {
+
+  background: rgb(50,50,50);
+ 
+  width: 140px;
+  height: 130px;
+  margin: 6px;
+  position: relative;
+  color: rgb(250,250,250);
+  font-weight: bold;
+  font-size: 18px;
+  text-align: center;
+  border: 2px solid silver;
+}
+.bottomtext {
+  background-color: rgb(40,40,40);
+  
+  position: absolute;
+  bottom: 0;
+	width: 100%;
+	border-top: 2px solid silver;
+}
+
+.element_img {
+  margin-top: 2px;
+  height: 100px;
+  width: 100px;
+  background-color: rgb(70,70,70);
+  border-radius: 50%;
+  display:block;
+    margin:auto;
+  display: inline-block;
+}
+
+#canvas {
+  background-color: lightblue;
+}
+
+.elem_info_input {
+  outline: none;
+  border-color: #d64545;
+}
+#unit_prefix_input, #unit_multiplier_input, 
+#unit_exp_input, #var_interface_input {
+  border-color: #45d651;
+}
+#unit_base_input {
+  border-color: grey;
+}
+
+
+
+#graphCanvas {
+  background-color: aliceblue;
+}
+
+
+
+#create_model_title {
+  font-family: 'Lato', sans-serif;
+  font-size: 26px;
+  flex-direction: row;
+}
+
+#insert_name_box {
+  margin-left: 10px;
+  width: 200px;
+  font-family: 'Lato', sans-serif;
+  font-size: 18px;
+  border: 18px;
+  position: absolute;
+  border: 2px solid #000;
+  outline: none;
+  background: none;
+  padding: 5px;
+  background-color: rgb(224,229,236);
+  border-radius: 10px;
+  font-size: 1.2em;
+}
+
+.generate_model_button {
+  z-index: 2;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  text-align: center;
+  width: 200px;
+  height: 40px;
+  padding: 10px 25px;
+  border: 2px solid #000;
+  font-family: 'Lato', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  background: rgb(224,229,236);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  display: inline-block;
+}
+.generate_model_button:after {
+  position: absolute;
+  content: " ";
+  z-index: -1;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transition: all 0.3s ease;
+}
+.generate_model_button:hover {
+  box-shadow:  4px 4px 6px 0 rgba(255,255,255,.5),
+              -4px -4px 6px 0 rgba(116, 125, 136, .2), 
+    inset -4px -4px 6px 0 rgba(255,255,255,.5),
+    inset 4px 4px 6px 0 rgba(116, 125, 136, .3);
+  color: #fff;
+}
+.generate_model_button:hover:after {
+  -webkit-transform: scale(2) rotate(180deg);
+  transform: scale(2) rotate(180deg);
+  background: #000;
+  box-shadow:  4px 4px 6px 0 rgba(255,255,255,.5),
+              -4px -4px 6px 0 rgba(116, 125, 136, .2), 
+    inset -4px -4px 6px 0 rgba(255,255,255,.5),
+    inset 4px 4px 6px 0 rgba(116, 125, 136, .3);
+}
+.restart_model_button {
+  margin-left: 600px;
+}
+
+.tooltip-wrap {
+  position: absolute;
+}
+.tooltip-wrap .tooltip-content {
+  display: none;
+  position: fixed;
+  background-color: rgb(224,229,236);
+  text-align: center;
+  width: 500px;
+  border-radius: 8px;
+  border: 2px solid rgb(50,50,50);
+  height: 70px;
+  color: rgb(40,40,40);
+}
+.tooltip-wrap:hover .tooltip-content {
+  display: block;
+}
+
+
+#element_info {
+  width: 250px;
+  height: 500px;
+  background-color: rgb(50,50,50);
+  border-radius: 7px;
+  border: 3px solid rgb(220,220,220);
+  margin: 10px;
+  text-align: center;
+  font-size: 32px;
+  font-weight: 400;
+}
+
+#canvas_and_model_container {
+   display: flex;
+   justify-content: center;
+}
+
+
+.elem_info {
+  font-size: 24px;
+  font-weight: 300;
+  text-align: left;
+  margin-left: 10px;
+}
+
+.elem_info_input {
+
+  width: 90%;
+}
+
+
+#children_section {
+  font-size: 32px;
+  font-weight: 500;
+  margin-left: 10px;
+  margin-bottom: 0px;
+
+}
+.children_list {
+  text-align: left;
+  font-size: 20px;
+  font-weight: 300;
+  margin-top: 0px;
+}
+
+
+
+
+
+
+
+
+
+#import_children, #import_units_children, #import_component_children,
+#units_children, #unit_children, #component_children, #variable_children,
+#reset_children, #test_value_children, #reset_value_children, 
+#math_children, #encapsulation_children, #component_ref_children,
+#connection_children, #map_variables_children {
+  display: none;
+}
+
+#units_info, #unit_info, #component_info, #variable_info,
+#reset_info, #test_value_info, #reset_value_info, 
+#math_info, #encapsulation_info, #component_ref_info, 
+#connection_info, #map_variables_info, #import_info,
+#import_units_info, #import_container_info {
+  display: none;
+}
+
+#drag_component, #drag_units, #drag_unit, #drag_variable, 
+#drag_reset, #drag_test_value, #drag_reset_value, 
+#drag_math, #drag_encapsulation, #drag_comp_ref, 
+#drag_connection, #drag_map_variables, #drag_import, 
+#drag_import_component, #drag_import_units {
+  display: none;
+  text-align: center;
+}
+
+
+.tooltip-wrap2 .tooltip-content2 {
+  display: none;
+  position:absolute;
+  background-color: #fff;
+  font-size: 18px;
+  color: black;
+}
+.tooltip-wrap2:hover .tooltip-content2 {
+  display: block;
+}
+
+
+
+
+
+
+
+
+
+
+.container {
+  padding: 50px;
+  
+  justify-content: space-between;
+}
+
+.box1 {
+  width: 320px;
+  height: 240px;
+}
+
+img {
+  max-width: 320px;
+}
+
+.box2 {
+  width: 320px;
+  height: 240px;
+  background: yellow;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.box3 {
+  width: 320px;
+  height: 240px;
+  background: lightgreen;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+
+
+
+#temptriangle {
+  left: 20px;
+}
