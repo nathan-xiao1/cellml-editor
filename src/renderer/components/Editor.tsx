@@ -9,15 +9,17 @@ import "./Editor.scss";
 
 import Header from "./Header/Header";
 import Pane from "./Panes/Pane";
-import ProblemPane from "./Panes/ProblemPane";
+import ProblemPane from "./Panes/ProblemPane/ProblemPane";
 import TextEditor from "./TextEditor/TextEditor";
 import TitleMenuBar from "./TitleMenuBar/TitleMenuBar";
 import PdfViewer from "./PdfViewer/PdfViewer";
 import { FileType, IDOM, IFileState, IProblemItem, ViewMode } from "Types";
-import TreePane from "./Panes/TreePane";
+import TreePane from "./Panes/TreePane/TreePane";
 import ElementPane from "./Panes/ElementPane/ElementPane";
 import AttributePane from "./Panes/AttributePane/AttributePane";
 import EquationViewer from "./EquationViewer/EquationViewer";
+import ImportPane from "./Panes/ImportPane/ImportPane";
+import Prompt from "./Prompt/Prompt";
 
 interface EditorState {
   currentMode: ViewMode;
@@ -26,9 +28,19 @@ interface EditorState {
   activeFileProblems: IProblemItem[];
   activeFileType: FileType;
   activeFileDOM: IDOM;
+  activeFileReadonly: boolean;
+  activeFileSaved: boolean;
   activeFileCursorXPath: string;
   activeFileCursorIDOM: IDOM;
   activeMathString?: string;
+  promptShow: boolean;
+  promptState: PromptState;
+}
+
+interface PromptState {
+  title: string;
+  label: string;
+  onSubmit: () => void;
 }
 
 export default class Editor extends React.Component<unknown, EditorState> {
@@ -46,9 +58,13 @@ export default class Editor extends React.Component<unknown, EditorState> {
       activeFileProblems: [],
       activeFileType: undefined,
       activeFileDOM: undefined,
+      activeFileReadonly: false,
+      activeFileSaved: false,
       activeFileCursorXPath: undefined,
       activeFileCursorIDOM: undefined,
       activeMathString: "",
+      promptShow: false,
+      promptState: undefined,
     };
 
     // Set listener to update openedFile state
@@ -89,6 +105,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
           this.setState(() => ({
             activeFileDOM: fileState.dom,
             activeFileProblems: fileState.problems,
+            activeFileSaved: fileState.saved,
           }));
         }
       }
@@ -132,6 +149,8 @@ export default class Editor extends React.Component<unknown, EditorState> {
           this.setState({
             activeFileDOM: fileState.dom,
             activeFileIndex: index,
+            activeFileSaved: fileState.saved,
+            activeFileReadonly: fileState.readonly,
             activeFileProblems: fileState.problems,
             activeFileType: fileState.fileType as FileType,
           });
@@ -140,6 +159,8 @@ export default class Editor extends React.Component<unknown, EditorState> {
       this.setState({
         activeFileDOM: undefined,
         activeFileProblems: undefined,
+        activeFileReadonly: false,
+        activeFileSaved: false,
         activeFileCursorIDOM: undefined,
         activeFileCursorXPath: undefined,
       });
@@ -150,9 +171,11 @@ export default class Editor extends React.Component<unknown, EditorState> {
    Close a file by notifying ipcMain and deleting Monaco's model of the fle
   */
   closeFile(filepath: string): void {
-    this.initialisedFiles.delete(filepath);
-    this.monaco?.editor.getModel(this.monaco.Uri.parse(filepath)).dispose();
-    ipcRenderer.send(IPCChannel.CLOSE_FILE, filepath);
+    ipcRenderer.invoke(IPCChannel.CLOSE_FILE, filepath).then((confirmed) => {
+      if (!confirmed) return;
+      this.initialisedFiles.delete(filepath);
+      this.monaco?.editor.getModel(this.monaco.Uri.parse(filepath))?.dispose();
+    });
   }
 
   /*
@@ -273,17 +296,88 @@ export default class Editor extends React.Component<unknown, EditorState> {
     this.textEditorRef.current?.goToLine(lineNum);
   }
 
+  exportComponent(): void {
+    this.openPrompt(
+      "Export Component",
+      "Export Component Name:",
+      (name: string) => {
+        ipcRenderer.send(
+          IPCChannel.LIBRARY_ADD_COMPONENT,
+          this.getActiveFilepath(),
+          this.state.activeFileCursorXPath,
+          name
+        );
+        this.closePrompt();
+      }
+    );
+  }
+
+  openLibraryComponent(componentId: string): void {
+    ipcRenderer.send(IPCChannel.LIBRARY_OPEN_COMPONENT, componentId);
+  }
+
+  openFileFromUrl(url: string): void {
+    ipcRenderer.send(IPCChannel.OPEN_FROM_URL, url);
+    this.closePrompt();
+  }
+
+  openPrompt(
+    title: string,
+    label: string,
+    onSubmit: (...args: unknown[]) => void
+  ): void {
+    this.setState({
+      promptShow: true,
+      promptState: {
+        title: title,
+        label: label,
+        onSubmit: onSubmit,
+      },
+    });
+  }
+
+  closePrompt(): void {
+    this.setState({ promptShow: false });
+  }
+
   componentWillUnmount(): void {
     ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_OPENED_FILE);
     ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_FILE_STATE);
     ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_FILE_CONTENT);
   }
 
+  undo(): void {
+    this.textEditorRef?.current?.undo();
+  }
+
+  redo(): void {
+    this.textEditorRef?.current?.redo();
+  }
+
   render(): React.ReactNode {
     const activeFilepath: string = this.getActiveFilepath();
     return (
       <React.Fragment>
-        <TitleMenuBar getActiveFilepath={this.getActiveFilepath.bind(this)} />
+        <TitleMenuBar
+          getActiveFilepath={this.getActiveFilepath.bind(this)}
+          redoHandler={this.redo.bind(this)}
+          undoHandler={this.undo.bind(this)}
+          openPrompt={() =>
+            this.openPrompt(
+              "Open File from URL",
+              "URL:",
+              this.openFileFromUrl.bind(this)
+            )
+          }
+        />
+        {this.state.promptShow && (
+          <Prompt
+            title={this.state.promptState.title}
+            label={this.state.promptState.label}
+            onSubmit={this.state.promptState.onSubmit}
+            onClose={this.closePrompt.bind(this)}
+          ></Prompt>
+        )}
         <div className="editor-container primary-bg primary-text">
           <ReflexContainer orientation="vertical" windowResizeAware={true}>
             <ReflexElement className="pane-left" minSize={150} flex={0.15}>
@@ -294,7 +388,27 @@ export default class Editor extends React.Component<unknown, EditorState> {
                       node={this.state.activeFileCursorIDOM}
                       path={this.state.activeFileCursorXPath}
                       addChildHandler={this.addChildNodeHandler.bind(this)}
-                      removeChildHandler={this.removeChildNodeHandler.bind(this)}
+                      removeChildHandler={this.removeChildNodeHandler.bind(
+                        this
+                      )}
+                    />
+                  </Pane>
+                </ReflexElement>
+                <ReflexSplitter className="primary-splitter splitter" />
+                <ReflexElement
+                  className="pane-left-middle"
+                  minSize={25}
+                  flex={0.3}
+                >
+                  <Pane title="Import Component" collapsible={false}>
+                    <ImportPane
+                      openLibraryComponent={this.openLibraryComponent.bind(
+                        this
+                      )}
+                      filepath={
+                        this.state.openedFilepaths[this.state.activeFileIndex]
+                      }
+                      xpath={this.state.activeFileCursorXPath}
                     />
                   </Pane>
                 </ReflexElement>
@@ -302,7 +416,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                 <ReflexElement
                   className="pane-left-bottom"
                   minSize={25}
-                  flex={0.4}
+                  flex={0.25}
                 >
                   <Pane title="Tree View" collapsible={false}>
                     <TreePane
@@ -320,6 +434,8 @@ export default class Editor extends React.Component<unknown, EditorState> {
                   <Header
                     openedFiles={this.state.openedFilepaths}
                     activeFileIndex={this.state.activeFileIndex}
+                    activeFileSaved={this.state.activeFileSaved}
+                    activeFileReadonly={this.state.activeFileReadonly}
                     showToggle={
                       this.state.openedFilepaths.length > 0 &&
                       this.state.activeFileType != "PDF"
@@ -337,9 +453,11 @@ export default class Editor extends React.Component<unknown, EditorState> {
                       this.state.activeFileType == "PDF" ||
                       this.state.currentMode != "text"
                     }
+                    readonly={this.state.activeFileReadonly}
                     filepath={activeFilepath}
                     defaultValue={this.getDefaultContent(activeFilepath)}
                     problems={this.state.activeFileProblems}
+                    exportComponentHandler={this.exportComponent.bind(this)}
                     onMountCallback={this.monacoOnMountCallback.bind(this)}
                     onChangeCallback={this.monacoOnChangeCallback.bind(this)}
                     onCursorPositionChangedCallback={this.monacoCursorPositionChangedCallback.bind(
@@ -382,14 +500,10 @@ export default class Editor extends React.Component<unknown, EditorState> {
                   minSize={25}
                   flex={0.4}
                 >
-                  <Pane title="Attributes" collapsible={false}>
-                    <AttributePane
-                      node={this.state.activeFileCursorIDOM}
-                      attributeEditHandler={this.attributeEditHandler.bind(
-                        this
-                      )}
-                    />
-                  </Pane>
+                  <AttributePane
+                    node={this.state.activeFileCursorIDOM}
+                    attributeEditHandler={this.attributeEditHandler.bind(this)}
+                  />
                 </ReflexElement>
               </ReflexContainer>
             </ReflexElement>

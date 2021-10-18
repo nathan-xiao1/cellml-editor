@@ -1,4 +1,4 @@
-import { IDOM, IParsedDOM, IProblemItem } from "Types";
+import { IComponent, IDOM, IParsedDOM, IProblemItem } from "Types";
 import libxmljs from "libxmljs2";
 import CellMLSchema from "src/commons/CellMLSchema";
 import {
@@ -29,9 +29,17 @@ export default class ParsedDOM implements IParsedDOM {
     const libXMLNode = getNodeFromXPathLibXML(this._xmlDoc, xpath);
     if (libXMLNode) {
       // Update libxmljs's DOM document
-      libXMLNode.attr(key)?.value(value);
+      const libXMLNodeAttr = libXMLNode.attr(key);
+      if (!libXMLNodeAttr) {
+        libXMLNode.attr(key, value);
+      } else if (!value) {
+        libXMLNodeAttr.remove();
+      } else {
+        libXMLNodeAttr.value(value);
+      }
       // Update IDOM's representation
-      getNodeFromXPath(this._idom, xpath).attributes = libXMLNode
+      const idomNode = getNodeFromXPath(this._idom, xpath);
+      idomNode.attributes = libXMLNode
         .attrs()
         .map((attribute: libxmljs.Attribute) => {
           return {
@@ -45,15 +53,20 @@ export default class ParsedDOM implements IParsedDOM {
   addChildNode(xpath: string, childName: string): void {
     const libXMLNode = getNodeFromXPathLibXML(this._xmlDoc, xpath);
     if (libXMLNode) {
+      let selfClosing = false;
       const schema = CellMLSchema.get(childName);
-      const selfClosing = schema.children.length == 0;
+      if (schema) {
+        selfClosing = schema.children.length == 0;
+      }
       const childElement = new libxmljs.Element(
         this._xmlDoc,
         childName,
         selfClosing ? "" : "\n"
       );
-      for (const attr of schema.attributes) {
-        childElement.attr(attr, "");
+      if (schema) {
+        for (const attr of schema.attributes) {
+          childElement.attr(attr.name, "");
+        }
       }
       libXMLNode.addChild(childElement);
     }
@@ -64,6 +77,30 @@ export default class ParsedDOM implements IParsedDOM {
     if (libXMLNode) {
       libXMLNode.remove();
     }
+  }
+
+  importComponent(xpath: string, component: IComponent): void {
+    try {
+      const newNode = libxmljs
+        .parseXmlString(component.content, {
+          recover: true,
+          doctype: false,
+        })
+        .root();
+      const insertNode = getNodeFromXPathLibXML(this._xmlDoc, xpath);
+      insertNode.addChild(newNode);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  exportComponent(xpath: string): IComponent {
+    const node = getNodeFromXPathLibXML(this._xmlDoc, xpath);
+    return {
+      name: node.name(),
+      rootTag: node.name(),
+      content: node.toString(),
+    };
   }
 
   toString(): string {

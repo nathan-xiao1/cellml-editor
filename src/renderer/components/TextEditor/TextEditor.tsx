@@ -20,9 +20,11 @@ const CellMLID = "CellML2";
 
 interface TEProps {
   hidden?: boolean;
+  readonly: boolean;
   filepath: string;
   defaultValue: string;
   problems: IProblemItem[];
+  exportComponentHandler: () => void;
   onMountCallback?: () => void;
   onChangeCallback?: (content: string) => void;
   onCursorPositionChangedCallback?: (path: string) => void;
@@ -66,6 +68,8 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
     // set up handler to check cursor position
 
     this.props.onMountCallback();
+
+    // Register callback for cursor position change event
     this.editorInstance.onDidChangeCursorPosition(
       (event: editor.ICursorPositionChangedEvent) => {
         const model = this.editorInstance.getModel();
@@ -103,6 +107,43 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
         }
       }
     );
+
+    // Register new context menu action
+    this.editorInstance.addAction({
+      id: "export-component",
+      label: "Export component",
+      contextMenuGroupId: "import-export",
+      contextMenuOrder: 0,
+      run: () => {
+        this.props.exportComponentHandler();
+      },
+    });
+
+    // Register shortcuts
+    this.editorInstance.addAction({
+      id: "save-file",
+      label: "Save file",
+      keybindings: [
+        this.monacoInstance.KeyMod.CtrlCmd | this.monacoInstance.KeyCode.KEY_S,
+      ],
+      run: () => ipcRenderer.send(IPCChannel.SAVE_FILE, this.props.filepath),
+    });
+    this.editorInstance.addAction({
+      id: "open-file",
+      label: "Open file",
+      keybindings: [
+        this.monacoInstance.KeyMod.CtrlCmd | this.monacoInstance.KeyCode.KEY_O,
+      ],
+      run: () => ipcRenderer.send(IPCChannel.OPEN_FILE),
+    });
+    this.editorInstance.addAction({
+      id: "new-file",
+      label: "New file",
+      keybindings: [
+        this.monacoInstance.KeyMod.CtrlCmd | this.monacoInstance.KeyCode.KEY_N,
+      ],
+      run: () => ipcRenderer.send(IPCChannel.NEW_FILE),
+    });
   }
 
   handleContentOnChange(
@@ -126,6 +167,11 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
     model?: monaco.editor.ITextModel
   ): void {
     if (!errors) return;
+    if (!model) {
+      model = this.editorInstance?.getModel();
+      if (!model) return;
+    }
+    const fullRange = model.getFullModelRange();
     const markers: monaco.editor.IMarkerData[] = [];
     errors.forEach((error) => {
       let severity;
@@ -143,20 +189,23 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
           severity = MarkerSeverity.Error;
           break;
       }
+      if (
+        error.startLineNumber < fullRange.startLineNumber ||
+        error.endLineNumber > fullRange.endLineNumber
+      )
+        return;
       markers.push({
         severity: severity,
         message: error.description,
-        startColumn: error.startColumn,
-        endColumn: error.endColumn,
+        startColumn: model.getLineFirstNonWhitespaceColumn(
+          error.startLineNumber
+        ),
+        endColumn: model.getLineLastNonWhitespaceColumn(error.endLineNumber),
         startLineNumber: error.startLineNumber,
         endLineNumber: error.endLineNumber,
       });
     });
-    this.monacoInstance?.editor.setModelMarkers(
-      model ? model : this.editorInstance.getModel(),
-      CellMLID,
-      markers
-    );
+    this.monacoInstance?.editor.setModelMarkers(model, CellMLID, markers);
   }
 
   goToLine(lineNum: number): void {
@@ -170,13 +219,30 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
 
   setValue(value: string): void {
     const position = this.editorInstance.getPosition();
-    this.editorInstance.getModel().setValue(value);
+    const range = this.editorInstance.getModel().getFullModelRange();
+    this.editorInstance.executeEdits(null, [
+      {
+        text: value,
+        range: range,
+      },
+    ]);
     this.editorInstance.getAction("editor.action.formatDocument").run();
     this.editorInstance.setPosition(position);
   }
 
-  componentDidUpdate(): void {
-    this.highlightErrors(this.props.problems);
+  componentDidUpdate(prevProps: TEProps): void {
+    if (prevProps.problems != this.props.problems) {
+      this.highlightErrors(this.props.problems);
+    }
+  }
+
+  undo(): void {
+    this.editorInstance.trigger("keyboard", "undo", null);
+    this.editorInstance.focus();
+  }
+
+  redo(): void {
+    this.editorInstance.trigger("keyboard", "redo", null);
   }
 
   render(): React.ReactNode {
@@ -191,7 +257,7 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
         onChange={this.handleContentOnChange.bind(this)}
         beforeMount={this.handleEditorWillMount.bind(this)}
         onMount={this.handleEditorDidMount.bind(this)}
-        options={{ minimap: { enabled: false } }}
+        options={{ minimap: { enabled: false }, readOnly: this.props.readonly }}
       />
     );
   }

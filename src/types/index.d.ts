@@ -8,16 +8,19 @@ export interface IFile {
   getContent(): string;
   getSaved(): boolean;
   fileIsNew(): boolean;
-  updateContent(content: string): void;
+  updateContent(content: string, notify?: boolean): void;
   updateAttribute(xpath: string, key: string, value: string): void;
   addChildNode(xpath: string, childName: string): void;
   removeChildNode(xpath: string): void;
+  importComponent(xpath, componentId: string): Promise<void>;
+  exportComponent(xpath: string, name: string): Promise<boolean>;
   saveContent(): void;
   getProblems(): IProblemItem[];
   updateProblems(problems: IProblemItem[]): void;
   getState(): IFileState;
   notifyWebContents(): void;
   getType(): FileType;
+  isReadonly(): boolean;
 }
 
 export type FileType = "CellML" | "PDF";
@@ -26,7 +29,8 @@ export type ViewMode = "text" | "graphical";
 
 export interface IEditorSystem {
   init(): void;
-  newFile(): IFile;
+  newFile(content?: string): IFile;
+  newFileReadonly(id: string, filename: string, content: string): void;
   newFileFromTemplate(template: string): IFile;
   openFile(filepath: string): IFile;
   openFiles(filepaths: string[]): IFile[];
@@ -38,6 +42,21 @@ export interface IEditorSystem {
   updateFileContent(filepath: string, content: string): void;
   fileIsSaved(filepath: string): boolean;
   fileIsNew(filepath: string): boolean;
+}
+
+export interface ILibrary {
+  getComponents(): Promise<IComponent[]>;
+  getComponent(componentId: string): Promise<IComponent>;
+  addComponent(component: IComponent): Promise<boolean>;
+  removeComponent(componentId: string): Promise<boolean>;
+  reset(): Promise<boolean>;
+}
+
+export interface IComponent {
+  _id?: string;
+  name: string;
+  rootTag: string;
+  content: string;
 }
 
 export type ProblemSeverity = "warning" | "error" | "info" | "hint";
@@ -54,6 +73,8 @@ export interface IProblemItem {
 
 export interface IFileState {
   dom: IDOM;
+  saved: boolean;
+  readonly: boolean;
   fileType: string;
   filepath: string;
   problems: IProblemItem[];
@@ -90,6 +111,8 @@ export interface IParsedDOM {
   updateAttribute(xpath: string, key: string, value: string): void;
   addChildNode(xpath: string, childName: string): void;
   removeChildNode(xpath: string): void;
+  importComponent(xpath: string, component: IComponent): void;
+  exportComponent(xpath: string): IComponent;
   toString(): string;
 }
 

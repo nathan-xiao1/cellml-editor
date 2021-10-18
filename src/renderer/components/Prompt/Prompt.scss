@@ -1,0 +1,96 @@
+@use "../../theme/theme-dark.scss" as theme;
+
+.prompt {
+  height: 100vh;
+  width: 100vw;
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  background-color: rgba($color: #000000, $alpha: 0.4);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+}
+
+.prompt-body {
+  width: 400px;
+  height: 150px;
+  color: theme.$primary-text;
+  background-color: theme.$primary;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  .prompt-toolbar {
+    user-select: none;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 8px;
+    background-color: lighten(theme.$primary, 8%);
+    font-size: 13px;
+
+    .prompt-title {
+      margin: 0;
+    }
+
+    .prompt-close-btn {
+      font-size: 18px;
+      cursor: pointer;
+      float: right;
+    }
+  }
+
+  .prompt-input-container {
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    p {
+      margin: 0;
+      margin-bottom: 4px;
+    }
+
+    input {
+      width: 100%;
+      padding: 6px;
+      font-family: "Segoe UI";
+      font-size: 12px;
+      color: theme.$primary-text;
+      border: 0;
+      outline: none;
+      background-color: darken(theme.$primary, 3%);
+      box-sizing: border-box;
+    }
+  }
+
+  .prompt-action-btns {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    padding: 8px;
+
+    .prompt-btn {
+      cursor: pointer;
+      margin-left: 8px;
+      min-width: 70px;
+      padding: 4px;
+      border: 0;
+      color: inherit;
+      font-family: "Segoe UI";
+      font-size: 12px;
+      background-color: lighten(theme.$primary, 8%);
+      box-shadow: none;
+      border-radius: 0px;
+
+      &:focus {
+        outline: 0;
+      }
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { FileType, IFile, IFileState, IProblemItem } from "Types";
+import { FileType, IComponent, IFile, IFileState, IProblemItem } from "Types";
 
 export default class PdfFile implements IFile {
   private _filepath: string;
@@ -36,6 +36,12 @@ export default class PdfFile implements IFile {
   removeChildNode(): void {
     return;
   }
+  importComponent(): Promise<void> {
+    return;
+  }
+  exportComponent(): Promise<boolean> {
+    return;
+  }
   saveContent(): void {
     return;
   }
@@ -48,6 +54,8 @@ export default class PdfFile implements IFile {
   getState(): IFileState {
     return {
       dom: undefined,
+      saved: true,
+      readonly: false,
       fileType: this.getType(),
       filepath: this._filepath,
       problems: this.getProblems(),
@@ -59,5 +67,9 @@ export default class PdfFile implements IFile {
 
   getType(): FileType {
     return "PDF";
+  }
+
+  isReadonly(): boolean {
+    return true;
   }
 }

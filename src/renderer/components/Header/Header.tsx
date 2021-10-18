@@ -1,17 +1,17 @@
 import React from "react";
 import CloseIcon from "@material-ui/icons/Close";
-import "./Header.scss";
 import EditorToggle from "../EditorToggle/EditorToggle";
+import { filePathToName } from "src/commons/utils/filename";
 import { ViewMode } from "Types";
 
-function filePathToName(filepath: string) {
-  return filepath.split("\\").pop();
-}
+import "./Header.scss";
 
 /* HeaderTab Class */
 interface TabProps {
   title: string;
   active: boolean;
+  readonly: boolean;
+  saved: boolean;
   onTabClick: (file: string) => void;
   onTabClose: (file: string) => void;
 }
@@ -20,11 +20,15 @@ function Tab(props: TabProps): JSX.Element {
   return (
     <div className={`header-tab ${props.active ? "active" : ""}`}>
       <div
-        className="header-tab-title"
+        className={`header-tab-title ${
+          !props.saved && !props.readonly ? "modified" : ""
+        }`}
         title={props.title}
         onClick={() => props.onTabClick(props.title)}
       >
         {filePathToName(props.title)}
+        {!props.saved && !props.readonly && "*"}
+        {props.active && props.readonly && " (Read-only)"}
       </div>
       <CloseIcon
         className="tab-close-btn"
@@ -43,6 +47,8 @@ Tab.defaultProps = { active: false };
 interface HeaderProp {
   openedFiles: string[];
   activeFileIndex: number;
+  activeFileReadonly: boolean;
+  activeFileSaved: boolean;
   showToggle: boolean;
   onTabClick: (file: string) => void;
   onTabClose: (file: string) => void;
@@ -57,6 +63,8 @@ export default function Header(props: HeaderProp): JSX.Element {
           <Tab
             title={file}
             key={index}
+            saved={props.activeFileSaved}
+            readonly={props.activeFileReadonly}
             active={props.activeFileIndex == index ? true : false}
             onTabClick={props.onTabClick}
             onTabClose={props.onTabClose}

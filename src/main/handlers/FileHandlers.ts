@@ -1,6 +1,7 @@
 import { ipcMain, dialog } from "electron";
 import { CellMLSpecification } from "src/main/data/EditorSystem";
 import { editorSystem } from "../index";
+import fetch from "electron-fetch";
 import IPCChannel from "./IpcChannels";
 
 /*
@@ -25,6 +26,23 @@ ipcMain.on(IPCChannel.NEW_FROM_TEMPLATE, (event, templateName) => {
     IPCChannel.RENDERER_UPDATE_OPENED_FILE,
     editorSystem.getOpenedFilepaths()
   );
+});
+
+/*
+  Create new file from an URL
+*/
+ipcMain.on(IPCChannel.OPEN_FROM_URL, (event, url) => {
+  fetch(url)
+    .then((res) => res.text())
+    .then((body) => {
+      console.log("HERE");
+      editorSystem.newFile(body);
+      event.sender.send(
+        IPCChannel.RENDERER_UPDATE_OPENED_FILE,
+        editorSystem.getOpenedFilepaths()
+      );
+    })
+    .catch((err) => console.log(err));
 });
 
 /*
@@ -58,13 +76,23 @@ ipcMain.on(IPCChannel.OPEN_FILE, (event) => {
   Instruct system to close an opened file asynchronously notify the 
   renderer to update the list of opened files
 */
-ipcMain.on(IPCChannel.CLOSE_FILE, (event, filepath) => {
-  if (editorSystem.closeFile(filepath)) {
-    event.sender.send(
-      IPCChannel.RENDERER_UPDATE_OPENED_FILE,
-      editorSystem.getOpenedFilepaths()
-    );
+ipcMain.handle(IPCChannel.CLOSE_FILE, (event, filepath) => {
+  const file = editorSystem.getFile(filepath);
+  if (!file.getSaved() && !file.isReadonly()) {
+    const action = dialog.showMessageBoxSync(null, {
+      type: "question",
+      buttons: ["Cancel", "Save", "Don't Save"],
+      message: "File has been modified, save changes?",
+    });
+    if (action == 0) return false;
+    else if (action == 1) file.saveContent();
   }
+  editorSystem.closeFile(filepath);
+  event.sender.send(
+    IPCChannel.RENDERER_UPDATE_OPENED_FILE,
+    editorSystem.getOpenedFilepaths()
+  );
+  return true;
 });
 
 /*
@@ -76,6 +104,10 @@ ipcMain.on(IPCChannel.SAVE_FILE, (event, filepath) => {
   console.log(`Saving: ${filepath}`);
   if (!editorSystem.fileIsNew(filepath)) {
     editorSystem.saveFile(filepath);
+    event.reply(
+      IPCChannel.RENDERER_UPDATE_FILE_STATE,
+      editorSystem.getFile(filepath).getState()
+    );
   } else {
     dialog
       .showSaveDialog({
@@ -93,6 +125,10 @@ ipcMain.on(IPCChannel.SAVE_FILE, (event, filepath) => {
             editorSystem.getOpenedFilepaths()
           );
         }
+        event.reply(
+          IPCChannel.RENDERER_UPDATE_FILE_STATE,
+          editorSystem.getFile(filepath).getState()
+        );
       });
   }
 });

@@ -1,15 +1,10 @@
 import fs from "fs";
-import IPCChannel from "IPCChannels";
 import { webContents } from "electron";
-import {
-  IProblemItem,
-  IFile,
-  IFileState,
-  FileType,
-  IDOM,
-  IParsedDOM,
-} from "Types";
+import IPCChannel from "IPCChannels";
 import CellMLParser from "../parser/Parser";
+import { IProblemItem, IFile, IFileState, FileType, IParsedDOM } from "Types";
+import { filePathToName } from "src/commons/utils/filename";
+import { library } from "../index";
 
 export default class CellMLFile implements IFile {
   private _parser: CellMLParser;
@@ -19,14 +14,21 @@ export default class CellMLFile implements IFile {
   private _problems: IProblemItem[];
   private _saved: boolean;
   private _fileIsNew: boolean;
+  private _readonly: boolean;
 
-  constructor(filepath: string, parser: CellMLParser, isNewFile = false) {
+  constructor(
+    filepath: string,
+    parser: CellMLParser,
+    isNewFile = false,
+    readonly = false
+  ) {
     this._parser = parser;
     this._filepath = filepath;
     this._content = isNewFile ? "" : fs.readFileSync(this._filepath, "utf8");
     this._problems = [];
     this._saved = !isNewFile;
     this._fileIsNew = isNewFile;
+    this._readonly = readonly;
     this._parse(this._content);
   }
 
@@ -39,7 +41,7 @@ export default class CellMLFile implements IFile {
   }
 
   public getFilename(): string {
-    return this._filepath.split("\\").pop();
+    return filePathToName(this._filepath);
   }
 
   public getContent(): string {
@@ -58,10 +60,11 @@ export default class CellMLFile implements IFile {
     Update the content (in memory) of the file. Called when the content 
     of the file's Monaco model is changed
   */
-  public updateContent(content: string): void {
+  public updateContent(content: string, notify = true): void {
     this._content = content;
     this._parse(this._content);
     this._saved = false;
+    if (notify) this.notifyWebContents();
   }
 
   public updateAttribute(xpath: string, key: string, value: string): void {
@@ -77,6 +80,24 @@ export default class CellMLFile implements IFile {
   public removeChildNode(xpath: string): void {
     this._parsedDOM.removeChildNode(xpath);
     this.updateContent(this._parsedDOM.toString());
+  }
+
+  public async importComponent(
+    xpath: string,
+    componentId: string
+  ): Promise<void> {
+    const component = await library.getComponent(componentId);
+    this._parsedDOM.importComponent(xpath, component);
+    this.updateContent(this._parsedDOM.toString());
+  }
+
+  public async exportComponent(xpath: string, name: string): Promise<boolean> {
+    const component = this._parsedDOM.exportComponent(xpath);
+    return library.addComponent({
+      name: name,
+      rootTag: component.name,
+      content: component.content,
+    });
   }
 
   /*
@@ -100,7 +121,6 @@ export default class CellMLFile implements IFile {
   */
   public updateProblems(problems: IProblemItem[]): void {
     this._problems = problems;
-    this.notifyWebContents();
   }
 
   /*
@@ -109,6 +129,8 @@ export default class CellMLFile implements IFile {
   public getState(): IFileState {
     return {
       dom: this._parsedDOM.IDOM,
+      saved: this._saved,
+      readonly: this._readonly,
       fileType: this.getType(),
       filepath: this._filepath,
       problems: this.getProblems(),
@@ -135,5 +157,9 @@ export default class CellMLFile implements IFile {
 
   getType(): FileType {
     return "CellML";
+  }
+
+  isReadonly(): boolean {
+    return this._readonly;
   }
 }
