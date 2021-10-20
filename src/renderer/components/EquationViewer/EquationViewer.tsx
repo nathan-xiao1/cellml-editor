@@ -7,9 +7,10 @@ import monaco from 'monaco-editor';
 import { getPort } from './WebServer';
 import postscribe from 'postscribe';
 import { clearInterval } from 'timers';
-import o2m from './openmath2mathml';
+import openmath2mathml from './openmath2mathml';
 import { getPoller, destroyPoller } from './SingletonPoller';
 import mathml2openmath from './mathml2openmath';
+import { open } from 'original-fs';
 
 const mathre = /.*\/math/;
 const encodingre = /encodingError/m;
@@ -80,6 +81,7 @@ class EquationViewer extends React.Component<EVProp, EVState> {
             hasMounted: false,
             poller: undefined,
         };
+        this.handleReplaceButton = this.handleReplaceButton.bind(this);
     }
     
     componentDidMount() : void {
@@ -121,7 +123,7 @@ class EquationViewer extends React.Component<EVProp, EVState> {
             // console.log(value != this.state.omstr, value, this.state.omstr);
             this.setState({ omstr: value, hasChanged: true });
 
-            const math = o2m(value);
+            const math = openmath2mathml(value);
             console.log(!encodingre.test(value) && !inputre.test(value));
             console.log(math);
            
@@ -136,7 +138,7 @@ class EquationViewer extends React.Component<EVProp, EVState> {
     // TODO cleanup formula editor
     componentWillUnmount = () : void => {
         destroyPoller();
-      }
+    }
 
     componentDidUpdate(prevProps : EVProp) : void {
         if (prevProps.xpath !== this.props.xpath) {
@@ -185,9 +187,25 @@ class EquationViewer extends React.Component<EVProp, EVState> {
         this.props.replaceHandler('', this.props.start, this.props.end);
     }
     
+    handleReplaceButton(event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) : void {
+        event.preventDefault();
+        const om = this.getOpenMath();
+        if (om) {
+            console.log(om);
+            try {
+                const mm = openmath2mathml(om);
+                console.log(mm);
+                this.props.replaceHandler(mm, this.props.start, this.props.end);
+            } catch {
+                console.log('Invalid equation');
+            }
+        }
+    }
+    
     getOpenMath = () : string => { 
-        const omstr = (document.getElementById("formula1") as HTMLTextAreaElement).value;        // console.log(omstr);
-        return omstr;  
+        const node = (document.getElementById("formula1") as HTMLTextAreaElement);
+        if (!node) return null;
+        return node.value;
     }
     
     handleOpenMathPoll = () : void => {
@@ -228,8 +246,9 @@ class EquationViewer extends React.Component<EVProp, EVState> {
                 {/* <button onClick={() => this.props.replaceHandler('', this.props.start, this.props.end)}>Delete</button> */} 
                 {/* {this.state.port ? <IFrame port={this.state.port}/> : <></>} */}
                 <div id='equationMain'>
-                    <textarea className='mathdoxformula' id='formula1' defaultValue={openmathstr}/>
+                    {/* <textarea className='mathdoxformula' id='formula1' defaultValue={openmathstr}/> */}
                 </div>
+                <button onClick={this.handleReplaceButton}>Confirm Changes</button>
                 {/* <p>{this.state.port ? this.state.port : 'NO PORT YET'}</p> */}
                 <div id='loadScript'></div>
                 

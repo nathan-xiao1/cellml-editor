@@ -147,7 +147,7 @@ const opemath2mathml = (openmathStr) => {
     // console.log(JSON.stringify(js, null, 2));
     let converted_js = recursive(js, null);
     // console.log(JSON.stringify(converted_js, null, 2));
-    let options = {compact: false, ignoreComment: true, spaces: 2};
+    let options = {compact: false, ignoreComment: true, spaces: 4};
     return convert.json2xml(converted_js, options);
 }
 
