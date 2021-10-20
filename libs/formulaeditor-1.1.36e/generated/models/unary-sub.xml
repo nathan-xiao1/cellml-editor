@@ -1,0 +1,159 @@
+<model:model xmlns:model="local:model">
+$identify("org/mathdox/formulaeditor/modules/<model:cd/>/<model:name/>.js");
+
+$require("org/mathdox/formulaeditor/semantics/FunctionApplication.js");
+$require("org/mathdox/formulaeditor/presentation/Superscript.js");
+$require("org/mathdox/formulaeditor/parsing/openmath/OpenMathParser.js");
+$require("org/mathdox/formulaeditor/parsing/expression/ExpressionContextParser.js");
+$require("org/mathdox/formulaeditor/semantics/Keyword.js");
+
+$main(function(){
+
+  var symbol =  {
+    onscreen : ["<model:symbol/>","",""],
+    openmath : "&lt;OMS cd='<model:cd/>' name='<model:name/>'/&gt;",
+    mathml   : ["&lt;mo&gt;<model:symbol/>&lt;/mo&gt;","",""]
+  };
+      
+  var symbol_sub =  {
+    onscreen : symbol.onscreen,
+    openmath : "&lt;OMS cd='<model:cd_sub/>' name='<model:name_sub/>'/&gt;",
+    mathml   : symbol.mathml
+  };
+   
+  var ubfsp = "<model:unary_brackets_for_same_preference/>";
+  var unary_brackets_for_same_preference;
+  if (ubfsp == "false") {
+    unary_brackets_for_same_preference = false
+  } else {
+    unary_brackets_for_same_preference = true
+  }
+
+  /**
+   * Defines a semantic tree node that represents the unary symbol.
+   */
+  org.mathdox.formulaeditor.semantics.<model:cd capitalize='true'/><model:name capitalize='true'/> =
+    $extend(org.mathdox.formulaeditor.semantics.MultaryOperation, {
+
+      symbol : symbol,
+
+      applicationStyle: "nobrackets",
+
+      precedence : <model:precedence/>,
+
+      unary_brackets_for_same_preference : unary_brackets_for_same_preference,
+
+      /**
+       * Initializes the operation using the specified arguments as operands.
+       */
+      initialize : function() {
+        this.operands = arguments;
+      }
+    });
+
+  /**
+   * Defines a semantic tree node that represents the unary symbol with subscript.
+   */
+  org.mathdox.formulaeditor.semantics.<model:cd_sub capitalize='true'/><model:name_sub capitalize='true'/> =
+    $extend(org.mathdox.formulaeditor.semantics.MultaryOperation, {
+      
+      symbol: symbol_sub,
+
+      style : "sub", 
+
+      applicationStyle: "nobrackets",
+
+      precedence : <model:precedence/>,
+
+      unary_brackets_for_same_preference : unary_brackets_for_same_preference,
+
+      /**
+       * Initializes the operation using the specified arguments as operands.
+       */
+      initialize : function() {
+        this.operands = arguments;
+      }
+    });
+
+  /**
+   * Extend the OpenMathParser object with parsing code for the unary symbol.
+   */
+  org.mathdox.formulaeditor.parsing.openmath.OpenMathParser =
+    $extend(org.mathdox.formulaeditor.parsing.openmath.OpenMathParser, {
+
+      /**
+      * Returns a unary object based on the OpenMath node.
+      */
+      handle<model:cd capitalize='true'/><model:name capitalize='true'/> : function(node) {
+
+        var operand = this.handle(node.childNodes.item(1));
+        return new org.mathdox.formulaeditor.semantics.<model:cd capitalize='true'/><model:name capitalize='true'/>(operand);
+
+      },
+
+      /**
+      * Returns a unary object based on the OpenMath node.
+      */
+      handle<model:cd_sub capitalize='true'/><model:name_sub capitalize='true'/> : function(node) {
+
+        var operand = this.handle(node.childNodes.item(1));
+        var result = new org.mathdox.formulaeditor.semantics.<model:cd_sub capitalize='true'/><model:name_sub capitalize='true'/>(operand);
+              
+        return result;
+
+      }
+
+    });
+
+  /**
+   * Add the parsing code for unary symbol.
+   */
+  var semantics = org.mathdox.formulaeditor.semantics;
+  var pG = new org.mathdox.parsing.ParserGenerator();
+
+  //  rulesScreen.push(pG.literal("<model:symbol/>"));
+  
+  org.mathdox.formulaeditor.parsing.expression.ExpressionContextParser.addFunction( 
+    function(context) { return {
+
+      // expression<model:precedence/> = <model:cd/><model:name/> | <model:cd_sub/><model:name_sub/> | super.expression<model:precedence/>
+      expression<model:precedence/> : function() {
+        var parent = arguments.callee.parent;
+        pG.alternation(
+          pG.rule("<model:cd/><model:name/>"),
+          pG.rule("<model:cd_sub/><model:name_sub/>"),
+          parent.expression<model:precedence/>).apply(this, arguments);
+      },
+
+      // <model:cd/><model:name/> = "<model:symbol/>" expression<model:precedence2/> 
+      <model:cd/><model:name/> :
+        pG.transform(
+          pG.concatenation(
+            pG.literal('<model:symbol/>'),
+            pG.rule("expression<model:precedence2/>")
+          ),
+          function(result) {
+            return new semantics.<model:cd capitalize='true'/><model:name capitalize='true'/>(result[1]);
+          }
+        ),
+
+      // <model:cd/><model:name/>alt = "<model:symbol/>" (subscript | func_sub_indexexpr) expression<model:precedence2/> 
+      <model:cd_sub/><model:name_sub/> :
+        pG.transform(
+          pG.concatenation(
+            pG.literal('<model:symbol/>'),
+            pG.alternation(
+              pG.rule("func_sub_indexexpr"),
+              pG.rule("subscript")
+            ),
+            pG.rule("expression<model:precedence2/>")
+          ),
+          function(result) {
+            var oper=new semantics.<model:cd_sub capitalize='true'/><model:name_sub capitalize='true'/>(result[1]);
+            return new semantics.FunctionApplication(oper, [result[2]]); 
+          }
+        )
+       };
+   });
+});
+</model:model>

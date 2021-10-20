@@ -33,6 +33,8 @@ interface EditorState {
   activeFileCursorXPath: string;
   activeFileCursorIDOM: IDOM;
   activeMathString?: string;
+  mathStartIndex: number,
+  mathEndIndex: number,
   promptShow: boolean;
   promptState: PromptState;
 }
@@ -63,6 +65,8 @@ export default class Editor extends React.Component<unknown, EditorState> {
       activeFileCursorXPath: undefined,
       activeFileCursorIDOM: undefined,
       activeMathString: "",
+      mathStartIndex: undefined,
+      mathEndIndex: undefined,
       promptShow: false,
       promptState: undefined,
     };
@@ -233,12 +237,14 @@ export default class Editor extends React.Component<unknown, EditorState> {
     }));
   }
 
-  monacoCursorPositionChangedMath(mathstr: string) : void {
-    const cleanedAttributes = mathstr.replace(/cellml:[^</>)]*/mg, '');
-
-    if (cleanedAttributes != this.state.activeMathString) {
+  monacoCursorPositionChangedMath(mathstr: string, startIndex: number, endIndex: number) : void {
+    // const cleanedAttributes = mathstr.replace(/cellml:[^</>)]*/mg, '');
+    
+    if (mathstr != this.state.activeMathString) {
       this.setState(() => ({
-        activeMathString: cleanedAttributes,
+        activeMathString: mathstr,
+        mathStartIndex: startIndex,
+        mathEndIndex: endIndex
       }));
     }
 
@@ -251,6 +257,19 @@ export default class Editor extends React.Component<unknown, EditorState> {
     this.setState(() => ({
       currentMode: mode,
     }));
+  }
+  
+  handleReplaceRange(string: string, startOffset: number, endOffset: number) : void {
+    let a;
+    // TODO: implement this with edit operations API
+    try {
+      const model = this.monaco?.editor.getModel(this.monaco.Uri.parse(this.getActiveFilepath()));
+      let text = model.getValue();
+      text = text.substring(0, startOffset) + string + text.substring(endOffset);
+      model.setValue(text);
+    } catch {
+      console.log('Replace failed')
+    }
   }
 
   addChildNodeHandler(child: string): void {
@@ -491,7 +510,19 @@ export default class Editor extends React.Component<unknown, EditorState> {
               <ReflexContainer orientation="horizontal">
                 <ReflexElement className="pane-right-top" minSize={25}>
                   <Pane title="Math View" collapsible={false}>
-                    <EquationViewer str={this.state.activeMathString}/>
+                    <EquationViewer
+                      dom={this.state.activeFileDOM}
+                      str={this.state.activeMathString}
+                      node={this.state.activeFileCursorIDOM}
+                      xpath={this.state.activeFileCursorXPath}
+                      model={this.monaco?.editor.getModel(this.monaco.Uri.parse(activeFilepath))}
+                      start={this.state.mathStartIndex}
+                      end={this.state.mathEndIndex}
+                      replaceHandler={this.handleReplaceRange.bind(this)}
+                    />
+                    {/* <EquationContext.Provider value={{mathstr:this.state.activeMathString}}>
+                      <EquationViewer/>
+                    </EquationContext.Provider> */}
                   </Pane>
                 </ReflexElement>
                 <ReflexSplitter className="primary-splitter splitter" />

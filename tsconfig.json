@@ -3,6 +3,7 @@
     "lib": ["es2020.string", "DOM"],
     "downlevelIteration": true,
     "allowJs": true,
+    // "declaration": true,
     "module": "commonjs",
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -16,13 +17,13 @@
     "target": "es5",
     "paths": {
       "*": ["node_modules/*"],
-      "Types": ["src/types/index.d.ts"],
+      "Types": ["src/types/index.d.ts", "src/types/react-load-script.d.ts"],
       // "Types": ["src/types/index.d.ts", "src/types/EquationViewer.d.ts"],
       "IPCChannels": ["src/main/handlers/IpcChannels.ts"],
       "src/*": ["src/*"],
     }
   },
   "include": [
-    "src/**/*"
+    "src/**/*.d.ts", "src/**/*"
   ]
 }

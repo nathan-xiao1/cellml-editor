@@ -15,6 +15,7 @@ import IPCChannel from "IPCChannels";
 
 import "./MonacoLoader";
 import { ipcRenderer } from "electron";
+import { match } from "assert";
 
 const CellMLID = "CellML2";
 
@@ -28,7 +29,7 @@ interface TEProps {
   onMountCallback?: () => void;
   onChangeCallback?: (content: string) => void;
   onCursorPositionChangedCallback?: (path: string) => void;
-  onCursorPositionChangedMath?: (mathstr: string) => void;
+  onCursorPositionChangedMath?: (mathstr: string, startIndex: number, endIndex: number) => void;
 }
 
 interface TEState {
@@ -81,30 +82,66 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
         });
         const xpath = getXPath(textUntilPosition);
         this.props.onCursorPositionChangedCallback(xpath);
+        
         const offset = model.getOffsetAt(event.position);
         // console.log("Offset: " + offset.toString());
         const str = model.getValue();
-        const regex = /<math .*>[\s\S]*<\/math>/gm;
+        // const regex = /<math .*>[\s\S]*<\/math>/gm;
+        const startre = /<\s*math.*>/gm;
+        const endre = /<\s*\/math\s*>/gm;
 
-        const matches = [...str.matchAll(regex)];
-        let isFound = false;
-        let m;
+        // const matches = [...str.matchAll(regex)];
+        // // console.log(matches);
+        // let isFound = false;
+        // let m;
         
-        for (const match of matches) {
-          const open = match.index;
-          const close = open + match[0].length;
-          if (open <= offset && offset <= close) {
-            isFound = true;
-            m = match;
-            break;
+        // for (const match of matches) {
+        //   const open = match.index;
+        //   const close = open + match[0].length;
+        //   if (open <= offset && offset <= close) {
+        //     isFound = true;
+        //     m = match;
+        //     break;
+        //   }
+        // }
+        // const startMatches = startre.exec(str);
+        const startMatches = [...str.matchAll(startre)];
+        let start = null;
+        // console.log("Start: ", startMatches);
+        for (const match of startMatches) {
+          if (match.index < offset) {
+            start = match.index;
           }
         }
-
-        if (isFound) {
-          this.props.onCursorPositionChangedMath(m[0]);
-        } else {
-          this.props.onCursorPositionChangedMath("");
+        
+        // const endMatches = endre.exec(str);
+        const endMatches = [...str.matchAll(endre)];
+        let end;
+        if (start) {
+          let i = endMatches.length - 1;
+          while (i >= 0) {
+            const match = endMatches[i];
+            const endIndex = match.index + match[0].length;
+            if (endIndex > offset) {
+              end = endIndex;
+            }
+            i--;
+          }
         }
+        // console.log("End: ", endMatches);
+
+        if (start && end) {
+          // console.log('Mathstr: ', str.slice(start, end));
+          this.props.onCursorPositionChangedMath(str.slice(start, end), start, end);
+        } else {
+          this.props.onCursorPositionChangedMath('', undefined, undefined);
+        }
+        
+        // if (isFound) {
+        //   this.props.onCursorPositionChangedMath(m[0]);
+        // } else {
+        //   this.props.onCursorPositionChangedMath("");
+        // }
       }
     );
 
