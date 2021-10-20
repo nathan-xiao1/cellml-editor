@@ -29,10 +29,10 @@ const config : MathJax2Config = {
 // Props:
 // str: renders mathml given as a string
 interface EVProp {
-    dom: IDOM;
+    // dom: IDOM;
     str?: string;
     xpath: string;
-    node: IDOM;
+    // node?: IDOM;
     model?: monaco.editor.ITextModel;
     start: number;
     end: number;
@@ -44,7 +44,7 @@ interface EVState {
     mathstr: string;
     xpath: string;
     mathxpath: string;
-    node: IDOM;
+    // node?: IDOM;
     port: number;
     omstr: string;
     hasChanged: boolean;
@@ -73,7 +73,7 @@ class EquationViewer extends React.Component<EVProp, EVState> {
         this.state = {
             mathstr: this.props.str,
             xpath: this.props.xpath,
-            node: this.props.node,
+            // node: this.props.node,
             mathxpath: undefined,
             port: undefined,
             omstr: '',
@@ -84,15 +84,21 @@ class EquationViewer extends React.Component<EVProp, EVState> {
         this.handleReplaceButton = this.handleReplaceButton.bind(this);
     }
     
-    componentDidMount() : void {
+    loadScript() : void {
+        postscribe('#loadScript', `<script type='text/javascript' src='http://mathdox.org/formulaeditor/main.js'></script>`);
+    }
+    
+    async componentDidMount() : Promise<void> {
         this.setState({mathxpath: getMathXPath(this.props.xpath)});
-        getPort().then(port => {
-            this.setState({port: port});
-        });
+        const port = await getPort();
+        this.setState({ port: port});
+        // getPort().then(port => {
+        //     this.setState({port: port});
+        // });
         
         this.loadFormulaTextArea();
         // if (!this.state.hasMounted) {
-        postscribe('#loadScript', `<script type='text/javascript' src='http://mathdox.org/formulaeditor/main.js'></script>`);
+        this.loadScript();
         // this.setState({hasMounted: true});
         // }// this.printNode(this.props.dom, getMathXPath(this.props.xpath));
         // hack to make background white lmao
@@ -110,7 +116,13 @@ class EquationViewer extends React.Component<EVProp, EVState> {
         node.className='mathdoxformula';
         node.id='formula1';
         node.style.backgroundColor='white';
-        const textnode = document.createTextNode(mathml2openmath(this.props.str));
+        let textstr = '';
+        try {
+            textstr = mathml2openmath(this.props.str);
+        } catch {
+            textstr = '';
+        }
+        const textnode = document.createTextNode(textstr);
         node.appendChild(textnode);
         mainNode.appendChild(node);
     }
@@ -145,7 +157,7 @@ class EquationViewer extends React.Component<EVProp, EVState> {
             const mathxpath = getMathXPath(this.props.xpath);
             if (mathxpath !== this.state.mathxpath) {
                 this.setState({mathxpath: mathxpath});
-                this.printNode(this.props.dom, mathxpath);
+                // this.printNode(this.props.dom, mathxpath);
             }
         }
         if (prevProps.str !== this.props.str) {
@@ -161,7 +173,8 @@ class EquationViewer extends React.Component<EVProp, EVState> {
             }
             this.loadFormulaTextArea();
             
-            postscribe('#loadScript', `<script type='text/javascript' src='http://mathdox.org/formulaeditor/main.js'></script>`);
+            // postscribe('#loadScript', `<script type='text/javascript' src='http://mathdox.org/formulaeditor/main.js'></script>`);
+            this.loadScript();
             
             // postscribe('#loadScript', `
             // <script type='text/javascript'>
@@ -224,7 +237,7 @@ class EquationViewer extends React.Component<EVProp, EVState> {
         // const mathpath = getMathXPath(this.props.xpath);
         // console.log(mathpath);
         
-        const openmathstr = mathml2openmath(this.props.str);
+        // const openmathstr = mathml2openmath(this.props.str);
         
         return (
             // <MathJaxContext version={2} config={config}> 

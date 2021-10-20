@@ -513,7 +513,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                     <EquationViewer
                       dom={this.state.activeFileDOM}
                       str={this.state.activeMathString}
-                      node={this.state.activeFileCursorIDOM}
+                      // node={this.state.activeFileCursorIDOM}
                       xpath={this.state.activeFileCursorXPath}
                       model={this.monaco?.editor.getModel(this.monaco.Uri.parse(activeFilepath))}
                       start={this.state.mathStartIndex}

@@ -27,34 +27,34 @@
     </units>
     <component name="root"/>
     <component name="leakage_current">
-        <variable name="i_L" units="microA_per_cm2"/>
-        <variable initial_value="0.3" name="g_L" units="milliS_per_cm2"/>
-        <variable name="E_L" units="millivolt"/>
+        <variable name="i" units="microA_per_cm2"/>
+        <variable initial_value="0.3" name="g" units="milliS_per_cm2"/>
+        <variable name="L" units="millivolt"/>
         <variable name="time" units="millisecond"/>
         <variable name="V" units="millivolt"/>
-        <variable name="E_R" units="millivolt"/>
+        <variable name="R" units="millivolt"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+        <eq/>
+        <ci>L</ci>
+        <apply>
+            <plus/>
+            <ci>R</ci>
+            <cn>10.613</cn>
+        </apply>
+    </apply>
+</math>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
-                <ci>E_L</ci>
-                <apply>
-                    <minus/>
-                    <ci>E_R</ci>
-                    <cn cellml:units="millivolt">10.613</cn>
-                </apply>
-            </apply>
-        </math>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>i_L</ci>
+                <ci>i</ci>
                 <apply>
                     <times/>
-                    <ci>g_L</ci>
+                    <ci>g</ci>
                     <apply>
                         <minus/>
                         <ci>V</ci>
-                        <ci>E_L</ci>
+                        <ci>L</ci>
                     </apply>
                 </apply>
             </apply>
