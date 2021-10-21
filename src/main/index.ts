@@ -53,6 +53,9 @@ const createWindow = (): void => {
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
+
+  // Remove default menu
+  mainWindow.setMenu(null);
 };
 
 // This method will be called when Electron has finished

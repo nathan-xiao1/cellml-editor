@@ -19,6 +19,7 @@ import ElementPane from "./Panes/ElementPane/ElementPane";
 import AttributePane from "./Panes/AttributePane/AttributePane";
 import ImportPane from "./Panes/ImportPane/ImportPane";
 import Prompt from "./Prompt/Prompt";
+import Mousetrap from "mousetrap";
 
 interface EditorState {
   currentMode: ViewMode;
@@ -326,10 +327,15 @@ export default class Editor extends React.Component<unknown, EditorState> {
     this.setState({ promptShow: false });
   }
 
+  componentDidMount(): void {
+    Mousetrap.bind("mod+w", () => this.closeFile(this.getActiveFilepath()));
+  }
+
   componentWillUnmount(): void {
     ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_OPENED_FILE);
     ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_FILE_STATE);
     ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_FILE_CONTENT);
+    Mousetrap.unbind("mod+w");
   }
 
   undo(): void {

@@ -24,6 +24,12 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
     Mousetrap.bind("mod+n", this.newFile);
   }
 
+  componentWillUnmount(): void {
+    Mousetrap.unbind("mod+s");
+    Mousetrap.unbind("mod+o");
+    Mousetrap.unbind("mod+n");
+  }
+
   newFile(): void {
     ipcRenderer.send(IPCChannel.NEW_FILE);
   }
@@ -37,7 +43,10 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
   }
 
   saveFile(): void {
-    ipcRenderer.send(IPCChannel.SAVE_FILE, this.props.getActiveFilepath());
+    const activeFilepath = this.props.getActiveFilepath();
+    if (activeFilepath) {
+      ipcRenderer.send(IPCChannel.SAVE_FILE, activeFilepath);
+    }
   }
 
   render(): React.ReactNode {
@@ -55,7 +64,7 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
                 submenu: [
                   {
                     label: "New File",
-                    click: this.newFile,
+                    click: this.newFile.bind(this),
                     accelerator: "CmdOrCtrl+N",
                   },
                   {
@@ -82,7 +91,7 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
                   { type: "separator" },
                   {
                     label: "Save File",
-                    click: this.saveFile,
+                    click: this.saveFile.bind(this),
                     accelerator: "CmdOrCtrl+S",
                   },
                 ],
