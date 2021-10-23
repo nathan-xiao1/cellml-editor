@@ -60,7 +60,7 @@ export default class ParsedDOM implements IParsedDOM {
       }
       const childElement = new libxmljs.Element(
         this._xmlDoc,
-        childName,
+        schema.insertText,
         selfClosing ? "" : "\n"
       );
       if (schema) {
