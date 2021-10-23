@@ -38,7 +38,8 @@
     }
   }
 
-  .import-component-item-action {
+  .import-component-item-action,
+  .import-component-item-action div {
     display: flex;
     flex-direction: row;
   }

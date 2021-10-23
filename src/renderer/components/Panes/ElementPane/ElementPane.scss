@@ -39,7 +39,8 @@
     p {
       margin: 0;
     }
-    .child-element-info-header {
+    .child-element-info-header,
+    .child-element-info-header div {
       display: flex;
       flex-direction: row;
       align-items: center;
