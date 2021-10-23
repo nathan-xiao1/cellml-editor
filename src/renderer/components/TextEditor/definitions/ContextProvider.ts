@@ -48,7 +48,11 @@ export default class ContextProvider implements IContextProvider {
     const areaInfo = _getAreaInfo(content);
     this._tagContextPrev = this._tagContext;
     this._tagContext = _getTagContext(content);
-    this._lastOpenedTag = _getLastOpenedTag(content)?.tagName;
+    const lastOpenedTag = _getLastOpenedTag(content);
+    if (lastOpenedTag) {
+      this._lastOpenedTag = lastOpenedTag.tagName;
+      this._isAttributeSearch = lastOpenedTag.isAttributeSearch;
+    }
     this._isCompletionAvailable = areaInfo.isCompletionAvailable;
     this._clearedText = areaInfo.clearedText;
     this._lastTag = _getLastTag(content);

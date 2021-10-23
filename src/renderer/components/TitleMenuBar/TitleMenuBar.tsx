@@ -22,12 +22,14 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
     Mousetrap.bind("mod+s", this.saveFile);
     Mousetrap.bind("mod+o", this.openFile);
     Mousetrap.bind("mod+n", this.newFile);
+    Mousetrap.bind("mod+shift+r", this.forceReloadWindow);
   }
 
   componentWillUnmount(): void {
     Mousetrap.unbind("mod+s");
     Mousetrap.unbind("mod+o");
     Mousetrap.unbind("mod+n");
+    Mousetrap.unbind("mod+shift+r");
   }
 
   newFile(): void {
@@ -47,6 +49,10 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
     if (activeFilepath) {
       ipcRenderer.send(IPCChannel.SAVE_FILE, activeFilepath);
     }
+  }
+
+  forceReloadWindow(): void {
+    ipcRenderer.send(IPCChannel.FORCE_RELOAD_WINDOW);
   }
 
   render(): React.ReactNode {
@@ -138,9 +144,7 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
                   { type: "separator" },
                   {
                     label: "Force Reload Window",
-                    click: () => {
-                      ipcRenderer.send(IPCChannel.FORCE_RELOAD_WINDOW);
-                    },
+                    click: this.forceReloadWindow,
                   },
                 ],
               },
