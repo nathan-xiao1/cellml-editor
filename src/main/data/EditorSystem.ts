@@ -1,4 +1,4 @@
-import { IEditorSystem, IFile } from "Types";
+import { IEditorSystem, IFile, IFileState } from "Types";
 import CellMLParser from "../parser/Parser";
 import CellMLFile from "./CellMLFile";
 import PdfFile from "./PdfFile";
@@ -44,7 +44,7 @@ export default class EditorSystem implements IEditorSystem {
   }
 
   public newFileReadonly(id: string, filename: string, content: string): IFile {
-    const filepath = `${id}\\${filename}`
+    const filepath = `${id}\\${filename}`;
     const file = new CellMLFile(filepath, this.cellmlParser, true, true);
     this.openedFiles.set(filepath, file);
     if (content) file.updateContent(content);
@@ -106,8 +106,12 @@ export default class EditorSystem implements IEditorSystem {
     return Array.from(this.openedFiles.values());
   }
 
-  public getOpenedFilepaths(): string[] {
-    return Array.from(this.openedFiles.keys());
+  public getOpenedFilesState(): IFileState[] {
+    const states: IFileState[] = [];
+    this.openedFiles.forEach((file) => {
+      states.push(file.getState());
+    });
+    return states;
   }
 
   /*

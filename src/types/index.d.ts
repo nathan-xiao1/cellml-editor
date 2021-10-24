@@ -37,7 +37,7 @@ export interface IEditorSystem {
   closeFile(filepath: string): boolean;
   getFile(filepath: string): IFile;
   getOpenedFiles(): IFile[];
-  getOpenedFilepaths(): string[];
+  getOpenedFilesState(): IFileState[];
   saveFile(filepath: string): void;
   updateFileContent(filepath: string, content: string): void;
   fileIsSaved(filepath: string): boolean;

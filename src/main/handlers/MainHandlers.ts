@@ -36,5 +36,7 @@ ipcMain.handle(IPCChannel.ACTION_CONFIRM, (_, message) => {
 
 // For debugging
 ipcMain.on("debug", () => {
-  console.log(editorSystem.getOpenedFilepaths());
+  console.log(editorSystem.getOpenedFiles().length)
+  editorSystem.getOpenedFilesState().forEach((file) => console.log(file));
+  // console.log();
 });
