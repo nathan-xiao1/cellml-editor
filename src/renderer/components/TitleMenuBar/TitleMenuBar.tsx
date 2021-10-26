@@ -1,7 +1,7 @@
 import React from "react";
 import Mousetrap from "mousetrap";
 import IPCChannel from "IPCChannels";
-import { ipcRenderer } from "electron";
+import { ipcRenderer, webFrame } from "electron";
 import CloseIcon from "@material-ui/icons/Close";
 import RemoveIcon from "@material-ui/icons/Remove";
 import StopOutlinedIcon from "@material-ui/icons/StopOutlined";
@@ -22,6 +22,8 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
     Mousetrap.bind("mod+s", this.saveFile);
     Mousetrap.bind("mod+o", this.openFile);
     Mousetrap.bind("mod+n", this.newFile);
+    Mousetrap.bind("mod+=", this.zoomIn);
+    Mousetrap.bind("mod+-", this.zoomOut);
     Mousetrap.bind("mod+shift+r", this.forceReloadWindow);
   }
 
@@ -29,6 +31,8 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
     Mousetrap.unbind("mod+s");
     Mousetrap.unbind("mod+o");
     Mousetrap.unbind("mod+n");
+    Mousetrap.unbind("mod+=");
+    Mousetrap.unbind("mod+-");
     Mousetrap.unbind("mod+shift+r");
   }
 
@@ -53,6 +57,14 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
 
   forceReloadWindow(): void {
     ipcRenderer.send(IPCChannel.FORCE_RELOAD_WINDOW);
+  }
+
+  zoomIn(): void {
+    webFrame.setZoomFactor(webFrame.getZoomFactor() + 0.2);
+  }
+
+  zoomOut(): void {
+    webFrame.setZoomFactor(webFrame.getZoomFactor() - 0.2);
   }
 
   render(): React.ReactNode {
@@ -106,14 +118,14 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
                 label: "Edit",
                 submenu: [
                   {
-                    label: "Undo",
-                    click: this.props.undoHandler,
-                    accelerator: "CmdOrCtrl+Z",
+                    label: "Zoom In",
+                    click: this.zoomIn,
+                    accelerator: "CmdOrCtrl+=",
                   },
                   {
-                    label: "Redo",
-                    click: this.props.redoHandler,
-                    accelerator: "CmdOrCtrl+Y",
+                    label: "Zoom Out",
+                    click: this.zoomOut,
+                    accelerator: "CmdOrCtrl+-",
                   },
                 ],
               },
