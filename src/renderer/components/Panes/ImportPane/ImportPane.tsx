@@ -99,14 +99,17 @@ export default class ImportPane extends React.Component<IPProps, IPState> {
                     <p className="import-component-subtitle">{component._id}</p>
                   </div>
                   <div className="import-component-item-action">
-                    <DeleteIcon
-                      className="remove-component-btn"
-                      style={{ fontSize: 14, cursor: "pointer" }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        this.removeComponent(component);
-                      }}
-                    />
+                    <div title="Delete Component from Library">
+                      <DeleteIcon
+                        className="remove-component-btn"
+                        style={{ fontSize: 14, cursor: "pointer" }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          this.removeComponent(component);
+                        }}
+                      />
+                    </div>
+                    <div title="Import Component">
                     <AddIcon
                       className="import-component-btn"
                       style={{ fontSize: 14, cursor: "pointer" }}
@@ -115,6 +118,7 @@ export default class ImportPane extends React.Component<IPProps, IPState> {
                         this.importComponent(component);
                       }}
                     />
+                    </div>
                   </div>
                 </div>
               </li>

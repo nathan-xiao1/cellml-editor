@@ -12,7 +12,7 @@ ipcMain.on(IPCChannel.NEW_FILE, (event) => {
   editorSystem.newFile();
   event.sender.send(
     IPCChannel.RENDERER_UPDATE_OPENED_FILE,
-    editorSystem.getOpenedFilepaths()
+    editorSystem.getOpenedFilesState()
   );
 });
 
@@ -24,7 +24,7 @@ ipcMain.on(IPCChannel.NEW_FROM_TEMPLATE, (event, templateName) => {
   editorSystem.newFileFromTemplate(templateName);
   event.sender.send(
     IPCChannel.RENDERER_UPDATE_OPENED_FILE,
-    editorSystem.getOpenedFilepaths()
+    editorSystem.getOpenedFilesState()
   );
 });
 
@@ -39,7 +39,7 @@ ipcMain.on(IPCChannel.OPEN_FROM_URL, (event, url) => {
       editorSystem.newFile(body);
       event.sender.send(
         IPCChannel.RENDERER_UPDATE_OPENED_FILE,
-        editorSystem.getOpenedFilepaths()
+        editorSystem.getOpenedFilesState()
       );
     })
     .catch((err) => console.log(err));
@@ -63,7 +63,7 @@ ipcMain.on(IPCChannel.OPEN_FILE, (event) => {
         editorSystem.openFiles(result.filePaths);
         event.sender.send(
           IPCChannel.RENDERER_UPDATE_OPENED_FILE,
-          editorSystem.getOpenedFilepaths()
+          editorSystem.getOpenedFilesState()
         );
       }
     })
@@ -90,7 +90,7 @@ ipcMain.handle(IPCChannel.CLOSE_FILE, (event, filepath) => {
   editorSystem.closeFile(filepath);
   event.sender.send(
     IPCChannel.RENDERER_UPDATE_OPENED_FILE,
-    editorSystem.getOpenedFilepaths()
+    editorSystem.getOpenedFilesState()
   );
   return true;
 });
@@ -122,13 +122,9 @@ ipcMain.on(IPCChannel.SAVE_FILE, (event, filepath) => {
           editorSystem.saveFile(filepath, result.filePath);
           event.sender.send(
             IPCChannel.RENDERER_UPDATE_OPENED_FILE,
-            editorSystem.getOpenedFilepaths()
+            editorSystem.getOpenedFilesState()
           );
         }
-        event.reply(
-          IPCChannel.RENDERER_UPDATE_FILE_STATE,
-          editorSystem.getFile(filepath).getState()
-        );
       });
   }
 });
@@ -194,7 +190,7 @@ ipcMain.on(IPCChannel.REMOVE_CHILD_NODE, (event, filepath, xpath) => {
   Return request to get an array of opened file paths
 */
 ipcMain.handle(IPCChannel.GET_OPENED_FILEPATHS_ASYNC, async () => {
-  return editorSystem.getOpenedFilepaths();
+  return editorSystem.getOpenedFilesState();
 });
 
 /*
@@ -208,6 +204,6 @@ ipcMain.on(IPCChannel.OPEN_CELLML_DOCUMENTATION, (event) => {
   editorSystem.openFile(CellMLSpecification);
   event.sender.send(
     IPCChannel.RENDERER_UPDATE_OPENED_FILE,
-    editorSystem.getOpenedFilepaths()
+    editorSystem.getOpenedFilesState()
   );
 });

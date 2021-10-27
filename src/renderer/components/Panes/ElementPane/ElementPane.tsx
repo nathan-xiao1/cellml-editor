@@ -1,7 +1,7 @@
 import React from "react";
 import { IDOM } from "Types";
 import AddIcon from "@material-ui/icons/Add";
-import CloseIcon from "@material-ui/icons/Close";
+import DeleteIcon from "@material-ui/icons/Delete";
 import CellMLSchema from "src/commons/CellMLSchema";
 import "./ElementPane.scss";
 
@@ -36,10 +36,12 @@ export default class ElementPane extends React.Component<EPProps> {
                   <div className="child-element-info-container">
                     <div className="child-element-info-header">
                       <p>&lt;{child.name}&gt;</p>
-                      <CloseIcon
-                        style={{ fontSize: 12, cursor: "pointer" }}
-                        onClick={() => this.props.removeChildHandler(idx)}
-                      />
+                      <div title="Remove Child Element">
+                        <DeleteIcon
+                          style={{ fontSize: 14, cursor: "pointer" }}
+                          onClick={() => this.props.removeChildHandler(idx)}
+                        />
+                      </div>
                     </div>
                     <p className="child-element-info-description">
                       {child.altName ? child.altName : ""}
@@ -61,10 +63,12 @@ export default class ElementPane extends React.Component<EPProps> {
                     <div className="child-element-info-container">
                       <div className="child-element-info-header">
                         <p>&lt;{childName}&gt;</p>
+                        <div title="Add Child Element">
                         <AddIcon
-                          style={{ fontSize: 12, cursor: "pointer" }}
+                          style={{ fontSize: 14, cursor: "pointer" }}
                           onClick={() => this.props.addChildHandler(childName)}
                         />
+                        </div>
                       </div>
                       <p className="child-element-info-description">
                         {CellMLSchema.get(childName)?.documentation

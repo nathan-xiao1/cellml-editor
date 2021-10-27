@@ -1,7 +1,7 @@
 import React from "react";
 import Mousetrap from "mousetrap";
 import IPCChannel from "IPCChannels";
-import { ipcRenderer } from "electron";
+import { ipcRenderer, webFrame } from "electron";
 import CloseIcon from "@material-ui/icons/Close";
 import RemoveIcon from "@material-ui/icons/Remove";
 import StopOutlinedIcon from "@material-ui/icons/StopOutlined";
@@ -16,12 +16,40 @@ interface TMBProps {
   openPrompt: () => void;
 }
 
-export default class TitleMenuBar extends React.Component<TMBProps> {
+interface TMBState {
+  persistentStateEnabled: boolean;
+}
+
+export default class TitleMenuBar extends React.Component<TMBProps, TMBState> {
+  constructor(props: TMBProps) {
+    super(props);
+    this.state = { persistentStateEnabled: true };
+  }
+
   componentDidMount(): void {
     // Register hortcut keys
     Mousetrap.bind("mod+s", this.saveFile);
     Mousetrap.bind("mod+o", this.openFile);
     Mousetrap.bind("mod+n", this.newFile);
+    Mousetrap.bind("mod+=", this.zoomIn);
+    Mousetrap.bind("mod+-", this.zoomOut);
+    Mousetrap.bind("mod+shift+r", this.forceReloadWindow);
+    ipcRenderer
+      .invoke(IPCChannel.GET_SETTING, "persistentStateEnabled")
+      .then((res) => {
+        this.setState({
+          persistentStateEnabled: res,
+        });
+      });
+  }
+
+  componentWillUnmount(): void {
+    Mousetrap.unbind("mod+s");
+    Mousetrap.unbind("mod+o");
+    Mousetrap.unbind("mod+n");
+    Mousetrap.unbind("mod+=");
+    Mousetrap.unbind("mod+-");
+    Mousetrap.unbind("mod+shift+r");
   }
 
   newFile(): void {
@@ -37,7 +65,32 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
   }
 
   saveFile(): void {
-    ipcRenderer.send(IPCChannel.SAVE_FILE, this.props.getActiveFilepath());
+    const activeFilepath = this.props.getActiveFilepath();
+    if (activeFilepath) {
+      ipcRenderer.send(IPCChannel.SAVE_FILE, activeFilepath);
+    }
+  }
+
+  forceReloadWindow(): void {
+    ipcRenderer.send(IPCChannel.FORCE_RELOAD_WINDOW);
+  }
+
+  zoomIn(): void {
+    webFrame.setZoomFactor(webFrame.getZoomFactor() + 0.2);
+  }
+
+  zoomOut(): void {
+    webFrame.setZoomFactor(webFrame.getZoomFactor() - 0.2);
+  }
+
+  toggleEnablePersistentState(): void {
+    ipcRenderer
+      .invoke(IPCChannel.TOGGLE_SETTING, "persistentStateEnabled")
+      .then((res) => {
+        this.setState({
+          persistentStateEnabled: res,
+        });
+      });
   }
 
   render(): React.ReactNode {
@@ -55,7 +108,7 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
                 submenu: [
                   {
                     label: "New File",
-                    click: this.newFile,
+                    click: this.newFile.bind(this),
                     accelerator: "CmdOrCtrl+N",
                   },
                   {
@@ -82,8 +135,16 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
                   { type: "separator" },
                   {
                     label: "Save File",
-                    click: this.saveFile,
+                    click: this.saveFile.bind(this),
                     accelerator: "CmdOrCtrl+S",
+                  },
+                  { type: "separator" },
+                  {
+                    label: "Persistent State",
+                    accelerator: this.state.persistentStateEnabled
+                      ? "Enabled"
+                      : "Disabled",
+                    click: this.toggleEnablePersistentState.bind(this),
                   },
                 ],
               },
@@ -91,14 +152,14 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
                 label: "Edit",
                 submenu: [
                   {
-                    label: "Undo",
-                    click: this.props.undoHandler,
-                    accelerator: "CmdOrCtrl+Z",
+                    label: "Zoom In",
+                    click: this.zoomIn,
+                    accelerator: "CmdOrCtrl+=",
                   },
                   {
-                    label: "Redo",
-                    click: this.props.redoHandler,
-                    accelerator: "CmdOrCtrl+Y",
+                    label: "Zoom Out",
+                    click: this.zoomOut,
+                    accelerator: "CmdOrCtrl+-",
                   },
                 ],
               },
@@ -129,9 +190,7 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
                   { type: "separator" },
                   {
                     label: "Force Reload Window",
-                    click: () => {
-                      ipcRenderer.send(IPCChannel.FORCE_RELOAD_WINDOW);
-                    },
+                    click: this.forceReloadWindow,
                   },
                 ],
               },

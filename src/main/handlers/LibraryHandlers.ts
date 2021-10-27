@@ -51,7 +51,7 @@ ipcMain.on(IPCChannel.LIBRARY_OPEN_COMPONENT, (event, componentId) => {
     editorSystem.newFileReadonly(component._id, component.name, component.content);
     event.reply(
       IPCChannel.RENDERER_UPDATE_OPENED_FILE,
-      editorSystem.getOpenedFilepaths()
+      editorSystem.getOpenedFilesState()
     );
   });
 });

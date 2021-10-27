@@ -13,7 +13,7 @@ import ProblemPane from "./Panes/ProblemPane/ProblemPane";
 import TextEditor from "./TextEditor/TextEditor";
 import TitleMenuBar from "./TitleMenuBar/TitleMenuBar";
 import PdfViewer from "./PdfViewer/PdfViewer";
-import { FileType, IDOM, IFileState, IProblemItem, ViewMode } from "Types";
+import { IDOM, IFileState, ViewMode } from "Types";
 import TreePane from "./Panes/TreePane/TreePane";
 import ElementPane from "./Panes/ElementPane/ElementPane";
 import AttributePane from "./Panes/AttributePane/AttributePane";
@@ -22,16 +22,21 @@ import ImportPane from "./Panes/ImportPane/ImportPane";
 import Prompt from "./Prompt/Prompt";
 import monaco, { editor } from 'monaco-editor';
 import indentString from 'indent-string';
+import Mousetrap from "mousetrap";
+
+const emptyState: IFileState = {
+  dom: undefined,
+  saved: true,
+  readonly: false,
+  fileType: undefined,
+  filepath: undefined,
+  problems: [],
+};
 
 interface EditorState {
   currentMode: ViewMode;
-  openedFilepaths: string[];
+  openedFiles: IFileState[];
   activeFileIndex: number;
-  activeFileProblems: IProblemItem[];
-  activeFileType: FileType;
-  activeFileDOM: IDOM;
-  activeFileReadonly: boolean;
-  activeFileSaved: boolean;
   activeFileCursorXPath: string;
   activeFileCursorIDOM: IDOM;
   activeMathString?: string;
@@ -57,13 +62,8 @@ export default class Editor extends React.Component<unknown, EditorState> {
     this.initialisedFiles = new Set();
     this.state = {
       currentMode: "text",
-      openedFilepaths: [],
+      openedFiles: [],
       activeFileIndex: -1,
-      activeFileProblems: [],
-      activeFileType: undefined,
-      activeFileDOM: undefined,
-      activeFileReadonly: false,
-      activeFileSaved: false,
       activeFileCursorXPath: undefined,
       activeFileCursorIDOM: undefined,
       activeMathString: "",
@@ -80,7 +80,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
           let newActiveFileIndex: number;
           if (
             arg.length > 0 &&
-            arg.length <= prevState.openedFilepaths.length &&
+            arg.length <= prevState.openedFiles.length &&
             prevState.activeFileIndex >= 0 &&
             prevState.activeFileIndex <= arg.length - 1
           ) {
@@ -89,7 +89,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
             newActiveFileIndex = arg.length - 1;
           }
           return {
-            openedFilepaths: arg,
+            openedFiles: arg,
             activeFileIndex: newActiveFileIndex,
           };
         },
@@ -106,14 +106,17 @@ export default class Editor extends React.Component<unknown, EditorState> {
     // Set listener to update this.state using file state from ipcMain
     ipcRenderer.on(
       IPCChannel.RENDERER_UPDATE_FILE_STATE,
-      (_, fileState: IFileState) => {
-        if (fileState.filepath == this.getActiveFilepath()) {
-          this.setState(() => ({
-            activeFileDOM: fileState.dom,
-            activeFileProblems: fileState.problems,
-            activeFileSaved: fileState.saved,
-          }));
-        }
+      (_, newFileState: IFileState) => {
+        const fileIdx = this.state.openedFiles.findIndex(
+          (f) => f.filepath == newFileState.filepath
+        );
+        this.setState((oldState) => {
+          const newOpenedFile = [...oldState.openedFiles];
+          newOpenedFile[fileIdx] = newFileState;
+          return {
+            openedFiles: newOpenedFile,
+          };
+        });
       }
     );
 
@@ -136,41 +139,30 @@ export default class Editor extends React.Component<unknown, EditorState> {
   }
 
   getActiveFilepath(): string {
-    return this.state.openedFilepaths[this.state.activeFileIndex];
+    return this.state.openedFiles[this.state.activeFileIndex]?.filepath;
+  }
+
+  getActiveFile(): IFileState {
+    if (this.state.activeFileIndex == -1) return emptyState;
+    return this.state.openedFiles[this.state.activeFileIndex];
   }
 
   /*
    Set a file as the active file and update this.state using the response from ipcMain
   */
   setActiveFile(filepath: string | number): void {
+    const openedFilepaths = this.state.openedFiles.map(
+      (fileState) => fileState.filepath
+    );
     const index =
       typeof filepath == "string"
-        ? this.state.openedFilepaths.indexOf(filepath)
+        ? openedFilepaths.indexOf(filepath)
         : filepath;
-    const newActiveFile = this.state.openedFilepaths[index];
-    if (newActiveFile != undefined) {
-      ipcRenderer
-        .invoke(IPCChannel.GET_FILE_STATE_ASYNC, newActiveFile)
-        .then((fileState: IFileState) => {
-          this.setState({
-            activeFileDOM: fileState.dom,
-            activeFileIndex: index,
-            activeFileSaved: fileState.saved,
-            activeFileReadonly: fileState.readonly,
-            activeFileProblems: fileState.problems,
-            activeFileType: fileState.fileType as FileType,
-          });
-        });
-    } else {
-      this.setState({
-        activeFileDOM: undefined,
-        activeFileProblems: undefined,
-        activeFileReadonly: false,
-        activeFileSaved: false,
-        activeFileCursorIDOM: undefined,
-        activeFileCursorXPath: undefined,
-      });
-    }
+    this.setState({
+      activeFileIndex: index,
+      activeFileCursorIDOM: undefined,
+      activeFileCursorXPath: undefined,
+    });
   }
 
   /*
@@ -197,7 +189,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
     this.initialisedFiles.add(filepath);
     return ipcRenderer.sendSync(
       IPCChannel.GET_FILE_CONTENT,
-      this.state.openedFilepaths[this.state.activeFileIndex]
+      this.getActiveFilepath()
     );
   }
 
@@ -219,10 +211,10 @@ export default class Editor extends React.Component<unknown, EditorState> {
   monacoOnMountCallback(): void {
     ipcRenderer
       .invoke(IPCChannel.GET_OPENED_FILEPATHS_ASYNC)
-      .then((initialOpenedFile: string[]) => {
+      .then((initialOpenedFile: IFileState[]) => {
         this.setState(
           {
-            openedFilepaths: initialOpenedFile,
+            openedFiles: initialOpenedFile,
           },
           () => this.setActiveFile(initialOpenedFile.length - 1)
         );
@@ -235,7 +227,10 @@ export default class Editor extends React.Component<unknown, EditorState> {
   monacoCursorPositionChangedCallback(path: string): void {
     this.setState((prevState) => ({
       activeFileCursorXPath: path,
-      activeFileCursorIDOM: getNodeFromXPath(prevState.activeFileDOM, path),
+      activeFileCursorIDOM: getNodeFromXPath(
+        prevState.openedFiles[prevState.activeFileIndex].dom,
+        path
+      ),
     }));
   }
 
@@ -381,10 +376,15 @@ export default class Editor extends React.Component<unknown, EditorState> {
     this.setState({ promptShow: false });
   }
 
+  componentDidMount(): void {
+    Mousetrap.bind("mod+w", () => this.closeFile(this.getActiveFilepath()));
+  }
+
   componentWillUnmount(): void {
     ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_OPENED_FILE);
     ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_FILE_STATE);
     ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_FILE_CONTENT);
+    Mousetrap.unbind("mod+w");
   }
 
   undo(): void {
@@ -446,9 +446,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                       openLibraryComponent={this.openLibraryComponent.bind(
                         this
                       )}
-                      filepath={
-                        this.state.openedFilepaths[this.state.activeFileIndex]
-                      }
+                      filepath={this.getActiveFilepath()}
                       xpath={this.state.activeFileCursorXPath}
                     />
                   </Pane>
@@ -461,7 +459,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                 >
                   <Pane title="Tree View" collapsible={false}>
                     <TreePane
-                      dom={this.state.activeFileDOM}
+                      dom={this.getActiveFile().dom}
                       onClickHandler={this.domTreeClickHandler.bind(this)}
                     />
                   </Pane>
@@ -473,13 +471,11 @@ export default class Editor extends React.Component<unknown, EditorState> {
               <ReflexContainer orientation="horizontal">
                 <ReflexElement className="pane-middle-header" size={35}>
                   <Header
-                    openedFiles={this.state.openedFilepaths}
+                    openedFiles={this.state.openedFiles}
                     activeFileIndex={this.state.activeFileIndex}
-                    activeFileSaved={this.state.activeFileSaved}
-                    activeFileReadonly={this.state.activeFileReadonly}
                     showToggle={
-                      this.state.openedFilepaths.length > 0 &&
-                      this.state.activeFileType != "PDF"
+                      this.state.openedFiles.length > 0 &&
+                      this.getActiveFile().fileType != "PDF"
                     }
                     onTabClick={this.setActiveFile.bind(this)}
                     onTabClose={this.closeFile.bind(this)}
@@ -490,14 +486,14 @@ export default class Editor extends React.Component<unknown, EditorState> {
                   <TextEditor
                     ref={this.textEditorRef}
                     hidden={
-                      this.state.openedFilepaths.length == 0 ||
-                      this.state.activeFileType == "PDF" ||
+                      this.state.openedFiles.length == 0 ||
+                      this.getActiveFile().fileType == "PDF" ||
                       this.state.currentMode != "text"
                     }
-                    readonly={this.state.activeFileReadonly}
+                    readonly={this.getActiveFile().readonly}
                     filepath={activeFilepath}
                     defaultValue={this.getDefaultContent(activeFilepath)}
-                    problems={this.state.activeFileProblems}
+                    problems={this.getActiveFile().problems}
                     exportComponentHandler={this.exportComponent.bind(this)}
                     onMountCallback={this.monacoOnMountCallback.bind(this)}
                     onChangeCallback={this.monacoOnChangeCallback.bind(this)}
@@ -510,8 +506,8 @@ export default class Editor extends React.Component<unknown, EditorState> {
                   />
                   <PdfViewer
                     hidden={
-                      this.state.openedFilepaths.length == 0 ||
-                      this.state.activeFileType != "PDF"
+                      this.state.openedFiles.length == 0 ||
+                      this.getActiveFile().fileType != "PDF"
                     }
                   ></PdfViewer>
                 </ReflexElement>
@@ -522,7 +518,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                   flex={0.25}
                 >
                   <Pane title="Problem">
-                    <ProblemPane problems={this.state.activeFileProblems} />
+                    <ProblemPane problems={this.getActiveFile().problems} />
                   </Pane>
                 </ReflexElement>
               </ReflexContainer>

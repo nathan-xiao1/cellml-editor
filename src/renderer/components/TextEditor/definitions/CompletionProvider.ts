@@ -21,7 +21,6 @@ export default function getCompletionProvider(
       // If we want suggestions, inside of which tag are we?
       const lastOpenedTag = contextProvider.lastOpenedTag;
       const lastTag = contextProvider.lastOpenedTag;
-      console.debug("lastTag: ", lastTag);
 
       // Autosuggest attributes
       if (lastOpenedTag && contextProvider.isAttributeSearch) {
@@ -30,9 +29,9 @@ export default function getCompletionProvider(
         if (schemaTag == undefined) return { suggestions: suggestions };
         schemaTag.attributes.forEach((attribute) => {
           suggestions.push({
-            label: attribute,
+            label: attribute.name,
             kind: languages.CompletionItemKind.Property,
-            insertText: `${attribute}="$1"`,
+            insertText: `${attribute.name}="$1"`,
             insertTextRules:
               languages.CompletionItemInsertTextRule.InsertAsSnippet,
             range: undefined,
@@ -61,7 +60,6 @@ export default function getCompletionProvider(
       const schemaTag = findElement2(lastTag);
       const nextTagContext = contextProvider.tagContext;
       if (schemaTag) {
-        console.debug("schemaTag: ", schemaTag);
         const suggestions: monaco.languages.CompletionItem[] = [];
         if (nextTagContext == TagContextType.IN_CLOSE_TAG) {
           if (lastOpenedTag) {
@@ -79,13 +77,11 @@ export default function getCompletionProvider(
           // Suggest opening tag
           schemaTag.children.forEach((elementName) => {
             const element: IElement = CellMLSchema.get(elementName);
-            let insertText;
-            if (nextTagContext == TagContextType.NOT_IN_TAG) {
-              insertText = element.insertSnippet
-                ? element.insertSnippet
-                : getFullSnippet(element.insertText);
-            } else {
-              insertText = element.insertText;
+            let insertText = element.insertSnippet
+              ? element.insertSnippet
+              : getFullSnippet(element.insertText);
+            if (nextTagContext != TagContextType.NOT_IN_TAG) {
+              insertText = insertText.substring(1);
             }
             suggestions.push({
               label: element.label,
@@ -109,7 +105,6 @@ export default function getCompletionProvider(
   in the editor.
 */
 function findElement(openedTags: string[]): IElement {
-  console.debug("openedTags: ", openedTags);
   if (openedTags.length == 0) return CellMLSchema.get("root");
   let currentSchema: IElement = CellMLSchema.get("root");
   for (let i = 0; i < openedTags.length; i++) {
