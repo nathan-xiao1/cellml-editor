@@ -1,32 +1,40 @@
 import { app, BrowserWindow } from "electron";
-import Datastore from "nedb";
+import Store from "electron-store";
+
 import EditorSystem from "./data/EditorSystem";
 import Library from "./data/Library";
-import { loadState, saveState } from "./utils";
+
+import PersistenceStateSchema from "./store/schema/persistenceStateSchema";
+import SettingsSchema from "./store/schema/settingsSchema";
+import { loadState, saveState } from "./store/persistentState2";
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
+
+const persistentStore = new Store({
+  name: "Persistence",
+  schema: PersistenceStateSchema,
+});
+export const settingsStore = new Store({
+  name: "Settings",
+  schema: SettingsSchema,
+});
 
 export const library = new Library();
 export const editorSystem = new EditorSystem();
 
-// Create or load the database for persistent state
-const db = new Datastore({
-  filename: ".cellmleditor/data.nedb",
-  autoload: true,
-});
-db.ensureIndex({ fieldName: "id", unique: true });
-
-// Load state from db after init
+// Callbacks on app init
 editorSystem.init().then(() => {
-  console.log("Loading state");
-  // loadState(db, editorSystem);
+  if (settingsStore.get("persistentStateEnabled")) {
+    console.log(`Loading persistent state...`);
+    loadState(persistentStore, editorSystem);
+  }
 });
 
-// // Save state to db on quit
-// app.on("will-quit", async () => {
-//   console.log("Saving state");
-//   saveState(db, editorSystem);
-// });
+// Callbacks on app exit
+app.on("will-quit", async () => {
+  console.log("Saving persistent state...");
+  saveState(persistentStore, editorSystem);
+});
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
@@ -44,6 +52,7 @@ const createWindow = (): void => {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
+      enableRemoteModule: true,
     },
     frame: !true,
   });
@@ -85,3 +94,4 @@ app.on("activate", () => {
 import("./handlers/MainHandlers");
 import("./handlers/FileHandlers");
 import("./handlers/LibraryHandlers");
+import("./handlers/SettingsHandlers");

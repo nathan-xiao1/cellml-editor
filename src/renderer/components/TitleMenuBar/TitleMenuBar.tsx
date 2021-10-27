@@ -16,7 +16,16 @@ interface TMBProps {
   openPrompt: () => void;
 }
 
-export default class TitleMenuBar extends React.Component<TMBProps> {
+interface TMBState {
+  persistentStateEnabled: boolean;
+}
+
+export default class TitleMenuBar extends React.Component<TMBProps, TMBState> {
+  constructor(props: TMBProps) {
+    super(props);
+    this.state = { persistentStateEnabled: true };
+  }
+
   componentDidMount(): void {
     // Register hortcut keys
     Mousetrap.bind("mod+s", this.saveFile);
@@ -25,6 +34,13 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
     Mousetrap.bind("mod+=", this.zoomIn);
     Mousetrap.bind("mod+-", this.zoomOut);
     Mousetrap.bind("mod+shift+r", this.forceReloadWindow);
+    ipcRenderer
+      .invoke(IPCChannel.GET_SETTING, "persistentStateEnabled")
+      .then((res) => {
+        this.setState({
+          persistentStateEnabled: res,
+        });
+      });
   }
 
   componentWillUnmount(): void {
@@ -65,6 +81,16 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
 
   zoomOut(): void {
     webFrame.setZoomFactor(webFrame.getZoomFactor() - 0.2);
+  }
+
+  toggleEnablePersistentState(): void {
+    ipcRenderer
+      .invoke(IPCChannel.TOGGLE_SETTING, "persistentStateEnabled")
+      .then((res) => {
+        this.setState({
+          persistentStateEnabled: res,
+        });
+      });
   }
 
   render(): React.ReactNode {
@@ -111,6 +137,14 @@ export default class TitleMenuBar extends React.Component<TMBProps> {
                     label: "Save File",
                     click: this.saveFile.bind(this),
                     accelerator: "CmdOrCtrl+S",
+                  },
+                  { type: "separator" },
+                  {
+                    label: "Persistent State",
+                    accelerator: this.state.persistentStateEnabled
+                      ? "Enabled"
+                      : "Disabled",
+                    click: this.toggleEnablePersistentState.bind(this),
                   },
                 ],
               },
