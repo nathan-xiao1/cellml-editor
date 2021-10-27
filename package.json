@@ -106,6 +106,7 @@
     "electron-fetch": "^1.7.4",
     "electron-squirrel-startup": "^1.0.0",
     "find-open-port": "^2.0.3",
+    "indent-string": "^5.0.0",
     "libcellml.js": "^0.2.0-dev.21",
     "libxmljs2": "^0.27.0",
     "mathjax-react": "^1.0.6",

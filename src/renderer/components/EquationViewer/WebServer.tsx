@@ -2,8 +2,11 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import findPort from 'find-open-port';
+import process from 'process';
 import { setInterval } from 'timers/promises';
 import { selectOptionsFromKeys } from 'mathjax-full/js/util/Options';
+
+const baseDir = './formulaeditor-1.1.36e';
 
 // https://stackoverflow.com/questions/16333790/node-js-quick-file-server-static-files-over-http
 // Used to host scripts locally for iframe to find
@@ -18,12 +21,13 @@ export const getPort = async () : Promise<number> =>  {
 const runServer = () : void => {
     findPort().then((port : number) => {
         PORT = port;
+        console.log('port ', port);
         http.createServer(function (request, response) {
-            console.log('request starting...');
-        
-            let filePath = '.' + request.url;
-            if (filePath == './')
-                filePath = './index.html';
+            // console.log('request starting...');
+            let filePath = baseDir + request.url;
+            if (filePath == baseDir + '/')
+                filePath = baseDir + '/index.html';
+            // console.log('filepath ', filePath);
         
             const extname = path.extname(filePath);
             let contentType = 'text/html';
@@ -63,6 +67,14 @@ const runServer = () : void => {
                     }
                 }
                 else {
+                    // Website you wish to allow to connect
+                    response.setHeader('Access-Control-Allow-Origin', '*');
+                    
+                    // Request methods you wish to allow
+                    response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+                    
+                    // Request headers you wish to allow
+                    response.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
                     response.writeHead(200, { 'Content-Type': contentType });
                     response.end(content, 'utf-8');
                 }

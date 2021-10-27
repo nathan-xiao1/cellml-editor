@@ -6,25 +6,24 @@ import { getNodeFromXPath, getNodeFromXPathLibXML } from "src/commons/utils/xpat
 import monaco from 'monaco-editor';
 import { getPort } from './WebServer';
 import postscribe from 'postscribe';
-import { clearInterval } from 'timers';
 import openmath2mathml from './openmath2mathml';
 import { getPoller, destroyPoller } from './SingletonPoller';
 import mathml2openmath from './mathml2openmath';
-import { open } from 'original-fs';
 
 const mathre = /.*\/math/;
 const encodingre = /encodingError/m;
 const inputre = /input_box/m;
-interface MathMLInputProcessorE extends MathMLInputProcessor {
-    useMathMLspacing?: boolean;
-    extensions?: string[];
-}
 
-const extensions : MathMLInputProcessorE = { extensions: ["content-mathml.js"]};
+// interface MathMLInputProcessorE extends MathMLInputProcessor {
+//     useMathMLspacing?: boolean;
+//     extensions?: string[];
+// }
 
-const config : MathJax2Config = {
-    MathML: extensions
-}
+// const extensions : MathMLInputProcessorE = { extensions: ["content-mathml.js"]};
+
+// const config : MathJax2Config = {
+//     MathML: extensions
+// }
 
 // Props:
 // str: renders mathml given as a string
@@ -85,7 +84,26 @@ class EquationViewer extends React.Component<EVProp, EVState> {
     }
     
     loadScript() : void {
-        postscribe('#loadScript', `<script type='text/javascript' src='http://mathdox.org/formulaeditor/main.js'></script>`);
+        // postscribe('#loadScript', `<script type='text/javascript' src='http://mathdox.org/formulaeditor/main.js'></script>`);
+        const script = `<script type='text/javascript'>
+            var org = { mathdox: { formulaeditor: { options: {
+                onLoadFocus: true,
+                optionExplicitBrackets: true,
+                paletteURL : "http://localhost:${this.state.port}/org/mathdox/formulaeditor/palette_test.xml",
+                indentXML : true
+            }}}};
+        </script>
+        `;
+        // var div = document.getElementById('loadScript');
+        //     var script = document.createElement('script');
+        //     script.type = 'text/javascript';
+        //     script.src = 'http://localhost:${this.state.port}/org/mathdox/formulaeditor/main.js';
+        //     div.appendChild(script);
+        
+        //
+        postscribe('#loadScript', script);
+        postscribe('#loadScript', `<script type='text/javascript' src='http://localhost:${this.state.port}/org/mathdox/formulaeditor/main.js'></script>`);
+
     }
     
     async componentDidMount() : Promise<void> {

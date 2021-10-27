@@ -20,6 +20,8 @@ import AttributePane from "./Panes/AttributePane/AttributePane";
 import EquationViewer from "./EquationViewer/EquationViewer";
 import ImportPane from "./Panes/ImportPane/ImportPane";
 import Prompt from "./Prompt/Prompt";
+import monaco, { editor } from 'monaco-editor';
+import indentString from 'indent-string';
 
 interface EditorState {
   currentMode: ViewMode;
@@ -260,15 +262,35 @@ export default class Editor extends React.Component<unknown, EditorState> {
   }
   
   handleReplaceRange(string: string, startOffset: number, endOffset: number) : void {
-    let a;
-    // TODO: implement this with edit operations API
     try {
       const model = this.monaco?.editor.getModel(this.monaco.Uri.parse(this.getActiveFilepath()));
-      let text = model.getValue();
-      text = text.substring(0, startOffset) + string + text.substring(endOffset);
-      model.setValue(text);
-    } catch {
-      console.log('Replace failed')
+      const start = model.getPositionAt(startOffset);
+      const end = model.getPositionAt(endOffset);
+      // const selection = new monaco.Selection(start.lineNumber, start.column, end.lineNumber, end.column);
+      
+      // Calculating and adding offset
+      const line = model.getLineContent(start.lineNumber);
+      const count = line.search(/\S/);
+      const text = indentString(string, count).trim();
+      
+      // Creating edit operation
+      const editOp : monaco.editor.IIdentifiedSingleEditOperation = {
+        range: {
+          startColumn: start.column,
+          startLineNumber: start.lineNumber,
+          endColumn: end.column,
+          endLineNumber: end.lineNumber
+        },
+        text: text,
+        forceMoveMarkers: true
+      }
+      
+      model.pushEditOperations([], [editOp], () => []);
+      // let text = model.getValue();
+      // text = text.substring(0, startOffset) + string + text.substring(endOffset);
+      // model.setValue(text);
+    } catch (e) {
+      console.log('Replace failed: ', e);
     }
   }
 
@@ -511,7 +533,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                 <ReflexElement className="pane-right-top" minSize={25}>
                   <Pane title="Math View" collapsible={false}>
                     <EquationViewer
-                      dom={this.state.activeFileDOM}
+                      // dom={this.state.activeFileDOM}
                       str={this.state.activeMathString}
                       // node={this.state.activeFileCursorIDOM}
                       xpath={this.state.activeFileCursorXPath}
