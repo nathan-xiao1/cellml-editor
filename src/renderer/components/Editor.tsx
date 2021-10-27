@@ -20,6 +20,14 @@ import AttributePane from "./Panes/AttributePane/AttributePane";
 import ImportPane from "./Panes/ImportPane/ImportPane";
 import Prompt from "./Prompt/Prompt";
 
+import VisualPane from "./Panes/VisualPane";
+import CreateImgModel from "./CreateImgModel";
+
+type Mode = "text" | "graphical";
+let graphics_or_text = 0;
+const testpath123 = "C:\\Users\\admin\\Downloads\\finalversion\\cellml-editor\\example\\SodiumChannelModel.cellml";
+
+
 interface EditorState {
   currentMode: ViewMode;
   openedFilepaths: string[];
@@ -340,6 +348,39 @@ export default class Editor extends React.Component<unknown, EditorState> {
     this.textEditorRef?.current?.redo();
   }
 
+  changemodel(): void {
+    console.log('change model');
+    console.log(graphics_or_text);
+    // change mode to allow the user to generate their own model 
+    (graphics_or_text === 0) ? graphics_or_text = 1: graphics_or_text = 0;
+    console.log(graphics_or_text);
+
+    // if changed to text --> deafult text view
+    if (graphics_or_text === 0) {
+      document.getElementById("user_model_creator").style.display = 'none';
+      document.getElementById("create_new_model_img").textContent = "CREATE MODEL";
+
+      const pmh = document.getElementsByClassName('pane-middle-header') as HTMLCollectionOf<HTMLElement>;
+      pmh[0].style.display = 'block';
+      const pmt = document.getElementsByClassName('pane-middle-top') as HTMLCollectionOf<HTMLElement>;
+      pmt[0].style.display = 'block';
+      const pmb = document.getElementsByClassName('pane-middle-bottom') as HTMLCollectionOf<HTMLElement>;
+      pmb[0].style.display = 'block';
+    } 
+    // if in graphics view then display create page panel
+    else {
+      document.getElementById("user_model_creator").style.display = 'block';
+      document.getElementById("create_new_model_img").textContent = "TEXT VIEW";
+
+      const pmh = document.getElementsByClassName('pane-middle-header') as HTMLCollectionOf<HTMLElement>;
+      pmh[0].style.display = 'none';
+      const pmt = document.getElementsByClassName('pane-middle-top') as HTMLCollectionOf<HTMLElement>;
+      pmt[0].style.display = 'none';
+      const pmb = document.getElementsByClassName('pane-middle-bottom') as HTMLCollectionOf<HTMLElement>;
+      pmb[0].style.display = 'none';
+    }
+  }
+
   render(): React.ReactNode {
     const activeFilepath: string = this.getActiveFilepath();
     return (
@@ -368,6 +409,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
           <ReflexContainer orientation="vertical" windowResizeAware={true}>
             <ReflexElement className="pane-left" minSize={150} flex={0.15}>
               <ReflexContainer orientation="horizontal">
+                
                 <ReflexElement className="pane-left-top" minSize={25}>
                   <Pane title="Element View" collapsible={false}>
                     <ElementPane
@@ -378,6 +420,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                         this
                       )}
                     />
+                    
                   </Pane>
                 </ReflexElement>
                 <ReflexSplitter className="primary-splitter splitter" />
@@ -430,8 +473,19 @@ export default class Editor extends React.Component<unknown, EditorState> {
                     onTabClose={this.closeFile.bind(this)}
                     toggleViewMode={this.toggleEditorView.bind(this)}
                   />
+                  
                 </ReflexElement>
+                
+                
+                <button id="create_new_model_img" onClick={this.changemodel}>CREATE MODEL</button>
+
+                <div id="user_model_creator">
+                  <CreateImgModel></CreateImgModel>
+                </div>
+                
+
                 <ReflexElement className="pane-middle-top primary-bg-dark">
+                  
                   <TextEditor
                     ref={this.textEditorRef}
                     hidden={
@@ -460,8 +514,8 @@ export default class Editor extends React.Component<unknown, EditorState> {
                 <ReflexSplitter className="primary-splitter splitter" />
                 <ReflexElement
                   className="pane-middle-bottom"
-                  minSize={25}
-                  flex={0.25}
+                  minSize={200}
+                  flex={0.80}
                 >
                   <Pane title="Problem">
                     <ProblemPane problems={this.state.activeFileProblems} />
@@ -470,7 +524,16 @@ export default class Editor extends React.Component<unknown, EditorState> {
               </ReflexContainer>
             </ReflexElement>
             <ReflexSplitter className="primary-splitter splitter" />
+
+
+
+            
+
             <ReflexElement className="pane-right" minSize={150} flex={0.15}>
+              
+                    
+
+              
               <ReflexContainer orientation="horizontal">
                 <ReflexElement className="pane-right-top" minSize={25}>
                   <Pane title="Math View" collapsible={false}></Pane>
@@ -479,14 +542,29 @@ export default class Editor extends React.Component<unknown, EditorState> {
                 <ReflexElement
                   className="pane-right-bottom"
                   minSize={25}
-                  flex={0.4}
+                  flex={0.1}
                 >
                   <AttributePane
                     node={this.state.activeFileCursorIDOM}
                     attributeEditHandler={this.attributeEditHandler.bind(this)}
                   />
                 </ReflexElement>
+
+                <ReflexSplitter className="primary-splitter splitter" />
+                    <ReflexElement className="aaaaa"
+                  minSize={300}
+                  flex={0.50}>
+                      <VisualPane
+                      dom={this.state.activeFileDOM}
+                      filepath={activeFilepath}
+                      onClickHandler={this.domTreeClickHandler.bind(this)}
+                    />
+                      </ReflexElement>
+                
               </ReflexContainer>
+
+
+              
             </ReflexElement>
           </ReflexContainer>
         </div>
