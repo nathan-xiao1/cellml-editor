@@ -56,7 +56,21 @@ const recursive = (obj, parent) => {
                 obj.elements = [textNode];
                 break;
             case 'OMA':
-                obj.name = 'apply';
+                // If subscript, since algo is dfs children already ci's
+                if (obj.attributes.style && obj.attributes.style === 'sub') {
+                    obj.name = 'ci';
+                    // Look into next 2 children ci's
+                    // console.log(JSON.stringify(obj.elements, null, 2));
+                    const c1 = obj.elements[0].elements[0].text;
+                    const c2 = obj.elements[1].elements[0].text;
+                    textNode = {
+                        type: 'text',
+                        text: c1 + '_' + c2,
+                    }
+                    obj.elements = [textNode];
+                } else {
+                    obj.name = 'apply';
+                }
                 delete obj.attributes;
                 break;
             case 'OMF':

@@ -85,12 +85,97 @@ const recursive = (obj, parent) => {
                         break;
                 }
                 break;
-            case "ci":
-                obj.name = "OMV";
-                // TODO replace with empty input field if no text
-                obj.attributes.name = obj.elements[0].text;
-                delete obj.elements;
+            case "ci": {
+                // console.log(obj.elements[0].text.include('_'));
+                // console.log(JSON.stringify(obj.elements[0], null, 2));
+                // console.log(obj.elements[0].text);
+                // console.log(obj.elements[0].text.includes('_'));
+                // if (obj.elements[0] && obj.elements[0].text.includes('_')) {
+               
+                if (obj.elements[0] && obj.elements[0].text.includes('_')) {
+                    // TODO: turn string into list of subscripts
+                    const toks = obj.elements[0].text.split('_');
+                    
+                    const r = (toks) => {
+                        if (toks.length > 1) {
+                            const elements = [
+                                {
+                                    type: 'element',
+                                    name: 'OMV',
+                                    attributes: { name: toks[0] }
+                                },
+                                r(toks.slice(1))
+                            ];
+                            const curr = {
+                                type: 'element',
+                                name: 'OMA',
+                                attributes: { style: 'sub' },
+                                elements: elements
+                            };
+                            // console.log(JSON.stringify(curr, null, 2));
+                            return curr;
+                        }
+                        const curr = {
+                            type: 'element',
+                            name: 'OMV',
+                            attributes: { name: toks[0] }
+                        };
+                        // console.log(JSON.stringify(curr, null, 2));
+                        return curr;
+                    }
+                        
+                    // }
+                    // Convert last 2 nodes
+                    // let curr = {
+                    //     name: 'OMA',
+                    //     attributes: { style: 'sub' },
+                    //     elements: [
+                    //         {
+                    //             name: 'OMV',
+                    //             attributes: { name: toks[toks.length-2] }
+                    //         },
+                    //         {
+                    //             name: 'OMV',
+                    //             attributes: { name: toks[toks.length-1] }
+                    //         }
+                    //     ]
+                    // }
+                    // let i = toks.length-3;
+                    // while (i > 0) {
+                    //     curr = {
+                    //         name: 'OMA',
+                    //         attributes: { style: 'sub' },
+                    //         elements: [
+                    //             {
+                    //                 name: 'OMV',
+                    //                 attributes: { name: toks[i] }
+                    //             }, 
+                    //             curr
+                    //         ]
+                        
+                    //     };
+                    //     i--;
+                    // }
+                    obj.name = 'OMA';
+                    obj.attributes.style = 'sub';
+                    // console.log(JSON.stringify(JSON.parse(r(toks)), null, 2));
+                    obj.elements = r(toks).elements;
+                    
+                    // console.log(JSON.stringify(obj, null, 2));
+                } else {
+                    obj.name = "OMV";
+                    // TODO replace with empty input field if no text
+                    obj.attributes.name = obj.elements[0].text;
+                    delete obj.elements;
+                }
+
+            
+                // obj.name = "OMV";
+                // // TODO replace with empty input field if no text
+                // obj.attributes.name = obj.elements[0].text;
+                
                 break;
+            }
             case "apply":
                 obj.name = "OMA";
                 break;
@@ -174,7 +259,7 @@ const mathml2openmath = (openMathStr) => {
     let converted_js = recursive(js, null);
     let options = {compact: false, ignoreComment: true, spaces: 2};
     // console.log(js);
-    // console.log(JSON.stringify(converted_js, null, 2));
+    console.log(JSON.stringify(converted_js, null, 2));
     return convert.json2xml(converted_js, options);
 }
 

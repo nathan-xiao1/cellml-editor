@@ -87,8 +87,11 @@ class EquationViewer extends React.Component<EVProp, EVState> {
         // postscribe('#loadScript', `<script type='text/javascript' src='http://mathdox.org/formulaeditor/main.js'></script>`);
         const script = `<script type='text/javascript'>
             var org = { mathdox: { formulaeditor: { options: {
-                onLoadFocus: true,
-                optionExplicitBrackets: true,
+                onloadFocus: true,
+                useBar: false,
+                paletteShow: 'id',
+                paletteShowId: 'palette1',
+                floatNeedsLeadingZero: false,
                 paletteURL : "http://localhost:${this.state.port}/org/mathdox/formulaeditor/palette_test.xml",
                 indentXML : true
             }}}};
@@ -131,8 +134,8 @@ class EquationViewer extends React.Component<EVProp, EVState> {
     loadFormulaTextArea = (): void => {
         const mainNode = (document.getElementById('equationMain') as HTMLDivElement);
         const node = document.createElement('textarea');
-        node.className='mathdoxformula';
-        node.id='formula1';
+        node.className = 'mathdoxformula';
+        node.id = 'formula1';
         node.style.backgroundColor='white';
         let textstr = '';
         try {
@@ -143,6 +146,10 @@ class EquationViewer extends React.Component<EVProp, EVState> {
         const textnode = document.createTextNode(textstr);
         node.appendChild(textnode);
         mainNode.appendChild(node);
+        
+        const paletteNode = document.createElement('div');
+        paletteNode.id = 'palette1';
+        mainNode.appendChild(paletteNode);
     }
     
     handleTimerTick = () : void => {
@@ -152,9 +159,9 @@ class EquationViewer extends React.Component<EVProp, EVState> {
         if ( !encodingre.test(value) && !inputre.test(value) && value != this.state.omstr) {
             // console.log(value != this.state.omstr, value, this.state.omstr);
             this.setState({ omstr: value, hasChanged: true });
-
+            console.log(value)
             const math = openmath2mathml(value);
-            console.log(!encodingre.test(value) && !inputre.test(value));
+            // console.log(!encodingre.test(value) && !inputre.test(value));
             console.log(math);
            
         } else {
