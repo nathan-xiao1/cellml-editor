@@ -183,9 +183,14 @@ export default class TitleMenuBar extends React.Component<TMBProps, TMBState> {
                 label: "Help",
                 submenu: [
                   {
+                    label: "Documentation",
+                    click: () =>
+                      ipcRenderer.send(IPCChannel.OPEN_DOCUMENTATION),
+                  },
+                  {
                     label: "CellML 2.0 Specification",
                     click: () =>
-                      ipcRenderer.send(IPCChannel.OPEN_CELLML_DOCUMENTATION),
+                      ipcRenderer.send(IPCChannel.OPEN_DOCUMENTATION),
                   },
                   { type: "separator" },
                   {

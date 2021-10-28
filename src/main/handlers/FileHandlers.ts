@@ -1,5 +1,4 @@
 import { ipcMain, dialog } from "electron";
-import { CellMLSpecification } from "src/main/data/EditorSystem";
 import { editorSystem } from "../index";
 import fetch from "electron-fetch";
 import IPCChannel from "./IpcChannels";
@@ -200,10 +199,18 @@ ipcMain.handle(IPCChannel.GET_FILE_STATE_ASYNC, (_, filepath) => {
   return editorSystem.getFile(filepath).getState();
 });
 
-ipcMain.on(IPCChannel.OPEN_CELLML_DOCUMENTATION, (event) => {
-  editorSystem.openFile(CellMLSpecification);
+ipcMain.on(IPCChannel.OPEN_DOCUMENTATION, (event) => {
+  editorSystem.openFilePdf("Help & Documentation"); // "static/cellml_editor_documentation.pdf"
   event.sender.send(
     IPCChannel.RENDERER_UPDATE_OPENED_FILE,
     editorSystem.getOpenedFilesState()
   );
 });
+
+// ipcMain.on(IPCChannel.OPEN_CELLML_DOCUMENTATION, (event) => {
+//   editorSystem.openFilePdf("static/cellml_2_0_normative_specification.pdf");
+//   event.sender.send(
+//     IPCChannel.RENDERER_UPDATE_OPENED_FILE,
+//     editorSystem.getOpenedFilesState()
+//   );
+// });
