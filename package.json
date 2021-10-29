@@ -119,6 +119,7 @@
     "react-reflex": "^4.0.1",
     "sass": "^1.34.0",
     "sass-loader": "^10.1.1",
+    "spectron": "^14.0.0",
     "ts-jest": "^27.0.3",
     "xml-formatter": "^2.4.0"
   }
