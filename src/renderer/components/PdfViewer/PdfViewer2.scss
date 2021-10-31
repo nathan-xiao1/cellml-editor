@@ -1,0 +1,38 @@
+@use "../../theme/theme-dark.scss" as theme;
+
+.pdf-viewer-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  .pdf-multi-viewer-option-bar {
+    background-color: lighten(theme.$primary, 3%);
+    background-image: none;
+  }
+
+  .renderer-controls {
+    background-color: lighten(theme.$primary, 3%);
+    background-image: none;
+  }
+
+  .pdf-viewer-list {
+    background-color: lighten(theme.$primary, 3%);
+    .pdf-viewer-list-item {
+      background-color: lighten(theme.$primary, 3%);
+      &.active {
+        background-color: lighten(theme.$primary, 9%);
+      }
+    }
+  }
+
+  ::-webkit-scrollbar-track {
+    background: theme.$primary;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #666666;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #4f4f4f;
+  }
+}

@@ -4,8 +4,6 @@ import CellMLFile from "./CellMLFile";
 import PdfFile from "./PdfFile";
 import { templates } from "./Templates";
 
-export const CellMLSpecification = "CellML 2.0 Specification";
-
 export default class EditorSystem implements IEditorSystem {
   private unsavedFileIDAcc = 0;
   private openedFiles: Map<string, IFile> = new Map();
@@ -64,10 +62,7 @@ export default class EditorSystem implements IEditorSystem {
   public openFile(filepath: string): IFile {
     if (!this.openedFiles.has(filepath)) {
       // File not opened yet
-      const file =
-        filepath == CellMLSpecification
-          ? new PdfFile(filepath)
-          : new CellMLFile(filepath, this.cellmlParser);
+      const file = new CellMLFile(filepath, this.cellmlParser);
       this.openedFiles.set(filepath, file);
       console.log(`Opened: ${filepath}`);
       return file;
@@ -75,6 +70,15 @@ export default class EditorSystem implements IEditorSystem {
       // File already opened
       return null;
     }
+  }
+
+  public openFilePdf(id: string): IFile {
+    if (!this.openedFiles.has(id)) {
+      const file = new PdfFile(id);
+      this.openedFiles.set(id, file);
+      return file;
+    }
+    return null;
   }
 
   public openFiles(filepaths: string[]): IFile[] {

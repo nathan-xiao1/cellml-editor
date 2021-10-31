@@ -1,14 +1,16 @@
 import React from "react";
-import { pdfjs , Document, Page } from "react-pdf/dist/esm/entry.webpack";
+import { pdfjs, Document, Page } from "react-pdf/dist/esm/entry.webpack";
 import PlusIcon from "@material-ui/icons/Add";
 import MinusIcon from "@material-ui/icons/Remove";
+import { IFileState } from "Types";
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import "./PdfViewer.scss";
 
-pdfjs.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
+pdfjs.GlobalWorkerOptions.workerSrc = "pdf.worker.min.js";
 
 interface PVProps {
   hidden: boolean;
+  file: IFileState;
 }
 
 interface PVState {
@@ -76,7 +78,7 @@ export default class PdfViewer extends React.Component<PVProps, PVState> {
         </div>
         <div className="pdf-viewer">
           <Document
-            file="static/cellml_2_0_normative_specification.pdf"
+            file={this.props.hidden ? undefined : this.props.file.filepath}
             onLoadSuccess={this.onDocumentLoadSuccess.bind(this)}
           >
             {/* <Page

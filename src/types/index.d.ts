@@ -34,6 +34,7 @@ export interface IEditorSystem {
   newFileFromTemplate(template: string): IFile;
   openFile(filepath: string): IFile;
   openFiles(filepaths: string[]): IFile[];
+  openFilePdf(id: string): IFile;
   closeFile(filepath: string): boolean;
   getFile(filepath: string): IFile;
   getOpenedFiles(): IFile[];

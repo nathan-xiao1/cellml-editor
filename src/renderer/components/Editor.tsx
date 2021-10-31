@@ -12,7 +12,7 @@ import Pane from "./Panes/Pane";
 import ProblemPane from "./Panes/ProblemPane/ProblemPane";
 import TextEditor from "./TextEditor/TextEditor";
 import TitleMenuBar from "./TitleMenuBar/TitleMenuBar";
-import PdfViewer from "./PdfViewer/PdfViewer";
+import PdfViewer from "./PdfViewer/PdfViewer2";
 import { IDOM, IFileState, ViewMode } from "Types";
 import TreePane from "./Panes/TreePane/TreePane";
 import ElementPane from "./Panes/ElementPane/ElementPane";
@@ -509,6 +509,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                       this.state.openedFiles.length == 0 ||
                       this.getActiveFile().fileType != "PDF"
                     }
+                    file={this.getActiveFile()}
                   ></PdfViewer>
                 </ReflexElement>
                 <ReflexSplitter className="primary-splitter splitter" />

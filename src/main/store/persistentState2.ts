@@ -21,22 +21,26 @@ export function loadState(
 ): void {
   const files = store.get("files");
   files.forEach((pFile) => {
-    const origFileExists = fs.existsSync(pFile.originalFilepath);
-    const persisFileExists = fs.existsSync(pFile.persistentFilepath);
-    if (!origFileExists || pFile.isNew) {
-      const eFile = editorSystem.newFile();
-      if (!persisFileExists) return;
-      const content = fs.readFileSync(pFile.persistentFilepath, "utf8");
-      eFile.updateContent(content, false);
-    } else {
-      const eFile = editorSystem.openFile(pFile.originalFilepath);
-      if (!pFile.isSaved) {
+    if (pFile.fileType == "CellML") {
+      const origFileExists = fs.existsSync(pFile.originalFilepath);
+      const persisFileExists = fs.existsSync(pFile.persistentFilepath);
+      if (!origFileExists || pFile.isNew) {
+        const eFile = editorSystem.newFile();
         if (!persisFileExists) return;
         const content = fs.readFileSync(pFile.persistentFilepath, "utf8");
         eFile.updateContent(content, false);
+      } else {
+        const eFile = editorSystem.openFile(pFile.originalFilepath);
+        if (!pFile.isSaved) {
+          if (!persisFileExists) return;
+          const content = fs.readFileSync(pFile.persistentFilepath, "utf8");
+          eFile.updateContent(content, false);
+        }
       }
+      if (persisFileExists) fs.rmSync(pFile.persistentFilepath);
+    } else if (pFile.fileType == "PDF") {
+      editorSystem.openFilePdf("Help & Documentation");
     }
-    if (persisFileExists) fs.rmSync(pFile.persistentFilepath);
   });
 }
 
@@ -46,20 +50,31 @@ export function saveState(
 ): void {
   const persistentFiles: IPersistentFile[] = [];
   editorSystem.getOpenedFiles().forEach((file) => {
-    const isSaved = file.getSaved();
-    const persistentFilepath = path.join(
-      PERSISTENCE_DIRECTORY,
-      file.getFilename()
-    );
-    persistentFiles.push({
-      originalFilepath: file.getFilepath(),
-      persistentFilepath: isSaved ? null : persistentFilepath,
-      isNew: file.fileIsNew(),
-      isSaved: isSaved,
-    });
-    if (!isSaved) {
-      fs.writeFileSync(persistentFilepath, file.getContent(), {
-        encoding: "utf-8",
+    if (file.getType() == "CellML") {
+      const isSaved = file.getSaved();
+      const persistentFilepath = path.join(
+        PERSISTENCE_DIRECTORY,
+        file.getFilename()
+      );
+      persistentFiles.push({
+        originalFilepath: file.getFilepath(),
+        persistentFilepath: isSaved ? null : persistentFilepath,
+        isNew: file.fileIsNew(),
+        isSaved: isSaved,
+        fileType: file.getType(),
+      });
+      if (!isSaved) {
+        fs.writeFileSync(persistentFilepath, file.getContent(), {
+          encoding: "utf-8",
+        });
+      }
+    } else if (file.getType() == "PDF") {
+      persistentFiles.push({
+        originalFilepath: "_pdf",
+        persistentFilepath: null,
+        isNew: false,
+        isSaved: true,
+        fileType: file.getType(),
       });
     }
   });

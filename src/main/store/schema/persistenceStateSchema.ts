@@ -19,6 +19,9 @@ const PersistenceStateSchema: Schema<IPersistenceStateSchema> = {
         isSaved: {
           type: "boolean",
         },
+        fileType: {
+          type: "string",
+        },
       },
     },
   },
@@ -29,6 +32,7 @@ export interface IPersistentFile {
   persistentFilepath?: string;
   isNew: boolean;
   isSaved: boolean;
+  fileType: string;
 }
 
 export interface IPersistenceStateSchema {
