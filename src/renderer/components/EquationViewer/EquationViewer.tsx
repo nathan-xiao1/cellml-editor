@@ -9,9 +9,12 @@ import postscribe from 'postscribe';
 import openmath2mathml from './openmath2mathml';
 import { getPoller, destroyPoller } from './SingletonPoller';
 import mathml2openmath from './mathml2openmath';
+// import redent from 'redent';
+// import stripIndent from 'stip-indent';
 
 // Regex for checking math element for errors
 const mathre = /.*\/math/;
+const startre = /<\s*math.*>/gm;
 const encodingre = /encodingError/m;
 const inputre = /input_box/m;
 
@@ -37,6 +40,7 @@ interface EVProp {
     // Function to call to commit changes
     replaceHandler: (string: string, startOffset: number, endOffset: number) => void;
     timerInterval?: number; // Interval in ms poller is called
+    mathTagIncluded: boolean;
 }
 
 interface EVState {
@@ -91,7 +95,7 @@ class EquationViewer extends React.Component<EVProp, EVState> {
     loadScript() : void {
         const script = `<script type='text/javascript'>
             var org = { mathdox: { formulaeditor: { options: {
-                onloadFocus: true,
+                // onloadFocus: true,
                 useBar: false,
                 paletteShow: 'id',
                 paletteShowId: 'palette1',
@@ -127,8 +131,11 @@ class EquationViewer extends React.Component<EVProp, EVState> {
         node.id = 'formula1';
         node.style.backgroundColor='white';
         let textstr = '';
+
         try {
-            textstr = mathml2openmath(this.props.str);
+            const mmlstr = this.props.mathTagIncluded ? this.props.str : 
+                '<math xmlns="http://www.w3.org/1998/Math/MathML">' + this.props.str + '</math>';
+            textstr = mathml2openmath(mmlstr);
         } catch {
             textstr = '';
         }
@@ -149,7 +156,7 @@ class EquationViewer extends React.Component<EVProp, EVState> {
         if ( !encodingre.test(value) && !inputre.test(value) && value != this.state.omstr) {
             this.setState({ omstr: value, hasChanged: true });
             // console.log(value)
-            const math = openmath2mathml(value);
+            // const math = openmath2mathml(value);
             // console.log(math);
            
         } else {
@@ -202,12 +209,20 @@ class EquationViewer extends React.Component<EVProp, EVState> {
     // Handles button to commit changes (replace text in model), ensures only valid equation is committed
     handleReplaceButton(event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) : void {
         event.preventDefault();
+        // console.log('mathTagIncluded: ', this.props.mathTagIncluded);
         const om = this.getOpenMath();
         if (om) {
             // console.log(om);
             try {
-                const mm = openmath2mathml(om);
-                // console.log(mm);
+                let mm = openmath2mathml(om);
+                // If given without math element, return without math element
+                if (!this.props.mathTagIncluded) {
+                    // Remove first and last lines (math elements)
+                    mm = mm.split('\n').slice(1, -1).join('\n').trim() + '\n';
+                    // Hacky way to remove extraneous indents caused by remove math elements
+                    mm = mm.replaceAll('\n    ', '\n');
+                }
+                console.log('MathML to replace: \n', mm);
                 this.props.replaceHandler(mm, this.props.start, this.props.end);
             } catch {
                 // TODO change this so that alert is given to user

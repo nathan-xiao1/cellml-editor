@@ -44,6 +44,7 @@ interface EditorState {
   mathEndIndex: number,
   promptShow: boolean;
   promptState: PromptState;
+  mathTagIncluded: boolean;
 }
 
 interface PromptState {
@@ -71,6 +72,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
       mathEndIndex: undefined,
       promptShow: false,
       promptState: undefined,
+      mathTagIncluded: undefined,
     };
 
     // Set listener to update openedFile state
@@ -234,14 +236,15 @@ export default class Editor extends React.Component<unknown, EditorState> {
     }));
   }
 
-  monacoCursorPositionChangedMath(mathstr: string, startIndex: number, endIndex: number) : void {
+  monacoCursorPositionChangedMath(mathstr: string, startIndex: number, endIndex: number, mathTagIncluded: boolean) : void {
     // const cleanedAttributes = mathstr.replace(/cellml:[^</>)]*/mg, '');
     
     if (mathstr != this.state.activeMathString) {
       this.setState(() => ({
         activeMathString: mathstr,
         mathStartIndex: startIndex,
-        mathEndIndex: endIndex
+        mathEndIndex: endIndex,
+        mathTagIncluded: mathTagIncluded,
       }));
     }
 
@@ -267,6 +270,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
       const line = model.getLineContent(start.lineNumber);
       const count = line.search(/\S/);
       const text = indentString(string, count).trim();
+      // if (text.charAt(-1) !== '\n') text += '\n';
       
       // Creating edit operation
       const editOp : monaco.editor.IIdentifiedSingleEditOperation = {
@@ -537,6 +541,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                       start={this.state.mathStartIndex}
                       end={this.state.mathEndIndex}
                       replaceHandler={this.handleReplaceRange.bind(this)}
+                      mathTagIncluded={this.state.mathTagIncluded}
                     />
                     {/* <EquationContext.Provider value={{mathstr:this.state.activeMathString}}>
                       <EquationViewer/>
