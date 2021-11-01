@@ -9,7 +9,7 @@ import CellMLDocumentFormattingProvider from "./definitions/FormattingProvider";
 import CellMLLanguageConfiguration from "./definitions/LanguageConfiguration";
 import CellMLHoverProvider from "./definitions/HoverProvider";
 import CellMLFormattingProvider from "./definitions/FormattingProvider";
-import { getXPath } from "src/commons/utils/xpath";
+import { getCursorElement, getXPath } from "src/commons/utils/xpath";
 import { IProblemItem } from "Types";
 
 import "./MonacoLoader";
@@ -74,7 +74,9 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
           endLineNumber: event.position.lineNumber,
           endColumn: model.getLineLength(event.position.lineNumber) + 1,
         });
-        const xpath = getXPath(textUntilPosition);
+        const cursorElement = getCursorElement(textUntilPosition);
+        console.log("Cursor Element:", cursorElement);
+        const xpath = getXPath(textUntilPosition, cursorElement);
         this.props.onCursorPositionChangedCallback(xpath);
       }
     );
