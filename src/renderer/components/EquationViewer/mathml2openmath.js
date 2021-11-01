@@ -259,7 +259,7 @@ const mathml2openmath = (openMathStr) => {
     let converted_js = recursive(js, null);
     let options = {compact: false, ignoreComment: true, spaces: 2};
     // console.log(js);
-    console.log(JSON.stringify(converted_js, null, 2));
+    // console.log(JSON.stringify(converted_js, null, 2));
     return convert.json2xml(converted_js, options);
 }
 

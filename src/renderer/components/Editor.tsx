@@ -534,7 +534,6 @@ export default class Editor extends React.Component<unknown, EditorState> {
                       str={this.state.activeMathString}
                       // node={this.state.activeFileCursorIDOM}
                       xpath={this.state.activeFileCursorXPath}
-                      model={this.monaco?.editor.getModel(this.monaco.Uri.parse(activeFilepath))}
                       start={this.state.mathStartIndex}
                       end={this.state.mathEndIndex}
                       replaceHandler={this.handleReplaceRange.bind(this)}

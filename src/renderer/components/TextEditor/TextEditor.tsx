@@ -15,7 +15,8 @@ import IPCChannel from "IPCChannels";
 
 import "./MonacoLoader";
 import { ipcRenderer } from "electron";
-import { match } from "assert";
+import { mathElements } from "src/commons/CellMLSchema";
+import { ALPN_ENABLED } from "constants";
 
 const CellMLID = "CellML2";
 
@@ -84,26 +85,11 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
         this.props.onCursorPositionChangedCallback(xpath);
         
         const offset = model.getOffsetAt(event.position);
-        // console.log("Offset: " + offset.toString());
+
         const str = model.getValue();
-        // const regex = /<math .*>[\s\S]*<\/math>/gm;
         const startre = /<\s*math.*>/gm;
         const endre = /<\s*\/math\s*>/gm;
 
-        // const matches = [...str.matchAll(regex)];
-        // // console.log(matches);
-        // let isFound = false;
-        // let m;
-        
-        // for (const match of matches) {
-        //   const open = match.index;
-        //   const close = open + match[0].length;
-        //   if (open <= offset && offset <= close) {
-        //     isFound = true;
-        //     m = match;
-        //     break;
-        //   }
-        // }
         // const startMatches = startre.exec(str);
         const startMatches = [...str.matchAll(startre)];
         let start = null;
@@ -114,7 +100,6 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
           }
         }
         
-        // const endMatches = endre.exec(str);
         const endMatches = [...str.matchAll(endre)];
         let end;
         if (start) {
@@ -128,20 +113,62 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
             i--;
           }
         }
-        // console.log("End: ", endMatches);
 
         if (start && end) {
-          // console.log('Mathstr: ', str.slice(start, end));
+
+          // Finding if there are multiple equation in a math element
+          const applyre = /<\s*apply.*>|<\s*\/apply\s*>/gm;
+          const startApply = /<\s*apply.*>/gm;
+          const endApply = /<\s*\/apply\s*>\s*/gm;
+          const applyMatches = [...str.slice(start, end).matchAll(applyre)];
+          let startOff;
+          let endOff;
+          let stack = 0;
+          console.log(applyMatches);
+          for (let i = 0; i < applyMatches.length; i++) {
+            const m = applyMatches[i];
+            const g = endApply.test(m[0])
+            if (g) {
+              
+              // is </apply>
+              if (stack > 0) {
+                stack--;
+              }
+              console.log(g, '/apply', m[0]);
+              endOff = m.index + m[0].length;
+              // If direct child apply has been completed
+              if (stack === 0 && startOff) {
+                // If cursor is between the two elements
+                console.log('Applies: ', str.slice(startOff, endOff));
+                if (startOff <= offset && offset <= endOff) {
+                  console.log('Is a match');
+                  // start = startOff;
+                  // end = endOff;
+                  break;
+                } else {
+                  startOff = undefined;
+                  endOff = undefined;
+                }
+              }
+
+            } else {
+              console.log(g, 'apply', m[0]);
+              // is <apply>
+              if (stack === 0) {
+                startOff = m.index; 
+              }
+              stack++;
+            }
+            console.log(startOff, endOff, stack);
+          }
+          console.log(startOff, endOff, stack);
+          
+
           this.props.onCursorPositionChangedMath(str.slice(start, end), start, end);
         } else {
           this.props.onCursorPositionChangedMath('', undefined, undefined);
         }
         
-        // if (isFound) {
-        //   this.props.onCursorPositionChangedMath(m[0]);
-        // } else {
-        //   this.props.onCursorPositionChangedMath("");
-        // }
       }
     );
 
