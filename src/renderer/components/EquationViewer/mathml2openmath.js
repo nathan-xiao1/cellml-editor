@@ -1,6 +1,6 @@
 import convert from 'xml-js';
 
-const recursive = (obj, parent) => {
+export const mm2omjs = (obj, parent) => {
 
     // Depth first search algo
     if (obj.elements) {
@@ -20,7 +20,7 @@ const recursive = (obj, parent) => {
             obj.elements[index+1] = obj.elements[index];
             obj.elements[index] = tmp;
         }
-        obj.elements.forEach((o) => {recursive(o, obj)});
+        obj.elements.forEach((o) => {mm2omjs(o, obj)});
         // }
     }
 
@@ -256,7 +256,7 @@ const mathml2openmath = (openMathStr) => {
     let js = convert.xml2js(openMathStr, {compact: false});
     // console.log(JSON.stringify(js, null, 2));
     // return '';
-    let converted_js = recursive(js, null);
+    let converted_js = mm2omjs(js, null);
     let options = {compact: false, ignoreComment: true, spaces: 2};
     // console.log(js);
     // console.log(JSON.stringify(converted_js, null, 2));

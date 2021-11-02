@@ -93,7 +93,9 @@ class EquationViewer extends React.Component<EVProp, EVState> {
     
     // Loads formulaeditor scripts into component 
     loadScript() : void {
-        const script = `<script type='text/javascript'>
+        postscribe('#loadScript', '<script type="text/javascript"> window.onerror = function(e){} </script>')
+        const script = `
+        <script type='text/javascript'>
             var org = { mathdox: { formulaeditor: { options: {
                 // onloadFocus: true,
                 useBar: false,

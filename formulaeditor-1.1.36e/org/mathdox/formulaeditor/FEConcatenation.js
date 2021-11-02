@@ -30427,35 +30427,39 @@ $main(function(){
      */
     drawSymbol : function(symbol, x, y, invisible, typeface, fontSizeModifier) {
       var mathCanvas = org.mathdox.formulaeditor.MathCanvas;
-      if (mathCanvas.specialSymbols[symbol]!== undefined) {
-        // special case combined symbol: 
-        // draw all subsymbols and return maximum dimensions
-
-        var dim = {
-          top:    y,
-          left:   x,
-          width:  0,
-          height: 0
-        };
-        var olddim;
-        var i;
-        var symbols = mathCanvas.specialSymbols[symbol];
-
-        for (i=0; i< symbols.length; i++) {
-          olddim = dim;
-          dim = this.drawSymbol(symbols[i], x, y, invisible, typeface, fontSizeModifier);
-
-          dim = {
-            top: Math.min(olddim.top, dim.top),
-            height: Math.max(olddim.top+olddim.height, dim.top+dim.height) - 
-              Math.min(olddim.top, dim.top),
-            left: Math.min(olddim.left, dim.left),
-            width: Math.max(olddim.left+olddim.width, dim.left+dim.width) - 
-              Math.min(olddim.left, dim.left)
+      try {
+        if (mathCanvas.specialSymbols[symbol]!== undefined) {
+          // special case combined symbol: 
+          // draw all subsymbols and return maximum dimensions
+  
+          var dim = {
+            top:    y,
+            left:   x,
+            width:  0,
+            height: 0
           };
+          var olddim;
+          var i;
+          var symbols = mathCanvas.specialSymbols[symbol];
+  
+          for (i=0; i< symbols.length; i++) {
+            olddim = dim;
+            dim = this.drawSymbol(symbols[i], x, y, invisible, typeface, fontSizeModifier);
+  
+            dim = {
+              top: Math.min(olddim.top, dim.top),
+              height: Math.max(olddim.top+olddim.height, dim.top+dim.height) - 
+                Math.min(olddim.top, dim.top),
+              left: Math.min(olddim.left, dim.left),
+              width: Math.max(olddim.left+olddim.width, dim.left+dim.width) - 
+                Math.min(olddim.left, dim.left)
+            };
+          }
+  
+          return dim;
         }
-
-        return dim;
+      } catch {
+        // nop
       }
 
       // retrieve font and symbol data

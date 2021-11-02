@@ -2,7 +2,7 @@
 import convert from 'xml-js';
 // import openmath2mathml from './openmath2mathml';
 
-const recursive = (obj, parent) => {
+const om2mmjs = (obj, parent) => {
 
     // Depth first search algo
     if (obj.elements) {
@@ -28,7 +28,7 @@ const recursive = (obj, parent) => {
         //     elements: [t]
         // }
         // obj.elements[index+1] = degreeNode;
-        obj.elements.forEach((o) => {recursive(o, obj)});
+        obj.elements.forEach((o) => {om2mmjs(o, obj)});
     }
 
     if (obj.type === "element") {
@@ -159,7 +159,7 @@ const recursive = (obj, parent) => {
 const opemath2mathml = (openmathStr) => {
     let js = convert.xml2js(openmathStr, {compact: false});
     // console.log(JSON.stringify(js, null, 2));
-    let converted_js = recursive(js, null);
+    let converted_js = om2mmjs(js, null);
     // console.log(JSON.stringify(converted_js, null, 2));
     let options = {compact: false, ignoreComment: true, spaces: 4};
     return convert.json2xml(converted_js, options);
