@@ -1498,12 +1498,12 @@ $main(function(){
    */
   org.mathdox.formulaeditor.FormulaEditor.getFocusedEditor = function() {
 
-    for (var i=0; i<editors.length; i++) {
-      if (editors[i].hasFocus) {
-        return editors[i];
-      }
-    }
-    return null;
+    // for (var i=0; i<editors.length; i++) {
+    //   if (editors[i].hasFocus) {
+    //     return editors[i];
+    //   }
+    // }
+    return editors[0];
 
   };
   
