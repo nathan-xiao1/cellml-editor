@@ -219,6 +219,7 @@ class EquationViewer extends React.Component<EVProp, EVState> {
         event.preventDefault();
         // console.log('mathTagIncluded: ', this.props.mathTagIncluded);
         const om = this.getOpenMath();
+        // console.log(om);
         if (om) {
             // console.log(om);
             // console.log('mathTagIncluded ', this.props.mathTagIncluded);

@@ -32,6 +32,10 @@
           <OMS cd='editor1' name='input_box'/>
           <OMS cd='editor1' name='input_box'/>
         </OMA>
+        <OMA>
+          <OMS cd='calculus1' name='diff'/>
+          <OMS cd='editor1' name='input_box'/>
+        </OMA>
       </OMA>
     </OMA>
   </OMA>
