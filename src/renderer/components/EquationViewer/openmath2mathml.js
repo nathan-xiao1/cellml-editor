@@ -18,8 +18,20 @@ const om2mmjs = (obj, parent) => {
             obj.elements[index+1] = {
                 type: 'element',
                 name: 'degree',
+                // attributes: { 'cellml:units' : 'dimensionless' },
                 elements: [tmp]
             }
+        }
+        
+        // Mark element after power
+        const i = obj.elements.findIndex((e) => {
+            return e.name === 'OMS' && e.attributes.name === 'power' && e.attributes.cd === 'arith1';
+        });
+        if (i > -1 && i+2 < obj.elements.length && 
+            (obj.elements[i+2].name === 'OMF' || obj.elements[i+2].name === 'OMI')) {
+            if (!obj.elements[i+2].attributes) obj.elements[i+2].attributes = {};
+            obj.elements[i+2].attributes['power_degree'] = true;
+            console.log('Found power degree ', obj.elements[i+2]);
         }
         
         // const t = obj.elements[index+1];
@@ -45,6 +57,11 @@ const om2mmjs = (obj, parent) => {
             case 'OMI':
                 obj.name = 'cn';
                 // obj.attributes.type='integer';
+                if (obj.attributes['power_degree']) { 
+                    console.log('power degree ', obj);
+                    obj.attributes['cellml:units'] = 'dimensionless';
+                    delete obj.attributes['power_degree'];
+                }
                 break;
             case 'OMV':
                 obj.name = 'ci';
@@ -81,6 +98,11 @@ const om2mmjs = (obj, parent) => {
                 }
                 obj.elements = [textNode];
                 delete obj.attributes.dec;
+                if (obj.attributes['power_degree']) { 
+                    console.log('power degree ', obj);
+                    obj.attributes['cellml:units'] = 'dimensionless';
+                    delete obj.attributes['power_degree'];
+                }
                 break;
             case 'OMS':
                 switch (obj.attributes.cd) {
@@ -146,10 +168,10 @@ const om2mmjs = (obj, parent) => {
             delete obj.attributes;
         }
         
-        if (obj.attributes && obj.attributes['cellml:units']) {
-            obj.attributes.cellml_units = obj.attributes['cellml:units'];
-            delete obj.attributes['cellml:units'];
-        }
+        // if (obj.attributes && obj.attributes['cellml:units']) {
+        //     obj.attributes.cellml_units = obj.attributes['cellml:units'];
+        //     delete obj.attributes['cellml:units'];
+        // }
     }
 
     return obj;

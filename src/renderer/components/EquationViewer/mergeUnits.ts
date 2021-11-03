@@ -1,71 +1,66 @@
-import convert, {Element, ElementCompact} from 'xml-js';
+import convert, {ElementCompact} from 'xml-js';
 import format from 'xml-formatter';
 import { diffLines } from 'diff';
 
-const new1 = `
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-    <apply>
-        <eq/>
-        <ci>L</ci>
-        <apply>
-            <plus/>
-            <ci>R</ci>
-            <cn cellml:units="per_millisecond">10.613</cn>
-        </apply>
-    </apply>
-</math>
-`;
+// const new1 = `
+// <math xmlns="http://www.w3.org/1998/Math/MathML">
+//     <apply>
+//         <eq/>
+//         <ci>L</ci>
+//         <apply>
+//             <plus/>
+//             <ci>R</ci>
+//             <cn cellml:units="per_millisecond">10.613</cn>
+//         </apply>
+//     </apply>
+// </math>
+// `;
 
-const old1 = `
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-    <apply>
-        <eq/>
-        <ci>L</ci>
-        <apply>
-            <plus/>
-            <ci>R</ci>
-            <cn>10.614</cn>
-        </apply>
-    </apply>
-</math>
-`;
+// const old1 = `
+// <math xmlns="http://www.w3.org/1998/Math/MathML">
+//     <apply>
+//         <eq/>
+//         <ci>L</ci>
+//         <apply>
+//             <plus/>
+//             <ci>R</ci>
+//             <cn>10.614</cn>
+//         </apply>
+//     </apply>
+// </math>
+// `;
 
-const new2 = `
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-<apply>
-    <eq/>
-    <cn>10.613</cn>
-    <apply>
-        <plus/>
-        <ci>R</ci>
-        <apply>
-            <plus/>
-            <ci>M</ci>
-            <cn>10.613</cn>
-        </apply>
-    </apply>
-</apply>
-</math>
-`;
+// const new2 = `
+// <math xmlns="http://www.w3.org/1998/Math/MathML">
+// <apply>
+//     <eq/>
+//     <cn>10.613</cn>
+//     <apply>
+//         <plus/>
+//         <ci>R</ci>
+//         <apply>
+//             <plus/>
+//             <ci>M</ci>
+//             <cn>10.613</cn>
+//         </apply>
+//     </apply>
+// </apply>
+// </math>
+// `;
 
-const old2 = `
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-    <apply>
-        <eq/>
-        <cn cellml:units="per_millisecond">10.613</cn>
-        <apply>
-            <plus/>
-            <ci>R</ci>
-            <cn cellml:units="per_millisecond">10.613</cn>
-        </apply>
-    </apply>
-</math>
-`;
-
-const removeParent = (key : any, value : any) : any => {
-  if (key === 'parent') return undefined;
-  return value;
-}
+// const old2 = `
+// <math xmlns="http://www.w3.org/1998/Math/MathML">
+//     <apply>
+//         <eq/>
+//         <cn cellml:units="per_millisecond">10.613</cn>
+//         <apply>
+//             <plus/>
+//             <ci>R</ci>
+//             <cn cellml:units="per_millisecond">10.613</cn>
+//         </apply>
+//     </apply>
+// </math>
+// `;
 
 const mergeCn = (newmml: string, oldmml: string) : string => {
     const newxml = format(newmml, { indentation: '', collapseContent: true });
@@ -108,7 +103,6 @@ const mergeUnitsChange = (newmml: string, oldmml: string) : string => {
 }
 
 
-
 const mergeSingleValueChange = (newmml : string, oldmml : string) : string => {
     const newxml = format(newmml, { indentation: '', collapseContent: true });
     const oldxml = format(oldmml, { indentation: '', collapseContent: true });
@@ -118,23 +112,23 @@ const mergeSingleValueChange = (newmml : string, oldmml : string) : string => {
     const diff = diffLines(oldxml, newxml);
     let count = 0;
     let i = 0
+
+    console.log(diff);
     while (i < diff.length) {
         // if (diff[i] && diff[i].count)
         count += diff[i].count || 0;
         if (diff[i].removed && i+1 < diff.length && diff[i+1].added) {
-            const newLineJs = <ElementCompact> convert.xml2js(diff[i].value, {compact: true});
-            const patchedLineJs = newLineJs;
-            if (newLineJs['cn']) {
-                const oldLineJs = <ElementCompact> convert.xml2js(diff[i+1].value, {compact: true});
-                if (oldLineJs['cn'] && oldLineJs['cn']['_attributes']) {
-                    patchedLineJs['cn']._attributes = oldLineJs['cn']['_attributes'];
-                    patchedLines[count] = convert.js2xml(patchedLineJs);
-                }
+            const oldLineJs = <ElementCompact> convert.xml2js(diff[i].value, {compact: true});
+            const patchedLineJs = oldLineJs;
+            const newLineJs = <ElementCompact> convert.xml2js(diff[i+1].value, {compact: true});
+            if (oldLineJs['cn'] && newLineJs['cn'] && oldLineJs['cn']['_attributes']) {
+                patchedLineJs['cn']['_text'] = newLineJs['cn']['_text'];
+                patchedLines[count-1] = convert.js2xml(patchedLineJs, {compact : true});
             }
+            i++;
         }
         i++;
     }
-    
     return format(patchedLines.join('\n'), { indentation: '    ', collapseContent: true });
 }
 

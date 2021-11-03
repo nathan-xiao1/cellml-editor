@@ -1,20 +1,16 @@
 import React, {MouseEvent} from 'react';
-import { MathJaxContext, MathJax, MathJax2Config } from 'better-react-mathjax';
-import { MathMLInputProcessor } from 'better-react-mathjax/MathJax2';
-import { IDOM } from "Types";
-import { getNodeFromXPath, getNodeFromXPathLibXML } from "src/commons/utils/xpath";
-import monaco from 'monaco-editor';
 import { getPort } from './WebServer';
 import postscribe from 'postscribe';
 import openmath2mathml from './openmath2mathml';
 import { getPoller, destroyPoller } from './SingletonPoller';
 import mathml2openmath from './mathml2openmath';
+import mergeCn from './mergeUnits';
 // import redent from 'redent';
 // import stripIndent from 'stip-indent';
 
 // Regex for checking math element for errors
 const mathre = /.*\/math/;
-const startre = /<\s*math.*>/gm;
+// const startre = /<\s*math.*>/gm;
 const encodingre = /encodingError/m;
 const inputre = /input_box/m;
 
@@ -122,7 +118,7 @@ class EquationViewer extends React.Component<EVProp, EVState> {
         this.loadScript();
         // Sets background of formula text canvas to white
         (document.getElementById('formula1') as HTMLElement).style.backgroundColor = 'white';
-        getPoller(this.handleTimerTick, (this.props.timerInterval) ? this.props.timerInterval : 1000);
+        getPoller(this.handleTimerTick, (this.props.timerInterval) ? this.props.timerInterval : 100);
     }
     
     // Loads formula text area with direct DOM manipulation (needed so it works with js scripts)
@@ -157,15 +153,25 @@ class EquationViewer extends React.Component<EVProp, EVState> {
         // Only handle changes if not in intermediate state
         if ( !encodingre.test(value) && !inputre.test(value) && value != this.state.omstr) {
             this.setState({ omstr: value, hasChanged: true });
-            // console.log(value)
-            // const math = openmath2mathml(value);
-            // console.log(math);
-           
+            try {
+                const mm = openmath2mathml(value);
+                let newmathstr = mergeCn(mm, this.state.mathstr);
+                if (!this.props.mathTagIncluded) {
+                    // Remove first and last lines (math elements)
+                    newmathstr = newmathstr.split('\n').slice(1, -1).join('\n').trim() + '\n';
+                    // Hacky way to remove extraneous indents caused by remove math elements
+                    newmathstr = newmathstr.replaceAll('\n    ', '\n');
+                }
+                this.setState({ mathstr: newmathstr});
+            } catch {
+                //
+            }
         } else {
             if (this.state.hasChanged) {
                 this.setState({ hasChanged: false});
             }
         }
+        // console.log('mathstr ', this.state.mathstr);
     }
     
     componentWillUnmount = () : void => {
@@ -215,20 +221,23 @@ class EquationViewer extends React.Component<EVProp, EVState> {
         const om = this.getOpenMath();
         if (om) {
             // console.log(om);
+            // console.log('mathTagIncluded ', this.props.mathTagIncluded);
             try {
-                let mm = openmath2mathml(om);
+                const mm = openmath2mathml(om);
+                let newmathstr = mergeCn(mm, this.state.mathstr);
+                this.setState({ mathstr: newmathstr});
                 // If given without math element, return without math element
                 if (!this.props.mathTagIncluded) {
                     // Remove first and last lines (math elements)
-                    mm = mm.split('\n').slice(1, -1).join('\n').trim() + '\n';
+                    newmathstr = newmathstr.split('\n').slice(1, -1).join('\n').trim() + '\n';
                     // Hacky way to remove extraneous indents caused by remove math elements
-                    mm = mm.replaceAll('\n    ', '\n');
+                    newmathstr = newmathstr.replaceAll('\n    ', '\n');
                 }
-                console.log('MathML to replace: \n', mm);
-                this.props.replaceHandler(mm, this.props.start, this.props.end);
-            } catch {
+                console.log('MathML to replace: \n', newmathstr);
+                this.props.replaceHandler(newmathstr, this.props.start, this.props.end);
+            } catch (e) {
                 // TODO change this so that alert is given to user
-                console.log('Invalid equation');
+                console.log('Invalid equation ', e);
             }
         }
     }
