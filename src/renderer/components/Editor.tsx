@@ -533,19 +533,17 @@ export default class Editor extends React.Component<unknown, EditorState> {
               <ReflexContainer orientation="horizontal">
                 <ReflexElement className="pane-right-top" minSize={25}>
                   <Pane title="Math View" collapsible={false}>
-                    <EquationViewer
-                      // dom={this.state.activeFileDOM}
-                      str={this.state.activeMathString}
-                      // node={this.state.activeFileCursorIDOM}
-                      xpath={this.state.activeFileCursorXPath}
-                      start={this.state.mathStartIndex}
-                      end={this.state.mathEndIndex}
-                      replaceHandler={this.handleReplaceRange.bind(this)}
-                      mathTagIncluded={this.state.mathTagIncluded}
-                    />
-                    {/* <EquationContext.Provider value={{mathstr:this.state.activeMathString}}>
-                      <EquationViewer/>
-                    </EquationContext.Provider> */}
+                    { (this.state.activeMathString && this.state.activeMathString !== '') ?
+                      <EquationViewer
+                        // dom={this.state.activeFileDOM}
+                        str={this.state.activeMathString}
+                        // node={this.state.activeFileCursorIDOM}
+                        xpath={this.state.activeFileCursorXPath}
+                        start={this.state.mathStartIndex}
+                        end={this.state.mathEndIndex}
+                        replaceHandler={this.handleReplaceRange.bind(this)}
+                        mathTagIncluded={this.state.mathTagIncluded}
+                      /> : null}
                   </Pane>
                 </ReflexElement>
                 <ReflexSplitter className="primary-splitter splitter" />

@@ -3,24 +3,6 @@ import { MathJaxContext, MathJax, MathJax2Config } from 'better-react-mathjax';
 // Import interface which normally isn't public to extend it
 import { MathMLInputProcessor } from 'better-react-mathjax/MathJax2';
 
-const defaultStr = `
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-    <apply>
-        <eq/>
-        <ci>i</ci>
-        <apply>
-            <times/>
-            <ci>g</ci>
-            <apply>
-                <minus/>
-                <ci>V</ci>
-                <ci>L</ci>
-            </apply>
-        </apply>
-    </apply>
-</math>
-`;
-
 // Little hack to get over undefined extensions in original interface declaration
 interface MathMLInputProcessorE extends MathMLInputProcessor {
     useMathMLspacing?: boolean;
@@ -40,11 +22,11 @@ interface EFProps {
 export default class ViewOnly extends React.Component<EFProps> {
 
     render() : React.ReactNode {
-   
+        const mathstr = this.props.mathmlstr.replace(/cellml:.\S+\s*=\s*("|')\S*("|')/gm,'');
         return (
             <MathJaxContext version={2} config={config}> 
                 <MathJax inline={true} dynamic={true}>
-                    <div dangerouslySetInnerHTML={{__html: this.props.mathmlstr}}/>
+                    <div dangerouslySetInnerHTML={{__html: mathstr}}/>
                 </MathJax>
             </MathJaxContext>
         );

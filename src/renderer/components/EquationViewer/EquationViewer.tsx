@@ -202,16 +202,13 @@ class EquationViewer extends React.Component<EVProp, EVState> {
                 elements[0].parentNode.removeChild(elements[0]);
             }
             this.loadFormulaTextArea();
-            if (!this.state.viewOnly) {
-                this.loadScript();
-            }
+            this.loadScript();
+
         }
-        
-        if (!this.state.viewOnly) {
-            // Remake poller
-            destroyPoller();
-            getPoller(this.handleTimerTick, (this.props.timerInterval) ? this.props.timerInterval : 1000);
-        }
+
+        destroyPoller();
+        getPoller(this.handleTimerTick, (this.props.timerInterval) ? this.props.timerInterval : 1000);
+
     }
     
     // Handles button to delete math element
@@ -258,7 +255,7 @@ class EquationViewer extends React.Component<EVProp, EVState> {
     }
 
     render() : React.ReactNode {
-            if (this.state.viewOnly) destroyPoller();
+            // if (this.state.viewOnly) destroyPoller();
             
             return (
                 <>
