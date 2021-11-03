@@ -1,5 +1,6 @@
 import fs from "fs";
 import { webContents } from "electron";
+import xmlFormat from "xml-formatter";
 import IPCChannel from "IPCChannels";
 import CellMLParser from "../parser/Parser";
 import { IProblemItem, IFile, IFileState, FileType, IParsedDOM } from "Types";
@@ -96,7 +97,7 @@ export default class CellMLFile implements IFile {
     return library.addComponent({
       name: name,
       rootTag: component.name,
-      content: component.content,
+      content: xmlFormat(component.content),
     });
   }
 

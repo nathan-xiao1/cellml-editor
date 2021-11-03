@@ -34,7 +34,6 @@ ipcMain.on(IPCChannel.OPEN_FROM_URL, (event, url) => {
   fetch(url)
     .then((res) => res.text())
     .then((body) => {
-      console.log("HERE");
       editorSystem.newFile(body);
       event.sender.send(
         IPCChannel.RENDERER_UPDATE_OPENED_FILE,
@@ -59,11 +58,18 @@ ipcMain.on(IPCChannel.OPEN_FILE, (event) => {
     })
     .then((result) => {
       if (!result.canceled) {
-        editorSystem.openFiles(result.filePaths);
-        event.sender.send(
-          IPCChannel.RENDERER_UPDATE_OPENED_FILE,
-          editorSystem.getOpenedFilesState()
-        );
+        const files = editorSystem.openFiles(result.filePaths);
+        if (!files || files.length == 0) {
+          event.sender.send(
+            IPCChannel.RENDERER_SET_ACTIVE_FILE,
+            result.filePaths[result.filePaths.length - 1]
+          );
+        } else {
+          event.sender.send(
+            IPCChannel.RENDERER_UPDATE_OPENED_FILE,
+            editorSystem.getOpenedFilesState()
+          );
+        }
       }
     })
     .catch((err) => {
@@ -200,11 +206,16 @@ ipcMain.handle(IPCChannel.GET_FILE_STATE_ASYNC, (_, filepath) => {
 });
 
 ipcMain.on(IPCChannel.OPEN_DOCUMENTATION, (event) => {
-  editorSystem.openFilePdf("Help & Documentation"); // "static/cellml_editor_documentation.pdf"
-  event.sender.send(
-    IPCChannel.RENDERER_UPDATE_OPENED_FILE,
-    editorSystem.getOpenedFilesState()
-  );
+  const FILENAME = "Help & Documentation"; // "static/cellml_editor_documentation.pdf"
+  const file = editorSystem.openFilePdf(FILENAME);
+  if (file) {
+    event.sender.send(
+      IPCChannel.RENDERER_UPDATE_OPENED_FILE,
+      editorSystem.getOpenedFilesState()
+    );
+  } else {
+    event.sender.send(IPCChannel.RENDERER_SET_ACTIVE_FILE, FILENAME);
+  }
 });
 
 // ipcMain.on(IPCChannel.OPEN_CELLML_DOCUMENTATION, (event) => {
