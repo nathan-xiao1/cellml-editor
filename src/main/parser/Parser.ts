@@ -1,4 +1,5 @@
 import LibCellMLParser from "./LibCellMLParser";
+import CellMLSchema from "src/commons/CellMLSchema";
 import libxmljs from "libxmljs2";
 import {
   IDOM,
@@ -8,6 +9,11 @@ import {
   ProblemSeverity,
 } from "Types";
 import ParsedDOM from "./ParsedDOM";
+
+interface LibxmlsjsToIDOMResult {
+  dom: IDOM;
+  problems: IProblemItem[];
+}
 
 export default class Parser implements IParser {
   private cellMLParser: LibCellMLParser;
@@ -30,7 +36,9 @@ export default class Parser implements IParser {
     try {
       xmlDoc = libxmljs.parseXmlString(content, { recover: true });
       this.id = 0;
-      dom = this.libxmljsToIDOM(xmlDoc.root(), true);
+      const ret = this.libxmljsToIDOM(xmlDoc.root(), true);
+      dom = ret.dom;
+      problems.push(...ret.problems);
       xmlDoc.errors.forEach((error) => {
         let severity: ProblemSeverity;
         switch (error.code) {
@@ -96,25 +104,63 @@ export default class Parser implements IParser {
     return new ParsedDOM(xmlDoc, dom, problems);
   }
 
-  private libxmljsToIDOM(root: libxmljs.Element, isRealRoot?: boolean): IDOM {
+  private libxmljsToIDOM(
+    root: libxmljs.Element,
+    isRealRoot?: boolean
+  ): LibxmlsjsToIDOMResult {
     if (root.type() !== "element") return null;
+
+    // Parse to IDOM
     const children: IDOM[] = [];
+    const problems: IProblemItem[] = [];
     for (const node of root.childNodes()) {
-      const s = this.libxmljsToIDOM(node as libxmljs.Element);
-      if (s) children.push(s);
+      const ret = this.libxmljsToIDOM(node as libxmljs.Element);
+      if (ret) {
+        children.push(ret.dom);
+        problems.push(...ret.problems);
+      }
     }
+
+    // Check required attributes
+    const schemaElement = CellMLSchema.get(root.name());
+    if (schemaElement) {
+      const missingAttrs: string[] = [];
+      const currentAttrs = root.attrs().map((attr) => attr.name());
+      for (const attr of schemaElement.attributes) {
+        if (!attr.required) continue;
+        if (attr.name == "xmlns") continue;
+        if (currentAttrs.find((attrName) => attrName == attr.name)) continue;
+        missingAttrs.push(attr.name);
+      }
+      if (missingAttrs.length != 0) {
+        const errorMsg = `Missing attributes: ` + missingAttrs.join(", ");
+        problems.push({
+          description: errorMsg,
+          severity: "error",
+          startColumn: 0,
+          endColumn: 0,
+          startLineNumber: root.line(),
+          endLineNumber: root.line(),
+          hidden: true,
+        });
+      }
+    }
+
     return {
-      id: isRealRoot ? -1 : this.id++,
-      name: root.name(),
-      altName: getAltName(root),
-      lineNumber: root.line(),
-      attributes: root.attrs().map((attribute: libxmljs.Attribute) => {
-        return {
-          key: attribute.name(),
-          value: attribute.value(),
-        };
-      }),
-      children: children,
+      dom: {
+        id: isRealRoot ? -1 : this.id++,
+        name: root.name(),
+        altName: getAltName(root),
+        lineNumber: root.line(),
+        attributes: root.attrs().map((attribute: libxmljs.Attribute) => {
+          return {
+            key: attribute.name(),
+            value: attribute.value(),
+          };
+        }),
+        children: children,
+      },
+      problems: problems,
     };
   }
 }

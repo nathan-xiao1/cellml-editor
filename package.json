@@ -10,7 +10,7 @@
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts .",
-    "test": "jest"
+    "test": "npm rebuild libxmljs2 --update-binary && jest"
   },
   "keywords": [],
   "author": {

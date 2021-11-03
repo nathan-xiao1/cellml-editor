@@ -6,11 +6,11 @@ describe("XPath Parsing Test: To xpath", () => {
   test("Get xpath from XML string", () => {
     let xml =
       "<model><component><math></math><math></math></component></model>";
-    expect(getXPath(xml)).toBe("/model/component/math[2]");
+    expect(getXPath(xml, "math")).toBe("/model/component/math[2]");
 
     xml =
       "<model><component><math></math><math id='math2'></math></component></model>";
-    expect(getXPath(xml)).toBe("//*[@id='math2']");
+    expect(getXPath(xml, "math")).toBe("//*[@id='math2']");
   });
 });
 
