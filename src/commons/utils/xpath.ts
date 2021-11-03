@@ -16,7 +16,9 @@ export function getXPath(text: string, target: string): string {
 
 export function getCursorElement(text: string): string {
   const regex = /<(\/?[^/>\s]+[^>]*)>.*$/;
-  const tagName = text.match(regex)[1].split(" ")[0];
+  const match = text.match(regex);
+  if (!match) return null;
+  const tagName = match[1].split(" ")[0];
   if (tagName.endsWith("/")) return tagName.substring(0, tagName.length - 1);
   if (tagName.startsWith("/")) return tagName.substring(1);
   return tagName;

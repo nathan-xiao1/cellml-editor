@@ -76,7 +76,9 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
         });
         const cursorElement = getCursorElement(textUntilPosition);
         console.log("Cursor Element:", cursorElement);
-        const xpath = getXPath(textUntilPosition, cursorElement);
+        const xpath = cursorElement
+          ? getXPath(textUntilPosition, cursorElement)
+          : null;
         this.props.onCursorPositionChangedCallback(xpath);
       }
     );
