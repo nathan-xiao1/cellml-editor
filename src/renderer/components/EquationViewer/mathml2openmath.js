@@ -236,7 +236,8 @@ export const mm2omjs = (obj, parent) => {
                 }
                 break;
             default:
-                break;
+                throw new Error('Did not recognise tagname');
+                // break;
         }
         
         if (obj.attributes === {}) {

@@ -5,6 +5,8 @@ import openmath2mathml from './openmath2mathml';
 import { getPoller, destroyPoller } from './SingletonPoller';
 import mathml2openmath from './mathml2openmath';
 import mergeCn from './mergeUnits';
+import ViewOnly from './ViewOnly-ts';
+import './styles.css';
 // import redent from 'redent';
 // import stripIndent from 'stip-indent';
 
@@ -13,17 +15,6 @@ const mathre = /.*\/math/;
 // const startre = /<\s*math.*>/gm;
 const encodingre = /encodingError/m;
 const inputre = /input_box/m;
-
-// interface MathMLInputProcessorE extends MathMLInputProcessor {
-//     useMathMLspacing?: boolean;
-//     extensions?: string[];
-// }
-
-// const extensions : MathMLInputProcessorE = { extensions: ["content-mathml.js"]};
-
-// const config : MathJax2Config = {
-//     MathML: extensions
-// }
 
 interface EVProp {
     // dom: IDOM;
@@ -48,6 +39,8 @@ interface EVState {
     omstr: string;      // openmath representation of string
     hasChanged: boolean;    // Checks if formula editor has changed from last poll
     hasMounted: boolean;    // Checks if Equation viewer has been mounted before
+    viewOnly: boolean;
+    viewStr: string;
     // poller: ReturnType<typeof setInterval>; // Poller id
 }
 
@@ -80,6 +73,9 @@ class EquationViewer extends React.Component<EVProp, EVState> {
             omstr: '',
             hasChanged: false,
             hasMounted: false,
+            viewOnly: true,
+            viewStr: this.props.mathTagIncluded ? this.props.str : 
+            '<math xmlns="http://www.w3.org/1998/Math/MathML">' + this.props.str + '</math>',
             // poller: undefined,
         };
         // Button binds
@@ -112,13 +108,15 @@ class EquationViewer extends React.Component<EVProp, EVState> {
         this.setState({mathxpath: getMathXPath(this.props.xpath)});
         const port = await getPort();
         this.setState({ port: port});
-        
+
         this.loadFormulaTextArea();
         
-        this.loadScript();
-        // Sets background of formula text canvas to white
-        (document.getElementById('formula1') as HTMLElement).style.backgroundColor = 'white';
-        getPoller(this.handleTimerTick, (this.props.timerInterval) ? this.props.timerInterval : 100);
+        // if (!this.state.viewOnly) {
+            this.loadScript();
+            // Sets background of formula text canvas to white
+            (document.getElementById('formula1') as HTMLElement).style.backgroundColor = 'white';
+            getPoller(this.handleTimerTick, (this.props.timerInterval) ? this.props.timerInterval : 100);
+        // }
     }
     
     // Loads formula text area with direct DOM manipulation (needed so it works with js scripts)
@@ -134,8 +132,13 @@ class EquationViewer extends React.Component<EVProp, EVState> {
             const mmlstr = this.props.mathTagIncluded ? this.props.str : 
                 '<math xmlns="http://www.w3.org/1998/Math/MathML">' + this.props.str + '</math>';
             textstr = mathml2openmath(mmlstr);
+            this.setState({ 'viewOnly' : false });
         } catch {
             textstr = '';
+            const mmlstr = this.props.mathTagIncluded ? this.props.str : 
+                '<math xmlns="http://www.w3.org/1998/Math/MathML">' + this.props.str + '</math>';
+            this.setState({ 'viewOnly' : true, 'viewStr' : mmlstr });
+            // return;
         }
         const textnode = document.createTextNode(textstr);
         node.appendChild(textnode);
@@ -199,12 +202,16 @@ class EquationViewer extends React.Component<EVProp, EVState> {
                 elements[0].parentNode.removeChild(elements[0]);
             }
             this.loadFormulaTextArea();
-            this.loadScript();
+            if (!this.state.viewOnly) {
+                this.loadScript();
+            }
         }
         
-        // Remake poller
-        destroyPoller();
-        getPoller(this.handleTimerTick, (this.props.timerInterval) ? this.props.timerInterval : 1000);
+        if (!this.state.viewOnly) {
+            // Remake poller
+            destroyPoller();
+            getPoller(this.handleTimerTick, (this.props.timerInterval) ? this.props.timerInterval : 1000);
+        }
     }
     
     // Handles button to delete math element
@@ -251,20 +258,28 @@ class EquationViewer extends React.Component<EVProp, EVState> {
     }
 
     render() : React.ReactNode {
-        return (
-            <>
-                {/* Used to load textarea for formula editor */}
-                <div id='equationMain'/>
-                
-                {/* Buttons */}
-                <button onClick={this.handleReplaceButton}>Confirm Changes</button>
-                {/* Delete button only appears when selecting an existing math element */}
-                {this.props.str ? <button onClick={this.handleDeleteButton}>Delete Math Element</button> : null}
-                
-                {/* Used to load scripts for formula editor */}
-                <div id='loadScript'></div>
-            </>
-        );
+            if (this.state.viewOnly) destroyPoller();
+            
+            return (
+                <>
+                    <div className={this.state.viewOnly ? 'hide' : 'show'}>
+                        {/* Used to load textarea for formula editor */}
+                        <div id='equationMain'/>
+                        
+                        {/* Buttons */}
+                        <button onClick={this.handleReplaceButton}>Confirm Changes</button>
+                        {/* Delete button only appears when selecting an existing math element */}
+                        {this.props.str ? <button onClick={this.handleDeleteButton}>Delete Math Element</button> : null}
+                        
+                        {/* Used to load scripts for formula editor */}
+                        <div id='loadScript'></div>
+                    </div>
+                    <div className={this.state.viewOnly ? 'show' : 'hide'}>
+                        <ViewOnly mathmlstr={this.state.viewStr ? this.state.viewStr : ''}/>
+                    </div>
+                </>
+            );
+
     }
 }
 

@@ -11,3 +11,11 @@
 .formulaeditorpalette {
   display: block
 }
+
+.show {
+  display: block;
+}
+
+.hide {
+  display: none;
+}
