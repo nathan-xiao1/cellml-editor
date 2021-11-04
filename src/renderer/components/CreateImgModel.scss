@@ -35,7 +35,7 @@
   padding: 0;
   margin: 0;
   list-style: none;
-  border: 5px solid silver;
+  border: 2px solid silver;
   border-radius: 7px;
   -ms-box-orient: horizontal;
   display: -webkit-box;
@@ -77,15 +77,78 @@
 
 .element_img {
   margin-top: 2px;
+  padding-top: 5px;
   height: 100px;
   width: 100px;
-  background-color: rgb(70,70,70);
-  border-radius: 50%;
   display:block;
-    margin:auto;
+  margin:auto;
   display: inline-block;
 }
 
+
+
+
+
+#drag_units, #drag_import_component{
+  height: 65px;
+  width: 127px;
+}
+
+#drag_import_units {
+  height: 65px;
+  width: 140px;
+}
+#drag_import {
+  height: 65px;
+  width: 165px;
+}
+
+#drag_connection {
+  height: 100px;
+  width: 130px;
+}
+
+#drag_encapsulation {
+  height: 90px;
+  width: 110px;
+}
+
+#drag_variable {
+  height: 65px;
+  width: 75px;
+}
+
+#drag_unit {
+  height: 65px;
+  width: 65px;
+}
+
+#drag_comp_ref {
+  height: 70px;
+  width: 140px;
+}
+#drag_math {
+  height: 60px;
+  width: 140px;
+}
+
+#drag_reset {
+  height: 85px;
+  width: 130px;
+}
+
+#drag_reset_value, #drag_test_value {
+  height: 60px;
+  width: 150px;
+}
+#drag_component {
+  height: 70px;
+  width: 120px;
+}
+#drag_map_variables {
+  height: 100px;
+  width: 100px;
+}
 #canvas {
   background-color: lightblue;
 }
@@ -102,10 +165,16 @@
   border-color: grey;
 }
 
-
+#drag_model {
+  width: 120px;
+  height: 65px;
+}
 
 #graphCanvas {
   background-color: aliceblue;
+  //background-color: rgb(50,50,50);
+  border: 2px solid #474242;
+  border-radius: 5px;
 }
 
 
@@ -176,6 +245,8 @@
     inset 4px 4px 6px 0 rgba(116, 125, 136, .3);
 }
 
+
+
 #model_refresh_img {
   width: 15px;
   height: 15px;
@@ -205,7 +276,27 @@
   }
 }
 
-#model_padding {
+.cellml_element_edit_btns {
+  width: 50%;
+  left: 365px;
+  font-size: 14px;
+  font-weight: bold;
+  color: rgb(200,200,200);
+  background-color: rgb(42,42,42);
+  border-radius: 5px;
+  border-width: 1px;
+  border-color: rgb(200,200,200);
+
+  &:hover {
+    border: 0px !important;
+    background-color: rgb(205, 205, 205);
+    border-color: rgb(45, 45, 45);
+    color:rgb(45, 45, 45);
+    transition: all 0.1s ease-in;
+  }
+}
+
+.model_padding {
   padding-top: 25px;
   padding-bottom: 20px;
 }
@@ -232,27 +323,32 @@
 }
 
 
+
+
+
+
 #element_info {
   width: 250px;
   height: 500px;
   background-color: rgb(50,50,50);
-  border-radius: 7px;
-  border: 3px solid rgb(220,220,220);
-  margin: 10px;
+  border-radius: 5px;
+  border: 1.8px solid rgb(220,220,220);
+  margin: 5px;
   text-align: center;
   font-size: 32px;
   font-weight: 400;
+  
 }
 
 #canvas_and_model_container {
    display: flex;
-   justify-content: center;
 }
 
 
+
 .elem_info {
-  font-size: 24px;
-  font-weight: 300;
+  font-size: 18px;
+  font-weight: 400;
   text-align: left;
   margin-left: 10px;
 }
@@ -264,26 +360,28 @@
 
 
 #children_section {
-  font-size: 32px;
+  font-size: 20px;
   font-weight: 500;
-  margin-left: 10px;
-  margin-bottom: 0px;
-
+  margin-top: 10px;
 }
+
+.children_list > li,  .children_list > ul{
+  margin-left: 12px; padding-left: 12px; margin-top: 5px;
+}
+
 .children_list {
   text-align: left;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 300;
   margin-top: 0px;
 }
 
-
-
-
-
-
-
-
+#children {
+  margin-top: 5px;
+  border: 1px solid rgb(224,229,236);
+  border-radius: 2px;
+  background-color: rgb(35,35,35);
+}
 
 #import_children, #import_units_children, #import_component_children,
 #units_children, #unit_children, #component_children, #variable_children,
@@ -323,18 +421,11 @@
 }
 
 
-
-
-
-
-
-
-
-
 .container {
   padding: 5px;
   padding-top: 35px;
   justify-content: space-between;
+  overflow: scroll;
 }
 
 .box1 {
@@ -370,4 +461,83 @@ img {
 
 #temptriangle {
   left: 20px;
+}
+
+
+#current_cellml_element_name {
+  background-color: rgb(30, 30, 30);
+  border-bottom: 1px solid rgb(220,220,220);
+}
+
+
+#units_info {
+  font-size: 18px;
+}
+
+.cellml_restrictions {
+  display: none;
+  background-color: rgb(235,235,235);
+  color: rgb(40,40,40);
+  font-size: 14px;
+  border: 2px solid rgb(30,30,30);
+  border-radius: 5px;
+  position: absolute;
+}
+
+.cellml_restrictions > ul {
+  margin: 0; padding-left: 20px;
+}
+
+#element_information_items_set {
+  margin-top: 15px;
+}
+
+
+
+
+
+#units_container_image, #component_container_image, #component_ref_container_image
+{
+  width: 125px;
+  height: 75px;
+}
+#unit_container_image {
+  height: 85px;
+  width: 85px;
+}
+#variable_container_image {
+  height: 85px;
+  width: 95px;
+}
+#reset_container_image {
+  height: 90px;
+  width: 120px;
+}
+#test_value_container_image, #reset_value_container_image {
+  height: 65px;
+  width: 135px;
+}
+#math_container_image {
+  height: 60px;
+  width: 115px;
+}
+#encapsulation_container_image {
+  height: 85px;
+  width: 85px;
+}
+#import_container_image {
+  width: 125px;
+  height: 60px;
+}
+#import_units_container_image {
+  height: 60px;
+  width: 125px;
+}
+#import_component_container_image {
+  height: 70px;
+  width: 125px;
+}
+#model_container_image {
+  height: 70px;
+  width: 105px;
 }

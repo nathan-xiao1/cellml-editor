@@ -1,5 +1,5 @@
 /* eslint @typescript-eslint/no-var-requires: "off" */
-import React, { Context, useState } from "react";
+import React, { Context, useEffect, useState } from "react";
 import { ReflexContainer, ReflexSplitter, ReflexElement } from "react-reflex";
 import "react-reflex/styles.css";
 import "./CreateImgModel.scss"
@@ -487,7 +487,11 @@ const CreateImgModel: React.FunctionComponent = () => {
                                  "siemens", "sievert", "steradian", "tesla", 
                                  "volt", "watt", "weber"];
 
-  
+  const list_of_inbuilt_prefix= ["yotta", "zetta", "exa", "peta", "tera",
+                                "tera", "giga", "mega", "kilo", "hecto", "deca", "deci", 
+                                "centi", "milli", "micro", "nano", "pico", "femto", "atto",
+                                "zepto", "yocto"];
+
   const refresh_img_string = "https://th.bing.com/th/id/R.a0f9ecff68de2452bbd2e2b8f2cf6823?rik=kBa%2bhNgCMimJ7A&riu=http%3a%2f%2fpng-4.findicons.com%2ffiles%2ficons%2f1681%2fsiena%2f256%2frefresh.png&ehk=cWh33o7o2VxqUvQ1bLqEhe91d1dRn9TSf7Debisq5YE%3d&risl=&pid=ImgRaw&r=0"
 
   const [imagesOnCanvas, setImagesonCanvas] = useState([]); 
@@ -506,17 +510,8 @@ const CreateImgModel: React.FunctionComponent = () => {
   const [listofImports, setListofImports] = useState([]);
 
   const [listofComponentRefs, setListofComponentRefs] = useState([]);
-
-
-  function checkModelInformation() {
-    console.log(shapes_);
-
-
-
-    const temp = listofComponents.sort(function(a,b) { return parseFloat(a.u_id) - parseFloat(b.u_id)});
-    console.log(temp);
-  }
-
+  
+  const [listofCommands, setListofCommands] = useState([]);
 
   // ---------------------------------------------------------------
   // ----------------------- MOVE ELEMENTS -------------------------
@@ -536,12 +531,37 @@ const CreateImgModel: React.FunctionComponent = () => {
     const BB = canvas.getBoundingClientRect();
     offsetX_ = BB.left;
     offsetY_ = BB.top;
-    console.log("offSetX: " + offsetX_ + " offsetY: " + offsetY_);
+    //console.log("offSetX: " + offsetX_ + " offsetY: " + offsetY_);
     drawAll();
   }
 
   
-
+  function calculate_prefix(shape:any) {
+    let prefix = "";
+    if (shape.prefix == '') prefix = '';
+    else if (shape.prefix == "yotta") prefix = "Y";
+    else if (shape.prefix == "zetta") prefix = "Z";
+    else if (shape.prefix == "exa") prefix = "E";
+    else if (shape.prefix == "peta") prefix = "P";
+    else if (shape.prefix == "tera") prefix = "T";
+    else if (shape.prefix == "giga") prefix = "G";
+    else if (shape.prefix == "mega") prefix = "M";
+    else if (shape.prefix == "kilo") prefix = "k";
+    else if (shape.prefix == "hecto") prefix = "h";
+    else if (shape.prefix == "deca") prefix = "da";
+    else if (shape.prefix == "deci") prefix = "d";
+    else if (shape.prefix == "centi") prefix = "c";
+    else if (shape.prefix == "milli") prefix = "m";
+    else if (shape.prefix == "micro") prefix = "µ";
+    else if (shape.prefix == "nano") prefix = "n";
+    else if (shape.prefix == "pico") prefix = "p";
+    else if (shape.prefix == "femto") prefix = "f";
+    else if (shape.prefix == "atto") prefix = "a";
+    else if (shape.prefix == "zepto") prefix = "z";
+    else if (shape.prefix == "yocto") prefix = "y";
+    else prefix = "";
+    return prefix;
+  }
   // ======================================================================================================
   // ======================================================================================================
   // ======================================================================================================
@@ -622,10 +642,17 @@ const CreateImgModel: React.FunctionComponent = () => {
 
   // just calculating the width of the element
   function calculate_width(shape_name:string) {
-      // have a general size and if text too long increase the size to fit
-      if (shape_name.length < 10) return 100; 
-      else return 10*shape_name.length + 10; // add 10 for padding
-    }
+    // have a general size and if text too long increase the size to fit
+    if (shape_name.length < 10) return 100; 
+    else return 10*shape_name.length + 10; // add 10 for padding
+  }
+  // just calculating the width of the element
+  function calculate_import_comp_ref_width(shape_name:string) {
+    // have a general size and if text too long increase the size to fit
+    if (shape_name.length < 10) return 100; 
+    else return 7*shape_name.length + 7; // add 10 for padding
+  }
+
   // calculating import template width: want a minimum of 300
   function calculate_import_width(shape_name: string) {
     if (shape_name.length * 10 < 300) return 300;
@@ -633,12 +660,52 @@ const CreateImgModel: React.FunctionComponent = () => {
   }
 
   function calculate_exponent(shape:any) {
-        let exponent;
-        if (shape.exponent == '') exponent = 1.0;
-        else if (shape.exponent) exponent = shape.exponent;
-        else exponent = 1.0;
-        return exponent;
-      }
+    let exponent;
+    if (shape.exponent == '') exponent = 1.0;
+    else if (shape.exponent) exponent = shape.exponent;
+    else exponent = 1.0;
+    return exponent;
+  }
+
+  function calculate_units_base(shape: any) {
+    if (shape.units) {
+      const unit = shape.units;
+      if (unit == "metre") return "m";
+      else if (unit == "ampere") return "A";
+      else if (unit == "becquerel") return "Bq";
+      else if (unit == "candela") return "cd";
+      else if (unit == "coulomb") return "C";
+      else if (unit == "dimensionless") return " ";
+      else if (unit == "farad") return "F";
+      else if (unit == "gram") return "g";
+      else if (unit == "gray") return "Gy";
+      else if (unit == "henry") return "H";
+      else if (unit == "hertz") return "Hz";
+      else if (unit == "joule") return "J";
+      else if (unit == "katal") return "kat";
+      else if (unit == "kelvin") return "K";
+      else if (unit == "kilogram") return "kg";
+      else if (unit == "litre") return "L";
+      else if (unit == "lumen") return "lm";
+      else if (unit == "lux") return "lx";
+      else if (unit == "mole") return "mol";
+      else if (unit == "newton") return "N";
+      else if (unit == "ohm") return "Ω";
+      else if (unit == "pascal") return "Pa";
+      else if (unit == "radian") return "rad";
+      else if (unit == "second") return "s";
+      else if (unit == "siemens") return "S";
+      else if (unit == "sievert") return "Sv";
+      else if (unit == "steradian") return "sr";
+      else if (unit == "tesla") return "T";
+      else if (unit == "volt") return "V";
+      else if (unit == "watt") return "W";
+      else if (unit == "weber") return "Wb";
+      else if (unit == "degree Celsius") return "°C";
+      else return shape.units;
+  }
+      else return "";
+  }
 
   function calculate_multiplier(shape:any) {
     let multiplier;
@@ -669,13 +736,13 @@ const CreateImgModel: React.FunctionComponent = () => {
     grd.addColorStop(0, inside_color);
     grd.addColorStop(1, gradient_color);
     context.fillStyle = grd;
-    context.strokeStyle= border_color;
     context.moveTo(x, y);   
     context.lineTo(x - width / 2, y + height / 2); // top left edge
     context.lineTo(x, y + height);                 // bottom left edge
     context.lineTo(x + width / 2, y + height / 2); // bottom right edge
     context.closePath();                           // finish triangle
     context.fill();
+    highlight_stroke(context, shape, border_color);
     context.stroke();
   }
 
@@ -688,107 +755,261 @@ const CreateImgModel: React.FunctionComponent = () => {
       const curStep = i * step + shift;
       context.lineTo (x + size * Math.cos(curStep), y + size * Math.sin(curStep));
     }
-    context.strokeStyle = stroke;
     context.lineWidth = 5;
     const grd = context.createRadialGradient(shape.x, shape.y, 5, shape.x + 30, shape.y + 40, 60);
     grd.addColorStop(0, stroke);
     grd.addColorStop(1, fill);
     context.fillStyle = grd;
     context.fill();
+    highlight_stroke(context, shape, stroke);
     context.stroke();
   }
 
+  // Give a gold/yellow border to help indicate which element is selected
+  function highlight_stroke(context: any, shape: any, alt_color: string) {
+    if (shapes_[selectedShapeIndex] != undefined) {
+      if (shape.x == shapes_[selectedShapeIndex].x && shape.y == shapes_[selectedShapeIndex].y) {
+        context.lineWidth = 5; 
+        context.strokeStyle = "rgb(222, 190, 7)";
+      } else { 
+        context.strokeStyle = alt_color; 
+        context.lineWidth = 3; 
+      }
+    } 
+    else { 
+      context.strokeStyle = alt_color; 
+      context.lineWidth = 3; 
+    }
+  }
+
+  // =============================================================================================
+  // =============================================================================================
+  // =============================================================================================
+  // =============================================================================================
+  // =============================================================================================
+
   // Clear the canvas and then redraw every time there is a new action
   function drawAll() {
+
     const canvas = document.getElementById("graphCanvas") as HTMLCanvasElement;
     const context: CanvasRenderingContext2D = canvas.getContext("2d");
     context.clearRect(0, 0, canvas.width, canvas.height);
-    console.log(shapes_);
+
+    // ========================================================================================
+    // ========================================================================================
+    // ========================================================================================
+    // draw the lines between the elements
+    for (let i = 0; i < shapes_.length; i++) {
+      const shape = shapes_[i];
+      if (shape.element_type == "units") {
+        // Lines between units and unit children
+        context.beginPath(); 
+        context.lineWidth = 5;
+        context.strokeStyle = "rgb(193, 2, 12)";
+        for (let j = 0; j < shapes_.length; j++) {
+          if (shapes_[j].element_type == "unit" && shapes_[j].units_parent == shape.u_id) {
+            drawArrow(context, shape.x + 50, shape.y + 21, shapes_[j].x, shapes_[j].y, "rgb(255, 175, 175)");
+          }
+        }
+        context.stroke();
+      }
+      else if (shape.element_type == "component") {
+        context.beginPath();
+        context.strokeStyle = "rgb(123,161,203)";
+        context.fillStyle = "rgb(123,161,203)";
+        context.lineWidth = 1;
+        for (let j = 0; j < shapes_.length; j++) {
+          if (shapes_[j].comp_parent == shape.c_id && shapes_[j].element_type == "variable") {
+            drawArrow(context, shape.x + calculate_width(shape.name)/2, shape.y + 21, shapes_[j].x, shapes_[j].y, "rgb(175, 245, 185)");
+          }
+          else if (shapes_[j].comp_parent == shape.c_id && shapes_[j].element_type == "reset") {
+            drawArrow(context, shape.x + calculate_width(shape.name)/2, shape.y + 21, shapes_[j].x, shapes_[j].y, "rgb(175, 245, 185)");
+          }
+          else if (shapes_[j].comp_parent == shape.c_id && shapes_[j].element_type == "math") {
+            drawArrow(context, shape.x + calculate_width(shape.name)/2, shape.y + 21, shapes_[j].x, shapes_[j].y, "rgb(175, 245, 185)");
+          }
+        }
+        context.fill();
+        context.stroke();
+      }
+      else if (shape.element_type == "reset") {
+        // lines between children
+        for (let j = 0; j < shapes_.length; j++) {
+          if (shapes_[j].comp_parent == shape.r_id && (shapes_[j].element_type == "test_val" || shapes_[j].element_type == "reset_val")) {
+            drawArrow(context, shape.x, shape.y + 21, shapes_[j].x, shapes_[j].y, "rgb(175, 245, 185)");
+          }
+        }
+      }
+      else if (shape.element_type == "encapsulation") {
+        for (let i = 0; i < shapes_.length; i++) {
+          if (shapes_[i].element_type == "component_ref" && shapes_[i].compf_parent == 0) {
+            drawArrow(context, shape.x, shape.y + 21, shapes_[i].x, shapes_[i].y, "silver");
+          }
+        }
+      }
+      else if (shape.element_type == "component_ref") {
+        // Lines between the component ref's and encapsulation/other comp refs
+        for (let i = 0; i < shapes_.length; i++) {
+          if (shapes_[i].element_type == "component_ref" && shapes_[i].c_id == shape.compf_parent) {
+            drawArrow(context, shapes_[i].x, shapes_[i].y + 21, shape.x, shape.y, "silver");
+          }
+        }
+        // Lines between the component ref and component
+        for (let i = 0; i < listofComponents.length; i++) {
+          if (listofComponents[i].name == shape.component) {
+            drawArrow(context, shape.x, shape.y, listofComponents[i].x, listofComponents[i].y + 21, "green");
+          }
+        }
+      }
+      else if (shape.element_type == "connection") {
+        // draw the children lines between connection and map variables
+          context.beginPath();
+          context.lineWidth = 2;
+          context.strokeStyle = "rgb(115,50,115)";
+          for (let i = 0; i < shapes_.length; i++) {
+            if (shapes_[i].element_type == "map_var" && shapes_[i].conn_parent == shape.c_id) {
+              context.fillText(shapes_[i].conn_parent, shape.x + 50 , shape.y + 50);
+              context.fillText(shape.c_id, shape.x + 50 , shape.y + 50);
+              drawArrow(context, shape.x, shape.y, shapes_[i].x, shapes_[i].y, "rgb(245, 206, 177)");
+            }
+          }
+          for (let j = 0; j < shapes_.length; j++) {
+            // Checking component 1 & 2
+            if (shapes_[j].element_type == "component" && shapes_[j].name == shape.component1) {
+              drawArrow(context, shape.x, shape.y, shapes_[j].x, shapes_[j].y, "rgb(191, 242, 211)");
+            }
+            if (shapes_[j].element_type == "component" && shapes_[j].name == shape.component2) {
+              drawArrow(context, shape.x, shape.y, shapes_[j].x, shapes_[j].y, "rgb(191, 242, 211)");
+            }
+          }
+          context.stroke();
+      }
+      else if (shape.element_type == "map_var") {
+        // Draw the lines connection map variables and variable children
+        context.beginPath();
+        context.lineWidth = 5;
+        context.strokeStyle = "rgb(115,50,115)";
+        context.fillStyle   = "rgb(115,50,115)";
+        for (let j = 0; j < shapes_.length; j++) {
+          if (shapes_[j].element_type == "variable" && shapes_[j].name == shape.variable1 ) {
+            drawArrow(context,shape.x, shape.y, shapes_[j].x, shapes_[j].y, "rgb(235, 211, 250)");
+          }
+          if (shapes_[j].element_type == "variable" && shapes_[j].name == shape.variable2 ) {
+            drawArrow(context,shape.x, shape.y, shapes_[j].x, shapes_[j].y, "rgb(235, 211, 250)");
+          }
+        }          
+        context.setLineDash([]);
+        context.stroke();
+      }
+      else if (shape.element_type == "import") {
+        // draw the lines between import and units
+        context.beginPath(); 
+        context.lineWidth = 5;
+        context.strokeStyle = "rgb(193, 2, 12)";
+        for (let j = 0; j < shapes_.length; j++) {
+          if ((shapes_[j].element_type == "import_units" && shapes_[j].import_parent == shape.i_id) || 
+              (shapes_[j].element_type == "import_component" && shapes_[j].import_parent == shape.i_id)) {
+            drawArrow(context, shape.x + 50, shape.y + 21, shapes_[j].x, shapes_[j].y, "pink");
+          }
+        }
+        context.stroke();
+      }
+    }
+    // ========================================================================================
+    // ========================================================================================
+    // ========================================================================================
+    // draw the cellml elements
     for (let i = 0; i<shapes_.length; i++) {
       const shape = shapes_[i];
       if (shape.element_type) {
         // ========================================================================================
+        // ========================================================================================
+        // ========================================================================================
         if (shape.element_type == "units") {
-          // draw the lines
-          context.beginPath(); 
-          context.lineWidth = 5;
-          context.strokeStyle = "rgb(193, 2, 12)";
-          for (let j = 0; j < shapes_.length; j++) {
-            if (shapes_[j].element_type == "unit" && shapes_[j].units_parent == shape.u_id) {
-              drawArrow(context, shape.x + 50, shape.y + 21, shapes_[j].x, shapes_[j].y, "pink");
-            }
-          }
-          // draw the red element
+          // draw the red units element container
           context.beginPath();
           context.lineWidth = 3;
           roundRect(context, shape.x, shape.y, calculate_width(shape.units_name), 48, 5, true, true);
           context.font =  "16px Arial";
-          context.strokeStyle="rgb(193, 2, 12)";
-          context.lineWidth = 3;
           const grd = context.createRadialGradient(shape.x + calculate_width(shape.units_name)/2, shape.y + 25, 5, shape.x + calculate_width(shape.units_name)/3, shape.y + 30, 100);
           grd.addColorStop(0, "rgb(254, 148, 155)");
           grd.addColorStop(1, "rgb(252, 36, 42)");
           context.fillStyle = grd;
           context.fill();       
+          highlight_stroke(context, shape, "rgb(193, 2, 12)");
           context.stroke();
+
           // drawing the text for the element
           context.beginPath(); 
-          context.fillStyle='rgb(110, 1, 6)';
-          context.font = "bold 16px Arial";
+          context.fillStyle ='rgb(110, 1, 6)';
+          context.font = "bold 18px Arial";
           context.strokeStyle="rgb(193, 2, 12)";
           context.fillText(shape.units_name, shape.x + 5, shape.y + 30);
           context.stroke();
+
+          // draw the ID container (small circle at top right)
+          context.beginPath();
+          context.arc(shape.x + calculate_width(shape.units_name) - 5, shape.y + 5, 14, 0, 2 * Math.PI, false);
+          context.fillStyle = grd;
+          context.fill();
+          highlight_stroke(context, shape, "rgb(193, 2, 12)");
+          context.stroke();
+
+          // draw the ID of the units
+          context.beginPath();
+          context.fillStyle = 'rgb(110, 1, 6)';
+          context.font = "bold 16px Arial";
+          context.fillText("#" + shape.u_id, shape.x - 17 + calculate_width(shape.units_name), shape.y + 10);
+          context.stroke();
         }
         // ========================================================================================
+        // ========================================================================================
+        // ========================================================================================
         else if (shape.element_type == "unit") {
-          
           // Just getting the values to display
-          const prefix     = shape.prefix;
+          const units_value = calculate_units_base(shape);
+          const prefix     = calculate_prefix(shape);
           const exponent   = calculate_exponent(shape);
           const multiplier = calculate_multiplier(shape);
           // create the 'unit' base - circle
           context.beginPath();
-          context.lineWidth = 3;
-          context.strokeStyle = "rgb(193, 2, 12)";
           const grd = context.createRadialGradient(shape.x - 5, shape.y - 5, 5, shape.x + 5, shape.y - 5, 30);
-          grd.addColorStop(0, "rgb(254, 148, 155)");
-          grd.addColorStop(1, "rgb(252, 36, 42)");
+          grd.addColorStop(1, "rgb(242, 87, 95)");
+          grd.addColorStop(0, "rgb(245, 137, 142)");
           context.fillStyle = grd;
-          context.arc(shape.x,shape.y,shape.radius,0,Math.PI*2);
+          context.arc(shape.x, shape.y, 35, 0, Math.PI*2);
           context.fill();
+          highlight_stroke(context, shape, "rgb(193, 2, 12)");
           context.stroke();
           // adding the text onto the circle
           context.beginPath();
-          context.strokeStyle = "rgb(193, 2, 12)";
           context.fillStyle = "rgb(110, 1, 6)";
           context.font =  "bold 16px Arial";
-          context.fillText(prefix, shape.x - 5, shape.y + 8);
-          context.font =  "bold 14px Arial";
-          context.fillText(exponent, shape.x - 20 + (prefix.length)*10, shape.y - 8);
-          context.font =  "bold 16px Arial";
-          if (multiplier != 1) context.fillText(multiplier + "*", shape.x - (prefix.length)*10 + 10, shape.y + 8);
+          if (shape.multiplier) {
+            context.fillText(prefix, shape.x - 15 + 10*(shape.multiplier.length), shape.y + 8);
+            context.fillText(units_value, shape.x + 10*(prefix.length) - 15 + 10*(shape.multiplier.length), shape.y + 8);
+            context.font =  "bold 14px Arial";
+            context.fillText(exponent, shape.x - 20 + (prefix.length)*10 + (units_value)*10 + 10*(shape.multiplier.length), shape.y - 8);
+            context.font =  "bold 16px Arial";
+          } else {
+            context.fillText(prefix, shape.x - 15, shape.y + 8);
+            context.fillText(units_value, shape.x + 11*(prefix.length) - 15, shape.y + 8);
+            context.font =  "bold 14px Arial";
+            console.log(exponent);
+            if (exponent != 1) context.fillText(exponent, shape.x + 10*(units_value.length), shape.y - 8);
+            context.font =  "bold 16px Arial";
+          }
+          if (multiplier != 1) context.fillText(multiplier + "*", shape.x - (prefix.length)*11 - 15, shape.y + 8);
           context.lineWidth = 5;
           context.fill();
+          highlight_stroke(context, shape, "rgb(193, 2, 12)");
           context.stroke();
 
         }
         // ========================================================================================
+        // ========================================================================================
+        // ========================================================================================
         else if (shape.element_type == "component") {
-          // The variable lines from component
-          context.beginPath();
-          context.strokeStyle = "rgb(123,161,203)";
-          context.fillStyle = "rgb(123,161,203)";
-          context.lineWidth = 1;
-          for (let j = 0; j < shapes_.length; j++) {
-            if (shapes_[j].comp_parent == shape.c_id && shapes_[j].element_type == "variable") {
-              drawArrow(context, shape.x + calculate_width(shape.name)/2, shape.y + 21, shapes_[j].x, shapes_[j].y, "rgb(123, 161, 203)");
-            }
-            else if (shapes_[j].comp_parent == shape.c_id && shapes_[j].element_type == "reset") {
-              drawArrow(context, shape.x + calculate_width(shape.name)/2, shape.y + 21, shapes_[j].x, shapes_[j].y, "rgb(120, 205, 182)");
-            }
-          }
-          context.fill();
-          context.stroke();
           // The actual element container
           context.beginPath(); 
           context.lineWidth = 3;
@@ -799,170 +1020,241 @@ const CreateImgModel: React.FunctionComponent = () => {
           grd.addColorStop(1, "rgb(53, 181, 104)");
           context.fillStyle = grd;
           context.fill();
+
           // The actual text of the components name
           context.strokeStyle="rgb(4, 131, 6)";
           context.font =  "bold 16px Arial";
           context.lineWidth = 3;
           context.fillStyle='rgb(2, 80, 4)';
           context.fillText(shape.name, shape.x + 15, shape.y + 30);
+          highlight_stroke(context, shape, "rgb(4, 131, 6)");
+          context.stroke();
+
+          // Component ID shell
+          context.beginPath();
+          context.arc(shape.x + calculate_width(shape.name) - 5, shape.y + 5, 13, 0, 2 * Math.PI, false);
+          context.fillStyle = grd;
+          context.fill();
+          highlight_stroke(context, shape, "rgb(4, 131, 6)");
+          context.stroke();
+
+          // draw the ID of the units
+          context.beginPath();
+          context.fillStyle = 'rgb(2, 80, 4)';
+          context.font = "bold 16px Arial";
+          context.fillText("#" + shape.c_id, shape.x - 15 + calculate_width(shape.name), shape.y + 12);
           context.stroke();
         }
         // ========================================================================================
+        // ========================================================================================
+        // ========================================================================================
         else if (shape.element_type == "variable") {
+
           // Draw the container
           context.beginPath();
-          context.lineWidth = 2;
-          context.arc(shape.x, shape.y, shape.radius, 0, Math.PI * 2);
+          context.lineWidth = 3;
+          context.arc(shape.x, shape.y, 40, 0, Math.PI * 2);
           const grd = context.createRadialGradient(shape.x - 5, shape.y - 5, 5, shape.x + 5, shape.y - 5, 30);
           grd.addColorStop(0, "rgb(181, 242, 204)");
           grd.addColorStop(1, "rgb(53, 181, 104)");
           context.fillStyle = grd;
           context.fill();
-          context.strokeStyle = "rgb(4, 131, 6)";
-          context.fillStyle= "black";
+          context.fillStyle= 'rgb(2, 80, 4)';
           context.lineWidth = 3;
           context.font =  "bold 18px Arial";
           context.fillText(shape.name, calculate_variable_center_x(shape.name, shape.x), shape.y + 8);
+          highlight_stroke(context, shape, "rgb(4, 131, 6)");
           context.stroke();
+
           // draw the interface attribute onto the circle (x:both, +:public, -:private)
           context.beginPath();
-          context.arc(shape.x + 25, shape.y -15, 10, 0, Math.PI * 2);
+          context.arc(shape.x + 35, shape.y -15, 15, 0, Math.PI * 2);
           context.fillStyle = "rgb(163, 234, 190)";
           context.fill();
           context.fillStyle= "black";
-          context.lineWidth = 3;
-          context.strokeStyle = "rgb(4, 131, 6)";
+          highlight_stroke(context, shape, "rgb(4, 131, 6)");
           context.font =  "bold 16px Arial";
-          context.fillText(select_interface_type(shape), shape.x + 21, shape.y - 9);
+          context.fillText(select_interface_type(shape), shape.x + 30, shape.y - 10);
           context.stroke();
         }
+        // ========================================================================================
+        // ========================================================================================
         // ========================================================================================
         else if (shape.element_type == "reset") {
 
-          for (let j = 0; j < shapes_.length; j++) {
-            if (shapes_[j].comp_parent == shape.r_id && (shapes_[j].element_type == "test_val") || shapes_[j].element_type == "reset_val") {
-              drawArrow(context, shape.x, shape.y + 21, shapes_[j].x, shapes_[j].y, "rgb(120, 205, 182)");
-            }
-          }
-
           // Draw the container
           context.beginPath();
-          context.lineWidth = 3;
-          context.arc(shape.x, shape.y, shape.radius, 0, Math.PI * 2);
+          context.lineWidth = 5;
+          context.arc(shape.x, shape.y, 40, 0, Math.PI * 2);
           const grd = context.createRadialGradient(shape.x - 5, shape.y - 5, 5, shape.x + 5, shape.y - 5, 30);
           grd.addColorStop(0, "rgb(181, 242, 204)");
           grd.addColorStop(1, "rgb(53, 181, 104)");
           context.fillStyle = grd;
           context.fill();
-          context.strokeStyle = "rgb(2, 48, 134)";
+          highlight_stroke(context, shape, "rgb(30, 70, 70)");
           context.stroke();
-
-          // The order element
-          context.beginPath();
-          context.lineWidth = 3;
-          context.arc(shape.x + 25, shape.y, 13, 0, Math.PI * 2);
-          context.fillStyle = grd;
-          context.fill();
-          context.strokeStyle = "rgb(2, 48, 134)";
-          context.fillStyle = "black";
-          context.font = "bold 18px Arial";
-          context.fillText(shape.order, shape.x + 22, shape.y + 5);
-          context.stroke();
-
           // The variable reference
           context.beginPath();
-          context.strokeStyle = "rgb(2, 48, 134)";
+          context.lineWidth = 2;
+          context.strokeStyle = "rgb(30, 70, 70)";
           context.fillStyle = "rgb(174, 239, 199)";
           context.fill();
-          roundRect(context, shape.x - 35, shape.y - 40, calculate_width(shape.variable), 20, 5, true, true);
-          context.stroke();
-          context.beginPath();
-          context.font = "bold 14px Arial";
-          context.strokeStyle = "rgb(2, 80, 4)";
-          context.fillStyle = "rgb(2, 80, 4)";
-          context.fillText("Var: " + shape.variable, shape.x - 32, shape.y - 26);
+          highlight_stroke(context, shape, "rgb(30, 70, 70)");
+          roundRect(context, shape.x - 50, shape.y - 40, calculate_width(shape.variable) + 35, 20, 5, true, true);
           context.stroke();
 
-          // The test variable reference 
-          context.beginPath();
-          context.strokeStyle = "rgb(2, 48, 134)";
-          context.fillStyle = "rgb(174, 239, 199)";
-          context.fill();
-          roundRect(context, shape.x - 35, shape.y + 20, calculate_width(shape.test_var), 20, 5, true, true);
-          context.stroke();
           context.beginPath();
           context.font = "bold 14px Arial";
+          context.fillStyle = "rgb(2, 80, 4)";
+          context.fillText("Var: " + shape.variable, shape.x - 40, shape.y - 26);
+          context.stroke();
+          // The test variable reference 
+          context.beginPath();
+          context.strokeStyle = "rgb(30, 70, 70)";
+          context.fillStyle = "rgb(174, 239, 199)";
+          context.fill();
+          highlight_stroke(context, shape, "rgb(30, 70, 70)");
+          roundRect(context, shape.x - 50, shape.y + 20, calculate_width(shape.test_var) + 35, 20, 5, true, true);
+          context.stroke();
+
+          context.beginPath();
+          context.font = "bold 14px Arial";
+          context.fillStyle = "rgb(2, 80, 4)";
+          context.fillText("Test_V: " + shape.test_var, shape.x - 40, shape.y + 35);
+          context.stroke();
+
+          // draw the ID circle
+          context.beginPath();
+          context.arc(shape.x + 55, shape.y, 15, 0, 2 * Math.PI, false);
+          context.fillStyle = grd
+          context.fill();
+          context.lineWidth = 3;
+          highlight_stroke(context, shape, "rgb(30, 70, 70)");
+          context.stroke();
+
+          // draw the ID of the reset element
+          context.beginPath();
           context.strokeStyle = "rgb(2, 80, 4)";
           context.fillStyle = "rgb(2, 80, 4)";
-          context.fillText("T_Var: " + shape.test_var, shape.x - 32, shape.y + 36);
+          context.font = "bold 14px Arial";
+          context.fillText("#" + shape.r_id, shape.x + 48, shape.y + 3);
           context.stroke();
         }
         // ========================================================================================
+        // ========================================================================================
+        // ========================================================================================
         else if (shape.element_type == "test_val" || shape.element_type == "reset_val") {
-          // Draw the container
+
+          // Add rectangle between the two
           context.beginPath();
-          context.lineWidth = 4;
-          context.arc(shape.x, shape.y, shape.radius, 0, Math.PI * 2);
+          context.strokeStyle = "rgb(200, 253, 232)";
+          context.fillStyle = "rgb(200, 253, 232)";
+          highlight_stroke(context, shape, "rgb(175, 245, 185)");
+          roundRect(context, shape.x, shape.y - 10, 100, 20, 1, true, true);
+          context.stroke();
+
+          // Draw Container
+          context.beginPath();
+          context.lineWidth = 3;
+          context.arc(shape.x, shape.y, 35, 0, Math.PI * 2);
           const grd = context.createRadialGradient(shape.x - 5, shape.y - 5, 5, shape.x + 5, shape.y - 5, 30);
           grd.addColorStop(0, "rgb(181, 242, 204)");
           grd.addColorStop(1, "rgb(53, 181, 104)");
           context.fillStyle = grd;
           context.fill();
-          context.strokeStyle = "rgb(2, 48, 134)";
+          highlight_stroke(context, shape, "rgb(30, 70, 70)");
           context.stroke();
-          // Draw Math Element - temp for now
+
+          // Add text depending on version
           context.beginPath();
-          context.font = "bold 20px Arial";
+          context.font = "bold 18px Arial";
           context.strokeStyle = "rgb(2, 80, 4)";
           context.fillStyle = "rgb(2, 80, 4)";
-          if (shape.element_type == "test_val" ) context.fillText("T Math", shape.x - 20, shape.y + 10);
-          if (shape.element_type == "reset_val") context.fillText("R Math", shape.x - 20, shape.y + 10);
+          if (shape.element_type == "test_val" ) context.fillText("Test: ", shape.x - 30, shape.y + 8);
+          if (shape.element_type == "reset_val") context.fillText("Reset: ", shape.x - 30, shape.y + 8);
+
+          // Add Math element to the right
+          context.beginPath();
+          roundRect(context, shape.x + 45, shape.y - 25, 100, 50, 10, true, true);
+          const grd2 = context.createRadialGradient(shape.x + 125/2, shape.y + 25, 5, shape.x + 125/3, shape.y + 30, 100);
+          grd2.addColorStop(0, "rgb(170, 190, 217)");
+          grd2.addColorStop(1, "rgb(74, 114, 166)");
+          context.fillStyle = grd2;
+          context.fill();
+          highlight_stroke(context, shape, "rgb(30, 70, 70)");
+          context.stroke();
+          context.beginPath();
+          context.strokeStyle = "rgb(43,65,96)";
+          context.fillStyle = "rgb(43,65,96)";
+          context.font = "bold 18px Arial"
+          context.fillText("<Math>", shape.x + 62, shape.y + 7);
           context.stroke();
         }
+        // ========================================================================================
+        // ========================================================================================
         // ========================================================================================
         else if (shape.element_type == "math") {
           context.beginPath();
-          context.arc(shape.x,shape.y,shape.radius,0,Math.PI*2);
-          context.fillStyle= "white";
+          roundRect(context, shape.x, shape.y, 125, 50, 10, true, true);
+          const grd = context.createRadialGradient(shape.x + 125/2, shape.y + 25, 5, shape.x + 125/3, shape.y + 30, 100);
+          grd.addColorStop(0, "rgb(170, 190, 217)");
+          grd.addColorStop(1, "rgb(74, 114, 166)");
+          context.fillStyle = grd;
           context.fill();
-          context.lineWidth = 5;
-          context.strokeStyle = "grey";
+          context.lineWidth = 3;
+          highlight_stroke(context, shape, "rgb(65,100,147)");
+          context.stroke();
+
+          context.beginPath();
+          context.strokeStyle = "rgb(43,65,96)";
+          context.fillStyle = "rgb(43,65,96)";
+          context.font = "bold 18px Arial"
+          context.fillText("<Math>", shape.x + 30, shape.y + 30);
           context.stroke();
         }
+        // ========================================================================================
+        // ========================================================================================
         // ========================================================================================
         else if (shape.element_type == "encapsulation") {
+          // Encapsulation box
+          const encapsulation_height = 100;
+          const encapsulation_width = 125;
           context.beginPath(); 
-          context.rect(shape.x - 25, shape.y - 34, 120, 60);
-          context.fillStyle='black';
-          context.font =  "16px Arial";
-          context.strokeStyle="grey";
-          context.lineWidth = 5;
-          context.fillRect(shape.x,shape.y,shape.width,shape.height);
-          context.fillText(shape.units_name, shape.x, shape.y);
+          context.lineWidth =2;
+          context.fillStyle = "rgba(225, 225, 225, .8)";
+          highlight_stroke(context, shape, "rgb(150, 150, 150)");
+          roundRect(context, shape.x, shape.y, encapsulation_width, encapsulation_height, 10, true, true);
+          roundRect(context, shape.x + 2.5, shape.y + 2.5, encapsulation_width - 5, encapsulation_height - 5, 10, true, true);
+          roundRect(context, shape.x + 2.5, shape.y + 2.5, encapsulation_width - 5, 30, 5, true, true);
           context.stroke();
-
-          for (let i = 0; i < shapes_.length; i++) {
-            if (shapes_[i].element_type == "component_ref" && shapes_[i].compf_parent == 0) {
-              drawArrow(context, shape.x, shape.y + 21, shapes_[i].x, shapes_[i].y, "silver");
-            }
-          }
-
+          // Text of encapsulate
+          context.beginPath();
+          context.fillStyle='rgb(65,65,65)';
+          context.font =  "bold 18px Arial";
+          context.strokeStyle="rgb(65,65,65)";
+          context.fillText("Encapsulate", shape.x + 5, shape.y + 25);
+          context.stroke();
         }
         // ========================================================================================
+        // ========================================================================================
+        // ========================================================================================
         else if (shape.element_type == "component_ref") {
-          //c_id: comp_id, compf_parent:
-          for (let i = 0; i < shapes_.length; i++) {
-            if (shapes_[i].element_type == "component_ref" && shapes_[i].c_id == shape.compf_parent) {
-              drawArrow(context, shapes_[i].x, shapes_[i].y + 21, shape.x, shape.y, "silver");
-            }
-          }
           // The border for the element
           context.beginPath(); 
           context.lineWidth = 3;
           context.setLineDash([]);
-          context.rect(shape.x, shape.y, calculate_width(shape.component), 45);
-          context.strokeStyle = "black";
+          highlight_stroke(context, shape, "rgb(150, 150, 150)");
+          roundRect(context, shape.x - 5, shape.y - 5, calculate_width(shape.component) + 9, 55, 5, true, true);
           context.stroke();
+
+          context.beginPath();
+          context.lineWidth = 3;
+          highlight_stroke(context, shape,"rgb(3, 83, 5)");
+          roundRect(context, shape.x - 2, shape.y - 2, calculate_width(shape.component) + 4, 50, 5, true, true);
+          context.stroke();
+
+          // Add the text to the encapsulated component
+          context.beginPath();
           // Create component_ref gradient:
           const grd = context.createRadialGradient(shape.x + calculate_width(shape.component)/2, shape.y + 25, 5, shape.x + calculate_width(shape.component)/3, shape.y + 30, 100);
           grd.addColorStop(0, "rgb(181, 242, 204)");
@@ -970,153 +1262,128 @@ const CreateImgModel: React.FunctionComponent = () => {
           // Fill the inside of the component with the gradient created
           context.fillStyle = grd;
           context.fillRect(shape.x, shape.y, calculate_width(shape.component), 45);
-          // Add the text to the encapsulated component
-          context.beginPath();
           context.font =  "bold 18px Arial";
           context.strokeStyle="rgb(1, 65, 1)";
           context.fillStyle = "rgb(1, 65, 1)";
           context.fillText(shape.component, shape.x + 5, shape.y + 28);
           context.stroke();
+          // draw the ID circle at bottom of the diamond
+          context.beginPath();
+          highlight_stroke(context, shape, "rgb(150, 150, 150)");
+          context.arc(shape.x + calculate_width(shape.component), shape.y + 5, 15, 0, 2 * Math.PI, false);
+          context.fillStyle = grd;
+          context.fill();
+          context.lineWidth = 2;
+          context.stroke();
+
+          context.beginPath();
+          highlight_stroke(context, shape, "rgb(3, 83, 5)");
+          context.arc(shape.x + calculate_width(shape.component), shape.y + 5, 13, 0, 2 * Math.PI, false);
+          context.stroke();
+          // draw the ID of the connection
+          context.beginPath();
+          context.fillStyle = "rgb(1, 65, 1)";
+          context.font = "bold 14px Arial";
+          context.fillText("#" + shape.c_id, shape.x + calculate_width(shape.component) - 10, shape.y + 8);
+          context.stroke();
         }
         // ========================================================================================
+        // ========================================================================================
+        // ========================================================================================
         else if (shape.element_type == "connection") {
-          // draw the children lines between connection and map variables
-          context.beginPath();
-          context.lineWidth = 2;
-          context.strokeStyle = "rgb(115,50,115)";
-          for (let i = 0; i < shapes_.length; i++) {
-            if (shapes_[i].element_type == "map_var") {
-              console.log(shapes_[i].conn_parent);
-              console.log(shape.c_id);
-            }
-            
-            if (shapes_[i].element_type == "map_var" && shapes_[i].conn_parent == shape.c_id) {
-              context.fillText(shapes_[i].conn_parent, shape.x + 50 , shape.y + 50);
-              context.fillText(shape.c_id, shape.x + 50 , shape.y + 50);
-              drawArrow(context, shape.x, shape.y, shapes_[i].x, shapes_[i].y, "rgb(245, 206, 177)");
-            }
-          }
-          context.stroke();
-         
-
-          let component1name = "";
-          let component2name = "";
-          for (let j = 0; j < shapes_.length; j++) {
-            // Checking component 1 & 2
-            if (shapes_[j].element_type == "component" && shapes_[j].name == shape.component1) {
-                component1name = shapes_[j].name;
-                drawArrow(context, shape.x, shape.y, shapes_[j].x, shapes_[j].y, "rgb(191, 242, 211)");
-            }
-            else if (shapes_[j].element_type == "component" && shapes_[j].name == shape.component2) {
-                component2name = shapes_[j].name;
-                drawArrow(context, shape.x, shape.y, shapes_[j].x, shapes_[j].y, "rgb(191, 242, 211)");
-              }
-          }
+          
           // draw connection diamond
           let diamond_width;
-          (component1name.length > component2name.length) ? diamond_width = calculate_width(component1name) : diamond_width = calculate_width(component2name);
+          (shape.component1.length > shape.component2.length) ? diamond_width = calculate_width(shape.component1) : diamond_width = calculate_width(shape.component2);
           const diamond_height= 95;
-          context.lineWidth = 3;
           drawDiamond(context, shape, shape.x + diamond_width/4, shape.y - diamond_height/4, diamond_width , diamond_height, "rgb(245,209,188)", "rgb(230, 130, 70)", "rgb(225, 108, 34)");
+
           // draw the name boxes
           context.beginPath();
           context.fillStyle = "rgb(243, 196, 167)";
-          context.strokeStyle = "rgb(255, 102, 0)";
           context.font = "bold 16px Arial";
-          context.lineWidth = 2;
-          roundRect(context, shape.x - 20, shape.y - 10, calculate_width(component1name), 25, 5, true, true);
-          roundRect(context, shape.x - 20, shape.y + 30, calculate_width(component2name), 25, 5, true, true);
+          highlight_stroke(context, shape, "rgb(255, 102, 0)");
+          roundRect(context, shape.x - 20, shape.y - 10, calculate_width(shape.component1), 25, 5, true, true);
+          roundRect(context, shape.x - 20, shape.y + 30, calculate_width(shape.component2), 25, 5, true, true);
           context.stroke();
+
           // draw the related components
           context.beginPath();
           context.fillStyle = "rgb(217, 87, 0)";
-          context.fillText(shape.component1, shape.x, shape.y + 7);
-          context.fillText(shape.component2, shape.x, shape.y + 47);
-          context.font = "bold 24px Arial";  
+          context.fillText(shape.component1, shape.x - 10, shape.y + 7);
+          context.fillText(shape.component2, shape.x - 10, shape.y + 47);
+          context.font = "bold 24px Arial";   
           context.fillText("X", shape.x + diamond_width/4 - 10, shape.y + 30);
           context.stroke();
-          context.font = "16px Arial";     
+          context.font = "16px Arial";   
+
+          // draw the ID circle at bottom of the diamond
+          context.beginPath();
+          context.arc(shape.x + diamond_width/4, shape.y + 70, 12, 0, 2 * Math.PI, false);
+          context.fillStyle = "rgb(243, 196, 167)";
+          context.fill();
+          context.lineWidth = 2;
+          highlight_stroke(context, shape, "rgb(255, 102, 0)");
+          context.stroke();
+
+          // draw the ID of the connection
+          context.beginPath();
+          context.fillStyle = "rgb(175, 70, 0)";
+          context.font = "bold 14px Arial";
+          context.fillText("#" + shape.c_id, shape.x + 15, shape.y + 75);
+          context.stroke();
         }
+        // ========================================================================================
+        // ========================================================================================
         // ========================================================================================
         else if (shape.element_type == "map_var") {
+          
+          // Draw the pentagon for the map variable element
           context.beginPath();
           context.lineWidth = 5;
-          context.strokeStyle = "rgb(115,50,115)";
-          context.fillStyle   = "rgb(115,50,115)";
-          for (let j = 0; j < shapes_.length; j++) {
-            // Checking component 1 & 2
-            if (shapes_[j].element_type == "variable") {
-                console.log(shape);
-                console.log(shapes_[j]);
-                console.log(shapes_[j].name);
-                console.log(shape.map_v1);
-                console.log(shape.map_v2);
-            }
-            if (shapes_[j].element_type == "variable" && shapes_[j].name == shape.variable1 ) {
-               drawArrow(context,shape.x, shape.y, shapes_[j].x, shapes_[j].y, "rgb(235, 211, 250)");
-            }
-            if (shapes_[j].element_type == "variable" && shapes_[j].name == shape.variable2 ) {
-              //  context.lineTo(cellml_elements[j].x, cellml_elements[j].y);
-              drawArrow(context,shape.x, shape.y, shapes_[j].x, shapes_[j].y, "rgb(235, 211, 250)");
-            }
-          }
-          context.stroke();
-          context.setLineDash([]);
-
-          context.beginPath();
-          context.lineWidth = 5;
-          context.strokeStyle = "rgb(115,50,115)";
-          context.fillStyle   = "rgb(115,50,115)";
-          let var1name = "";
-          let var2name = "";
-          for (let j = 0; j < shapes_.length; j++) {
-            if (shapes_[j].element_type == "variable" && shapes_[j].name == shape.map_v1 ) {
-                var1name = shapes_[j].name;
-            }
-            if (shapes_[j].element_type == "variable" && shapes_[j].name == shape.map_v2 ) {
-                var2name = shapes_[j].name;
-              }
-          }
-
           let shape_width;
-          (var1name.length > var2name.length) ? shape_width = calculate_width(var1name) : shape_width = calculate_width(var2name);
-
+          const var1length = calculate_width(shape.variable1);
+          const var2length = calculate_width(shape.variable2);
+          (var1length > var2length) ? shape_width = var1length : shape_width = var2length;
           drawPentagon(context, shape, shape.x + shape_width/4, shape.y + shape_width/4, shape_width/2 , "rgb(185,100,185)", "rgb(230,205,230)");
 
+          // Draw the boxes for the pentagon
           context.beginPath();
-          context.fillStyle='black';
+          context.fillStyle = "rgb(223,187,232)";
+          context.font = "bold 16px Arial";
+          context.lineWidth = 2;
+          highlight_stroke(context, shape, "rgb(115,50,115)");
+          roundRect(context, shape.x - 25, shape.y - 10, calculate_width(shape.variable1), 25, 5, true, true);
+          roundRect(context, shape.x - 25, shape.y + shape_width/3, calculate_width(shape.variable2), 25, 5, true, true);
+          context.stroke();
+
+          // Write the names onto the element container
+          context.beginPath();
+          context.fillStyle='rgb(101, 39, 116)';
           context.font =  "bold 16px Arial";
           context.lineWidth = 5;
-
-          context.fillText(var1name, shape.x + 10, shape.y);
-          context.fillText("   x   ", shape.x + 10 , shape.y + 25);
-          context.fillText(var2name, shape.x + 10, shape.y + 50);
+          context.fillText(shape.variable1, shape.x - 15,  shape.y + 8);
+          context.fillText("   X   ",  shape.x + shape_width/4 - 15,  shape.y + shape_width/4 + 5);
+          context.fillText(shape.variable2, shape.x - 15,  shape.y + shape_width/3 + 20);
           context.stroke();
         }
         // ========================================================================================
-        // a box containing the imported module
+        // ========================================================================================
+        // ========================================================================================
         else if (shape.element_type == "import") {
-          // draw the lines between import and units
           context.beginPath(); 
           context.lineWidth = 5;
-          context.strokeStyle = "rgb(193, 2, 12)";
-          for (let j = 0; j < shapes_.length; j++) {
-            if ((shapes_[j].element_type == "import_units" && shapes_[j].import_parent == shape.i_id) || 
-                (shapes_[j].element_type == "import_component" && shapes_[j].import_parent == shape.i_id)) {
-              drawArrow(context, shape.x + 50, shape.y + 21, shapes_[j].x, shapes_[j].y, "pink");
-            }
-          }
-          context.stroke();
-          context.beginPath(); 
-          context.lineWidth = 5;
-          context.strokeStyle = "rgb(63, 81, 181)";
+          highlight_stroke(context, shape, "rgb(63, 81, 181)");
           roundRect(context, shape.x, shape.y, calculate_width(shape.href), 50, 5, true, true);
           const grd = context.createRadialGradient(shape.x + calculate_width(shape.href)/2, shape.y + 25, 5, shape.x + calculate_width(shape.href)/3, shape.y + 30, 100);
           grd.addColorStop(0, "rgb(187, 222, 232)");
           grd.addColorStop(1, "rgb(105, 181, 203)");
           context.fillStyle = grd;
           context.fill();
+          context.stroke();
+
           // The actual text of the components name
+          context.beginPath();
           context.strokeStyle= "rgb(187, 222, 232)";
           context.lineWidth = 3;
           context.fillStyle= "rgb(63, 81, 181)";
@@ -1125,16 +1392,41 @@ const CreateImgModel: React.FunctionComponent = () => {
           context.font =  "bold 16px Arial";
           context.fillText("/" + shape.href, shape.x + 5, shape.y + 35);
           context.stroke();
+          // draw the ID container (small circle at top right)
+          context.beginPath();
+          context.arc(shape.x + calculate_width(shape.href) - 5, shape.y + 10, 14, 0, 2 * Math.PI, false);
+          highlight_stroke(context, shape, "rgb(63, 81, 181)");
+          context.stroke();
+          context.beginPath();
+
+          context.arc(shape.x + calculate_width(shape.href) - 5, shape.y + 10, 12, 0, 2 * Math.PI, false);
+          context.fillStyle = grd;
+          context.fill();
+          highlight_stroke(context, shape, "rgb(187,222,232)");
+          context.stroke();
+          // draw the ID of the units
+          context.beginPath();
+          context.fillStyle = "rgb(63, 81, 181)";
+          context.font = "bold 16px Arial";
+          context.fillText("#" + shape.i_id, shape.x - 17 + calculate_width(shape.href), shape.y + 14);
+          context.stroke();
         }
+        // ========================================================================================
+        // ========================================================================================
         // ========================================================================================
         else if (shape.element_type == "import_units") {
           // draw the red 'units' element
           //name:i_name.value, units_ref:i_ref.value, import_parent: ref.value
           context.beginPath();
+          highlight_stroke(context, shape, "rgb(63, 81, 181)");
+          roundRect(context, shape.x, shape.y, calculate_width(shape.name), 50, 10, true, true);
+          context.stroke();
+
+          context.beginPath();
           context.lineWidth = 3;
-          roundRect(context, shape.x, shape.y, calculate_width(shape.name), 48, 5, true, true);
+          roundRect(context, shape.x + 3, shape.y + 3, calculate_width(shape.name) - 6, 44, 5, true, true);
           context.font =  "16px Arial";
-          context.strokeStyle="rgb(103, 103, 203)";
+          context.strokeStyle="rgb(193, 2, 12)";
           context.lineWidth = 3;
           const grd = context.createRadialGradient(shape.x + calculate_width(shape.name)/2, shape.y + 25, 5, shape.x + calculate_width(shape.name)/3, shape.y + 30, 100);
           grd.addColorStop(0, "rgb(254, 148, 155)");
@@ -1147,19 +1439,26 @@ const CreateImgModel: React.FunctionComponent = () => {
           context.fillStyle='rgb(110, 1, 6)';
           context.font = "bold 16px Arial";
           context.strokeStyle="rgb(193, 2, 12)";
-          context.fillText(shape.name, shape.x + 5, shape.y + 30);
+          context.fillText(shape.name, shape.x + 15, shape.y + 30);
+          context.font =  "bold 10px Arial";
+          context.fillText("Imported: " + shape.units_ref + "", shape.x + 10, shape.y + 40);
           context.stroke();
         }
         // ========================================================================================
+        // ========================================================================================
+        // ========================================================================================
         else if (shape.element_type == "import_component") {
-          
-          context.fill();
-          context.stroke();
           // The actual element container
           context.beginPath(); 
-          context.lineWidth = 3;
-          context.strokeStyle = "rgb(103, 103, 203)";
-          roundRect(context, shape.x, shape.y, calculate_width(shape.name), 50, 5, true, true);
+          highlight_stroke(context, shape, "rgb(63, 81, 181)");
+          // The border is blue to help indicate it's imported
+          roundRect(context, shape.x, shape.y, calculate_width(shape.name), 50, 10, true, true);
+          context.stroke();
+          // The inner border is green to indicate it's a component
+          context.beginPath();
+          context.strokeStyle = "rgb(3, 83, 5)";
+          context.lineWidth = 2;
+          roundRect(context, shape.x + 3, shape.y + 3, calculate_width(shape.name) - 6, 44, 5, true, true);
           const grd = context.createRadialGradient(shape.x + calculate_width(shape.name)/2, shape.y + 25, 5, shape.x + calculate_width(shape.name)/3, shape.y + 30, 100);
           grd.addColorStop(0, "rgb(181, 242, 204)");
           grd.addColorStop(1, "rgb(53, 181, 104)");
@@ -1171,8 +1470,12 @@ const CreateImgModel: React.FunctionComponent = () => {
           context.lineWidth = 3;
           context.fillStyle='rgb(2, 80, 4)';
           context.fillText(shape.name, shape.x + 15, shape.y + 30);
+          context.font =  "bold 10px Arial";
+          context.fillText("Imported: (" + shape.comp_ref + ")", shape.x + 10, shape.y + 40);
           context.stroke();
         }
+        // ========================================================================================
+        // ========================================================================================
         // ========================================================================================
       }
     }
@@ -1198,7 +1501,15 @@ const CreateImgModel: React.FunctionComponent = () => {
 
   function isMouseInShape(mx: number, my: number, shape: any) {
     reOffset();
-    if (shape.radius) {
+    //console.log(shape);
+
+    if (shape == undefined) {
+      selectedShapeIndex = -1;
+      clear_input();
+      change_element("model_children", "Model", "model_info", "drag_model");
+    }
+
+    if (shape != undefined) {
       const dx = mx - shape.x;
       const dy = my - shape.y;
       if(dx*dx+dy*dy<shape.radius*shape.radius){
@@ -1221,55 +1532,125 @@ const CreateImgModel: React.FunctionComponent = () => {
   // clicking on an element will display that specific element's information 
   function display_element_info(element: any) {
     console.log(element);
+
     console.log("valid");
     const type = element.element_type;
     if (type === "units") {
       change_element("units_children", "Units", "units_info", "drag_units");
+      const u_name = document.getElementById('units_name_input') as HTMLInputElement;
+      u_name.value = element.units_name;
     } 
     else if (type == "unit") {
       change_element("unit_children", "Unit", "unit_info", "drag_unit");
+      const u_units = document.getElementById('units_ref_input') as HTMLInputElement;
+      const u_ref   = document.getElementById('unit_ref_input') as HTMLInputElement;
+      const u_prefix= document.getElementById('unit_prefix_input') as HTMLInputElement;
+      const u_mult  = document.getElementById('unit_multiplier_input') as HTMLInputElement;
+      const u_exp   = document.getElementById('unit_exp_input') as HTMLInputElement;
+
+      u_units.value = element.units_parent;
+      u_ref.value   = element.units;
+      u_prefix.value= element.prefix;
+      u_mult.value  = element.multiplier;
+      u_exp.value   = element.exponent;
     }
     else if (type == "component") {
       change_element("component_children", "Component", "component_info", "drag_component");
+      const c_name = document.getElementById('comp_name_input') as HTMLInputElement;
+      c_name.value = element.name;
     }
     else if (type == "variable") {
       change_element("variable_children", "Variable", "variable_info", "drag_variable");
+      const v_comp_ref = document.getElementById('var_comp_ref_input') as HTMLInputElement;
+      const v_name = document.getElementById('var_name_input') as HTMLInputElement;
+      const v_units = document.getElementById('var_units_input') as HTMLInputElement;
+      const v_interface = document.getElementById('var_interface_input') as HTMLInputElement;
+      const v_init = document.getElementById('var_init_input') as HTMLInputElement;
+
+      v_comp_ref.value = element.comp_parent;
+      v_name.value = element.name;
+      v_units.value = element.units;
+      v_interface.value = element.interface;
+      v_init.value = element.initial_val;
     }
     else if (type == "reset") {
       change_element("reset_children", "Reset", "reset_info", "drag_reset");
+      const r_ref = document.getElementById('reset_comp_ref_input') as HTMLInputElement;
+      const r_var = document.getElementById('reset_var_input') as HTMLInputElement;
+      const r_test = document.getElementById('reset_test_input') as HTMLInputElement;
+      const r_ord = document.getElementById('reset_order_input') as HTMLInputElement;
+
+      r_ref.value = element.comp_parent;
+      r_var.value = element.variable;
+      r_test.value = element.test_var;
+      r_ord.value = element.order;
     }
     else if (type == "test_val") {
       change_element("test_value_children", "Test Value", "test_value_info", "drag_test_value")
+      const c_ref = document.getElementById('tv_comp_ref') as HTMLInputElement;
+      c_ref.value = element.comp_parent;
     }
     else if (type == "reset_val") {
       change_element("reset_value_children", "Reset Value", "reset_value_info", "drag_reset_value")
+      const c_ref = document.getElementById('rv_comp_ref') as HTMLInputElement;
+      c_ref.value = element.comp_parent;
     }
     else if (type == "math") {
       change_element("math_children", "Math", "math_info", "drag_math")
+      const c_ref = document.getElementById('math_comp_ref_input') as HTMLInputElement;
+      c_ref.value = element.comp_parent;
     }
     else if (type == "encapsulation") {
       change_element("encapsulation_children", "Encapsulation", "encapsulation_info", "drag_encapsulation")
     }
     else if (type == "component_ref") {
       change_element("component_ref_children", "Component Reference", "component_ref_info", "drag_comp_ref")
+      const c_refp = document.getElementById('comp_ref_parent_id') as HTMLInputElement;
+      c_refp.value = element.compf_parent;
+      const c_refc = document.getElementById('comp_ref_comp_input') as HTMLInputElement;
+      c_refc.value = element.component;
     }
     else if (type == "connection") {
       change_element("connection_children", "Connection", "connection_info", "drag_connection")
+      const c1 = document.getElementById('connect_1_input') as HTMLInputElement;
+      c1.value = element.component1;
+      const c2 = document.getElementById('connect_2_input') as HTMLInputElement;
+      c2.value = element.component2;
     }
     else if (type == "map_var") {
       change_element("map_variables_children", "Map Variables", "map_variables_info", "drag_map_variables")
+      const ref = document.getElementById('map_connect_input') as HTMLInputElement;
+      ref.value = element.conn_parent;
+      const v1 = document.getElementById('map_var_1_input') as HTMLInputElement;
+      v1.value = element.variable1;
+      const v2 = document.getElementById('map_var_2_input') as HTMLInputElement;
+      v2.value = element.variable2;
     }
     else if (type == "import") {
       change_element("import_children", "Import", "import_info", "drag_import")
+      const href = document.getElementById('import_ref_input') as HTMLInputElement;
+      href.value = element.href;
     }
     else if (type == "import_units") {
       change_element("import_units_children", "Import Units", "import_units_info", "drag_import_units")
+      const ref = document.getElementById('import_parent_reference_u') as HTMLInputElement;
+      ref.value = element.import_parent;
+      const name = document.getElementById('import_units_name_input') as HTMLInputElement;
+      name.value = element.href;
+      const units = document.getElementById('import_units_ref_input') as HTMLInputElement;
+      units.value = element.units_ref;
     }
     else if (type == "import_component") {
       change_element("import_component_children", "Import Component", "import_container_info", "drag_import_component")
+      const ref = document.getElementById('import_parent_reference_c') as HTMLInputElement;
+      ref.value = element.import_parent;
+      const name = document.getElementById('import_comp_name_input') as HTMLInputElement;
+      name.value = element.href;
+      const comp = document.getElementById('import_comp_ref_input') as HTMLInputElement;
+      comp.value = element.units_ref;
     }
     else {
-      change_element("model_children", "Model", "model_info", "drag_model")
+      change_element("model_children", "Model", "model_info", "drag_model");
     }
   }
 
@@ -1482,8 +1863,9 @@ const CreateImgModel: React.FunctionComponent = () => {
     } 
     // ==============================================================================================
     else if (clickedElement === "Math") {
+      const m_ref = document.getElementById("math_comp_ref_input") as HTMLInputElement;
       const shapes_2 = shapes_;
-      shapes_2.push( {x:editor_mouseX, y:editor_mouseY, radius:10, color:'blue', element_type:'math'})
+      shapes_2.push( {x:editor_mouseX, y:editor_mouseY, radius:10, color:'blue', element_type:'math', comp_parent: m_ref.value})
       setShapes(shapes_2);
     } 
     // ==============================================================================================
@@ -1583,15 +1965,10 @@ const CreateImgModel: React.FunctionComponent = () => {
       const i_ref = document.getElementById("import_comp_ref_input") as HTMLInputElement;
 
       const shapes_2 = shapes_;
-      shapes_2.push( {x:editor_mouseX, y:editor_mouseY, radius:10, color:'green', element_type:'import_component', name:i_name.value, units_ref:i_ref.value, import_parent: ref.value})
+      shapes_2.push( {x:editor_mouseX, y:editor_mouseY, radius:10, color:'green', element_type:'import_component', name:i_name.value, comp_ref:i_ref.value, import_parent: ref.value})
       setShapes(shapes_2);
     } 
-
-    console.log(listofVariables);
-
-    //context.drawImage(img, x_dir -60 , y_dir -60, 100, 100);
     drawAll();
-
   };
 
 
@@ -1656,6 +2033,7 @@ const CreateImgModel: React.FunctionComponent = () => {
   const change_element = (element_name: string, model_name: string, 
                           element_info: string, element_img: string) => {
     console.log('changed element');
+
     document.getElementById("model_children").style.display = 'none';
     document.getElementById("import_children").style.display = 'none';
     document.getElementById("import_units_children").style.display = 'none';
@@ -1714,6 +2092,76 @@ const CreateImgModel: React.FunctionComponent = () => {
     setClickedElement(model_name);
     setCurrentElementImg(element_img);
 
+    clear_input();
+  }
+
+  const clear_input = () => {
+    const u_name = document.getElementById('units_name_input') as HTMLInputElement;
+    u_name.value = "";
+    const u_units = document.getElementById('units_ref_input') as HTMLInputElement;
+    const u_ref   = document.getElementById('unit_ref_input') as HTMLInputElement;
+    const u_prefix= document.getElementById('unit_prefix_input') as HTMLInputElement;
+    const u_mult  = document.getElementById('unit_multiplier_input') as HTMLInputElement;
+    const u_exp   = document.getElementById('unit_exp_input') as HTMLInputElement;
+    u_units.value = "";
+    u_ref.value   = "";
+    u_prefix.value= "1";
+    u_mult.value  = "1";
+    u_exp.value   = "1";
+    const c_name = document.getElementById('comp_name_input') as HTMLInputElement;
+    c_name.value = "";
+    const v_comp_ref = document.getElementById('var_comp_ref_input') as HTMLInputElement;
+    const v_name = document.getElementById('var_name_input') as HTMLInputElement;
+    const v_units = document.getElementById('var_units_input') as HTMLInputElement;
+    const v_interface = document.getElementById('var_interface_input') as HTMLInputElement;
+    const v_init = document.getElementById('var_init_input') as HTMLInputElement;
+    v_comp_ref.value = "";
+    v_name.value = "";
+    v_units.value = "";
+    v_interface.value = "none";
+    v_init.value = "";
+    const r_ref = document.getElementById('reset_comp_ref_input') as HTMLInputElement;
+    const r_var = document.getElementById('reset_var_input') as HTMLInputElement;
+    const r_test = document.getElementById('reset_test_input') as HTMLInputElement;
+    const r_ord = document.getElementById('reset_order_input') as HTMLInputElement;
+    r_ref.value = "";
+    r_var.value = "";
+    r_test.value = "";
+    r_ord.value = "";
+    const t_ref = document.getElementById('tv_comp_ref') as HTMLInputElement;
+    t_ref.value = "";
+    const rc_ref = document.getElementById('rv_comp_ref') as HTMLInputElement;
+    rc_ref.value = "";
+    const c_ref = document.getElementById('math_comp_ref_input') as HTMLInputElement;
+    c_ref.value = "";
+    const c_refp = document.getElementById('comp_ref_parent_id') as HTMLInputElement;
+    c_refp.value = "0";
+    const c_refc = document.getElementById('comp_ref_comp_input') as HTMLInputElement;
+    c_refc.value = "";
+    const c1 = document.getElementById('connect_1_input') as HTMLInputElement;
+    c1.value = "";
+    const c2 = document.getElementById('connect_2_input') as HTMLInputElement;
+    c2.value = "";
+    const ref = document.getElementById('map_connect_input') as HTMLInputElement;
+    ref.value = "";
+    const v1 = document.getElementById('map_var_1_input') as HTMLInputElement;
+    v1.value = "";
+    const v2 = document.getElementById('map_var_2_input') as HTMLInputElement;
+    v2.value = "";
+    const href = document.getElementById('import_ref_input') as HTMLInputElement;
+    href.value = "";
+    const ref2 = document.getElementById('import_parent_reference_u') as HTMLInputElement;
+    ref2.value = "";
+    const name2 = document.getElementById('import_units_name_input') as HTMLInputElement;
+    name2.value = "";
+    const units = document.getElementById('import_units_ref_input') as HTMLInputElement;
+    units.value = "";
+    const ref3 = document.getElementById('import_parent_reference_c') as HTMLInputElement;
+    ref3.value = "";
+    const name3 = document.getElementById('import_comp_name_input') as HTMLInputElement;
+    name3.value = "";
+    const comp3 = document.getElementById('import_comp_ref_input') as HTMLInputElement;
+    comp3.value = "";          
   }
 
   // ---------------------------------------------------------------------------------
@@ -1721,88 +2169,85 @@ const CreateImgModel: React.FunctionComponent = () => {
   // ---------------------------------------------------------------------------------
   // Error Checking the names
   const checkUnitsName = () => {
-    const model_name = document.getElementById("units_name_input") as HTMLInputElement;
-
-    // loop through pre-existing units - if seen mark as 1, AKA invalid
-    let units_exists = 0;
-    for (let i = 0; i<list_of_inbuilt_units.length; i++) {
-      if (list_of_inbuilt_units[i] == model_name.value) units_exists = 1;
-    }
-
+    const units_name = document.getElementById("units_name_input") as HTMLInputElement;
+    const name = units_name.value;
     // loop and look if name is already taken
-    let local_units = 0;
-    const cun = document.getElementById("units_name_input") as HTMLInputElement;
-    const current_units_name = cun.value;
-    for (let i = 0; i<listofUnits.length; i++) {
-	if (listofUnits[i].name === current_units_name) local_units = 1;
+    let units_name_exists = 0;
+    for (let i = 0; i < listofUnits.length; i++) {
+      if (listofUnits[i].units_name === name) units_name_exists = 1;
     }
-
     // check if the string inserted is valid
-    if (units_exists == 1) {
-      document.getElementById("units_name_input").style.borderColor = "#d64545";
-    } else if (local_units == 1) {
-      document.getElementById("units_name_input").style.borderColor = "#d64545";
-    } else if (model_name.value.match('^[a-zA-Z][_a-zA-Z]*')) {
-      document.getElementById("units_name_input").style.borderColor = "#45d651";
-    } else {
-      document.getElementById("units_name_input").style.borderColor = "#d64545";
-    }
+    if (units_name_exists == 1) {document.getElementById("units_name_input").style.borderColor = "#d64545";}
+    else if (name.match('^[a-zA-Z]+[a-zA-Z0-9_]*$')) {document.getElementById("units_name_input").style.borderColor = "#45d651";}
+    else {document.getElementById("units_name_input").style.borderColor = "#d64545";}
   }
 
   // ---------------------------------------------------------------------------------
   // ------------------------------- CHECK UNIT --------------------------------------
   // ---------------------------------------------------------------------------------
+  const checkUnitName = () => {
+    const unit_name = document.getElementById("unit_ref_input") as HTMLInputElement;
+    const unit = unit_name.value;
+    // loop through pre-existing units - if seen mark as 1, AKA invalid
+    let si_unit_exists = 0;
+    for (let i = 0; i<list_of_inbuilt_units.length; i++) {
+      if (list_of_inbuilt_units[i] == unit) {si_unit_exists = 1; console.log('found')}
+    }
+    // check a list of all units added - if units name is the same as unit
+    let units_exists = 0;
+    for (let i = 0; i<listofUnits.length; i++) {
+      if (listofUnits[i].units_name === unit) units_exists = 1;
+    }
+    if (si_unit_exists === 1) {document.getElementById("unit_ref_input").style.borderColor = "#45d651";}
+    else if (units_exists === 1) {document.getElementById("unit_ref_input").style.borderColor = "#45d651";} 
+    else { document.getElementById("unit_ref_input").style.borderColor = "#d64545";}
+  }
+
+  const checkUnitRef = () => {
+    const units_ref = document.getElementById("units_ref_input") as HTMLInputElement;
+    const id = units_ref.value;
+    let exists = 0;
+    for (let i = 0; i < listofUnits.length; i++) {
+      if (listofUnits[i].u_id == id) exists = 1;
+    }
+    if (exists == 1) {document.getElementById("units_ref_input").style.borderColor = "#45d651";}
+    else {document.getElementById("units_ref_input").style.borderColor = "#d64545";}
+  }
 
   const checkUnitMul = () => {
-     const mul = document.getElementById("unit_multiplier_input") as HTMLInputElement;
-     const value = mul.value;
-     // exponent should be an integer
-     if (value.match(/^[+-]?(\d*\.)?\d+$/) != null) {
-	document.getElementById("unit_multiplier_input").style.borderColor = "#45d651";
-     } else {
-	document.getElementById("unit_multiplier_input").style.borderColor = "#d64545";
-     }
+    const mul = document.getElementById("unit_multiplier_input") as HTMLInputElement;
+    const value = mul.value;
+    // exponent should be an integer or empty as it's optional
+    if (value === "") {document.getElementById("unit_multiplier_input").style.borderColor = "#45d651";} 
+    else if (value.match(/^[+-]?(\d*\.)?\d+$/) != null) {document.getElementById("unit_multiplier_input").style.borderColor = "#45d651";} 
+    else {document.getElementById("unit_multiplier_input").style.borderColor = "#d64545";}
   }
+
   const checkUnitExp = () => {
-     const exp = document.getElementById("unit_exp_input") as HTMLInputElement;
-     const value = exp.value;
-     // exponent should be an integer
-     if (value.match(/^[+-]?(\d*\.)?\d+$/) != null) {
-	document.getElementById("unit_exp_input").style.borderColor = "#45d651";
-     } else {
-	document.getElementById("unit_exp_input").style.borderColor = "#d64545";
-     }
+    const exp = document.getElementById("unit_exp_input") as HTMLInputElement;
+    const value = exp.value;
+    // exponent should be an integer or empty as it's optional
+    if (value === "") {document.getElementById("unit_exp_input").style.borderColor = "#45d651";} 
+    else if (value.match(/^[+-]?(\d*\.)?\d+$/) != null) {	document.getElementById("unit_exp_input").style.borderColor = "#45d651"; } 
+    else { document.getElementById("unit_exp_input").style.borderColor = "#d64545"; }
   }
+
   const checkUnitPrefix = () => {
-     const prefix = document.getElementById("unit_prefix_input") as HTMLInputElement;
-     const value = prefix.value;
-     // exponent should be an integer
-     if (value.match(/^[+-]?(\d*\.)?\d+$/) != null) {
-	document.getElementById("unit_prefix_input").style.borderColor = "#45d651";
-     } else {
-	document.getElementById("unit_prefix_input").style.borderColor = "#d64545";
-     }
+    const prefix = document.getElementById("unit_prefix_input") as HTMLInputElement;
+    const value = prefix.value;
+    // check if part of the prefix table
+    let si_prefix_exists = 0;
+    for (let i = 0; i < list_of_inbuilt_prefix.length; i++) {
+      if (list_of_inbuilt_prefix[i] === value) si_prefix_exists = 1;
+    }
+    // exponent should be an integer or empty as it's optional
+    if (value === "") {document.getElementById("unit_prefix_input").style.borderColor = "#45d651";} 
+    if (si_prefix_exists === 1) {document.getElementById("unit_prefix_input").style.borderColor = "#45d651";} 
+    else if (value.match(/^[+-]?(\d*\.)?\d+$/) != null) { document.getElementById("unit_prefix_input").style.borderColor = "#45d651"; } 
+    else { document.getElementById("unit_prefix_input").style.borderColor = "#d64545"; }
   }
 
-  const checkUnitName = () => {
-    // check if it's a default unit
-    check_inbuilt_names();
-    // check a list of all units added
-    let local_units = 0;
-    const cun = document.getElementById("unit_ref_input") as HTMLInputElement;
-    const current_units_name = cun.value;
-    for (let i = 0; i<listofUnits.length; i++) {
-	if (listofUnits[i].name === current_units_name) local_units = 1;
-    }
-
-    if (local_units === 1) {
-      document.getElementById("unit_ref_input").style.borderColor = "#45d651";  
-    } else {
-      document.getElementById("unit_ref_input").style.borderColor = "#d64545";
-    }
-    // check if the name corresponds to a prefix
-    check_inbuilt_prefix();
-  }
+  
 
   const check_inbuilt_names = () => {
     const unit = document.getElementById("unit_ref_input") as HTMLInputElement;
@@ -2173,109 +2618,147 @@ const CreateImgModel: React.FunctionComponent = () => {
   // ---------------------------------------------------------------------------------
   const checkComponentName = () => {
     const comp_name = document.getElementById("comp_name_input") as HTMLInputElement;
+    const name = comp_name.value;
     let existing = 0;
     for (let i =0; i<listofComponents.length; i++) {
-	if (listofComponents[i].name === comp_name.value) existing = 1;
+      if (listofComponents[i].name === name) existing = 1;
     }
-    if (existing === 1) {
-	document.getElementById("comp_name_input").style.borderColor = "#d64545";  
-    } else if (comp_name.value.match('^[a-zA-Z][_a-zA-Z]*')) {
-      document.getElementById("comp_name_input").style.borderColor = "#45d651";
-    } else {
-      document.getElementById("comp_name_input").style.borderColor = "#d64545";
-    }
+    if (existing === 1) {	document.getElementById("comp_name_input").style.borderColor = "#d64545"; } 
+    else if (name.match('^[a-zA-Z]+[a-zA-Z0-9_]*$')) { document.getElementById("comp_name_input").style.borderColor = "#45d651";} 
+    else { document.getElementById("comp_name_input").style.borderColor = "#d64545";}
   }
 
   // ---------------------------------------------------------------------------------
   // ---------------------------- CHECK VARIABLES ------------------------------------
   // ---------------------------------------------------------------------------------
+  const checkVariableCompID = () => {
+    const comp_id = document.getElementById("var_comp_ref_input") as HTMLInputElement;
+    const id = comp_id.value;
+    let id_exists = 0;
+    for (let i = 0; i < listofComponents.length; i++) {
+      if(listofComponents[i].c_id == id) id_exists = 1;
+    }
+    // Only if the component id exists in the model
+    if (id_exists == 1) { document.getElementById("var_comp_ref_input").style.borderColor = "#45d651"; }
+    else { document.getElementById("var_comp_ref_input").style.borderColor = "#d64545"; }
+  }
+  
   const checkVariableName = () => {
     const var_name = document.getElementById("var_name_input") as HTMLInputElement;
+    const name = var_name.value;
     let existing = 0;
-    for (let i =0; i<listofVariables.length; i++) {
-	if (listofVariables[i].name === var_name.value) existing = 1;
+    for (let i = 0; i < shapes_.length; i++) {
+      if (shapes_[i].name === name && shapes_[i].element_type == "variable") existing = 1;
     }
-    if (existing === 1) {
-	document.getElementById("var_name_input").style.borderColor = "#d64545";  
-    } else if (var_name.value.match('^[a-zA-Z][_a-zA-Z]*')) {
-      document.getElementById("var_name_input").style.borderColor = "#45d651";
-    } else {
-      document.getElementById("var_name_input").style.borderColor = "#d64545";
-    }
+    if (existing === 1) { document.getElementById("var_name_input").style.borderColor = "#d64545"; } 
+    else if (name.match('^[a-zA-Z]+[a-zA-Z0-9_]*$')) { document.getElementById("var_name_input").style.borderColor = "#45d651"; } 
+    else { document.getElementById("var_name_input").style.borderColor = "#d64545"; }
   }
 
   const checkVariableUnits = () => {
     const var_units = document.getElementById("var_units_input") as HTMLInputElement;
+    const units = var_units.value;
     let exists = 0;
-    for (let i =0; i<listofUnits.length; i++) {
-      if (listofUnits[i].name === var_units.value) exists = 1;
+    // check if there exists a units in the cellml model
+    for (let i =0; i<shapes_.length; i++) {
+      if (shapes_[i].units_name == units && shapes_[i].element_type == "units") exists = 1;
     }
+    // check the SI units for a valid units reference
     for (let i=0; i<list_of_inbuilt_units.length; i++) {
-      if (list_of_inbuilt_units[i] === var_units.value) exists = 1;
+      if (list_of_inbuilt_units[i] === units) exists = 1;
     }
-
-    if (exists === 1) {
-	document.getElementById("var_units_input").style.borderColor = "#45d651";  
-    } else {
-      document.getElementById("var_units_input").style.borderColor = "#d64545";
-    }
+    if (exists === 1) { document.getElementById("var_units_input").style.borderColor = "#45d651"; } 
+    else { document.getElementById("var_units_input").style.borderColor = "#d64545"; }
   }
 
   const checkVariableInitValue = () => {
     const var_init = document.getElementById("var_init_input") as HTMLInputElement;
-    // may be a valid resource or a valid real number
+    const init = var_init.value;
     let exists = 0;
-    for (let i=0; i<listofVariables.length; i++) {
-        if(listofVariables[i].name === var_init.value) exists = 1;
+    for (let i=0; i<shapes_.length; i++) {
+        if(shapes_[i].name == init && shapes_[i].element_type == "variable") exists = 1;
     }
-    if (exists === 1) {
-	document.getElementById("var_init_input").style.borderColor = "#45d651";
+    // can be a real number string, or a variable reference & optional so may be empty
+    if (exists === 1) { document.getElementById("var_init_input").style.borderColor = "#45d651"; }
+    else if (init == "") { document.getElementById("var_init_input").style.borderColor = "#45d651"; }
+    else if (init.match(/^[+-]?(\d*\.)?\d+$/) != null) { document.getElementById("var_init_input").style.borderColor = "#45d651"; } 
+    else { document.getElementById("var_init_input").style.borderColor = "#d64545"; }
+  }
+
+  // ---------------------------------------------------------------------------------
+  // ------------------------------- CHECK MATH --------------------------------------
+  // ---------------------------------------------------------------------------------
+  const checkMathCompID = () => {
+    const c_ref = document.getElementById("var_comp_ref_input") as HTMLInputElement;
+    const c_id = c_ref.value;
+    let id_exists = 0;
+    for (let i = 0; i < listofComponents.length; i++) {
+      if(listofComponents[i].c_id == c_id) id_exists = 1;
     }
-    else if (var_init.value.match(/^[+-]?(\d*\.)?\d+$/) != null) {
-	document.getElementById("var_init_input").style.borderColor = "#45d651";
-    } 
-    // note: need to add the case of r = sx10E
-    else {
-	document.getElementById("var_init_input").style.borderColor = "#d64545";
-    }
+    // Only if the component id exists in the model
+    if (id_exists == 1) { document.getElementById("math_comp_ref_input").style.borderColor = "#45d651"; }
+    else { document.getElementById("math_comp_ref_input").style.borderColor = "#d64545"; }
   }
   // ---------------------------------------------------------------------------------
   // ------------------------------- CHECK RESET -------------------------------------
   // ---------------------------------------------------------------------------------
+  const checkResetRef = () => {
+    const var_ref = document.getElementById("reset_comp_ref_input") as HTMLInputElement;
+    const id = var_ref.value;
+    let id_exists = 0;
+    for (let i = 0; i < listofComponents.length; i++) {
+      if(listofComponents[i].c_id == id) id_exists = 1;
+    }
+    // Only if the component id exists in the model
+    if (id_exists == 1) { document.getElementById("reset_comp_ref_input").style.borderColor = "#45d651"; }
+    else { document.getElementById("reset_comp_ref_input").style.borderColor = "#d64545"; }
+  }
+
   const checkResetVar = () => {
     const var_reset = document.getElementById("reset_var_input") as HTMLInputElement;
+    const variable = var_reset.value;
     let exists = 0;
-    for (let i =0; i<listofVariables.length; i++) {
-      if (listofVariables[i].name === var_reset.value) exists = 1;
+    for (let i =0; i < shapes_.length; i++) {
+      if (shapes_[i].name === variable && shapes_[i].element_type == "variable") exists = 1;
     }
-    if (exists === 1) {
-	document.getElementById("reset_var_input").style.borderColor = "#45d651";
-    } else {
-	document.getElementById("reset_var_input").style.borderColor = "#d64545";
-    }
+    if (exists === 1) {	document.getElementById("reset_var_input").style.borderColor = "#45d651"; } 
+    else { document.getElementById("reset_var_input").style.borderColor = "#d64545"; }
   }
 
   const checkResetTest = () => {
     const test_reset = document.getElementById("reset_test_input") as HTMLInputElement;
+    const variable = test_reset.value;
     let exists = 0;
-    for (let i =0; i<listofVariables.length; i++) {
-      if (listofVariables[i].name === test_reset.value) exists = 1;
+    for (let i =0; i < shapes_.length; i++) {
+      if (shapes_[i].name === variable && shapes_[i].element_type == "variable") exists = 1;
     }
-    if (exists === 1) {
-	document.getElementById("reset_test_input").style.borderColor = "#45d651";
-    } else {
-	document.getElementById("reset_test_input").style.borderColor = "#d64545";
-    }
+    if (exists === 1) {	document.getElementById("reset_test_input").style.borderColor = "#45d651"; } 
+    else { document.getElementById("reset_test_input").style.borderColor = "#d64545"; }
   }
 
   const checkResetOrder = () => {
     const ord_reset = document.getElementById("reset_order_input") as HTMLInputElement;
-    if (ord_reset.value.match(/^[+-]?(\d*\.)?\d+$/) != null) {
-	document.getElementById("reset_order_input").style.borderColor = "#45d651";
-    } else {
-	document.getElementById("reset_order_input").style.borderColor = "#d64545";
+    const order = ord_reset.value;
+    let exists = 0;
+    for (let i = 0; i < listofReset.length; i++) {
+      if (listofReset[i].order == order) exists = 1; 
     }
-    // TODO: make sure order is not repeated (unique to that variable)
+    if (exists == 1) { document.getElementById("reset_order_input").style.borderColor = "#d64545"; } 
+    else if (ord_reset.value.match(/^[+-]?(\d*\.)?\d+$/) != null) { document.getElementById("reset_order_input").style.borderColor = "#45d651"; } 
+    else { document.getElementById("reset_order_input").style.borderColor = "#d64545"; }
+  }
+
+  const checkResetParent = (input_string: string) => {
+    const reset_parent = document.getElementById(input_string) as HTMLInputElement;
+    const parent = reset_parent.value;
+
+    let exists = 0;
+    for (let i = 0; i < listofReset.length; i++) {
+      if (listofReset[i].r_id == parent) exists = 1;
+    }
+    if (exists == 1) {document.getElementById(input_string).style.borderColor = "#45d651";}
+    else {document.getElementById(input_string).style.borderColor = "#d64545";}
+
   }
   // ---------------------------------------------------------------------------------
   // ------------------------- CHECK COMPONENT REFERENCE -----------------------------
@@ -2292,6 +2775,24 @@ const CreateImgModel: React.FunctionComponent = () => {
       document.getElementById("comp_ref_comp_input").style.borderColor = "#d64545";
     }
   }
+
+  const checkCompRefID = () => {
+    const comp_ref_id = document.getElementById("comp_ref_parent_id") as HTMLInputElement;
+    const parent = comp_ref_id.value;
+
+    let exists = 0;
+    for (let i = 0; i < shapes_.length; i++) {
+      if (shapes_[i].element_type == "encapsulation" && parent == "1") exists = 1;
+      if (shapes_[i].element_type == "component_ref" && shapes_[i].c_id == parent) exists = 1;
+    }
+
+    if (exists === 1) {
+      document.getElementById("comp_ref_parent_id").style.borderColor = "#45d651";
+    } else {
+      document.getElementById("comp_ref_parent_id").style.borderColor = "#d64545";
+    }
+  }
+
   // ---------------------------------------------------------------------------------
   // ---------------------------- CONNECTION REFERENCE -------------------------------
   // ---------------------------------------------------------------------------------
@@ -2323,9 +2824,9 @@ const CreateImgModel: React.FunctionComponent = () => {
     const var2 = document.getElementById("map_var_2_input") as HTMLInputElement;
     let v1_exists = 0;
     let v2_exists = 0;
-    for (let i =0; i<listofVariables.length; i++) {
-      if (listofVariables[i].name === var1.value) v1_exists = 1;
-      if (listofVariables[i].name === var2.value) v2_exists = 1;
+    for (let i =0; i<shapes_.length; i++) {
+      if (shapes_[i].name === var1.value) v1_exists = 1;
+      if (shapes_[i].name === var2.value) v2_exists = 1;
     }
     if (v1_exists === 1) document.getElementById("map_var_1_input").style.borderColor = "#45d651";
     if (v2_exists === 1) document.getElementById("map_var_2_input").style.borderColor = "#45d651";
@@ -2337,17 +2838,42 @@ const CreateImgModel: React.FunctionComponent = () => {
     if (v2_exists === 0) document.getElementById("map_var_2_input").style.borderColor = "#d64545";
   }
 
+  const checkMapVariableRefID = () => {
+    const connection_ref = document.getElementById("map_connect_input") as HTMLInputElement;
+    const id = connection_ref.value;
+    let exists = 0;
+    for (let i = 0; i < listofConnections.length; i++) {
+      if (listofConnections[i].c_id == id) exists = 1;
+    }
+    if (exists == 1) document.getElementById("map_connect_input").style.borderColor = "#45d651";
+    else document.getElementById("map_connect_input").style.borderColor = "#d64545";
+  }
+
   // ---------------------------------------------------------------------------------
   // ------------------------------------ IMPORT -------------------------------------
   // ---------------------------------------------------------------------------------
   const checkImportHREF = () => {
     const href = document.getElementById("import_ref_input") as HTMLInputElement;
-    // hard coded: replace for valid link
-    if (href.value === "dorothy.cellml") {
+    // anything non empty is acceptable 
+    if (href.value !== "") {
       document.getElementById("import_ref_input").style.borderColor = "#45d651";
     } else {
       document.getElementById("import_ref_input").style.borderColor = "#d64545";
     }
+  }
+
+  const checkImportUnitsImportRef = (import_parent: string) => {
+    const imprt_ref = document.getElementById(import_parent) as HTMLInputElement;
+    const id = imprt_ref.value;
+
+    let exists = 0;
+    for (let i = 0; i < listofImports.length; i++) {
+      if (listofImports[i].i_id == id) exists = 1;
+    }
+
+    if (exists === 1) {	document.getElementById(import_parent).style.borderColor = "#45d651"; } 
+    else { document.getElementById(import_parent).style.borderColor = "#d64545";}
+
   }
   // ---------------------------------------------------------------------------------
   // --------------------------------- IMPORT UNITS ----------------------------------
@@ -2356,72 +2882,79 @@ const CreateImgModel: React.FunctionComponent = () => {
     const name = document.getElementById("import_units_name_input") as HTMLInputElement;
     let exists = 0;
     for (let i =0; i<listofUnits.length; i++) {
-      if (listofUnits[i].name === name.value) exists = 1;
+      if (listofUnits[i].units_name === name.value) exists = 1;
     }
-    // hard coded: replace later with the imported list
-    if (exists === 1) {
-	document.getElementById("import_units_name_input").style.borderColor = "#d64545";  
-    } else if (exists === 0) {
-        document.getElementById("import_units_name_input").style.borderColor = "#45d651";  
-    } else {
-      document.getElementById("import_units_name_input").style.borderColor = "#d64545";
+    for (let i = 0; i < shapes_.length; i++) {
+      if (shapes_[i].element_type == "import_units" && shapes_[i].name == name.value) exists = 1;
     }
+
+    console.log(exists)
+
+    if (exists == 1) {document.getElementById("import_units_name_input").style.borderColor = "#d64545";}
+    else if (name.value.match('^[a-zA-Z]+[a-zA-Z0-9_]*$')) {document.getElementById("import_units_name_input").style.borderColor = "#45d651";}
+    else { document.getElementById("import_units_name_input").style.borderColor = "#d64545"; }
   }
+  
   const checkImportUnitsRef = () => {
-    const name = document.getElementById("import_units_ref_input") as HTMLInputElement;
+    const ref = document.getElementById("import_units_ref_input") as HTMLInputElement;
+    const u_ref = ref.value;
     let exists = 0;
+    // if the referred units exists link up
     for (let i =0; i<listofUnits.length; i++) {
-      if (listofUnits[i].name === name.value) exists = 1;
+      if (listofUnits[i].units_name === u_ref) {exists = 1}
     }
-    // hard coded: replace later with the imported list
-    if (exists === 1) {
-	document.getElementById("import_units_ref_input").style.borderColor = "#45d651";  
-    } else {
-      document.getElementById("import_units_ref_input").style.borderColor = "#d64545";
+    for (let i = 0; i < shapes_.length; i++) {
+      if (shapes_[i].element_type == "import_units" && shapes_[i].name == u_ref) exists = 1;
     }
+    if (exists === 1) {	document.getElementById("import_units_ref_input").style.borderColor = "#45d651"; } 
+    else { document.getElementById("import_units_ref_input").style.borderColor = "#d64545";}
   }
+
   // ---------------------------------------------------------------------------------
   // ------------------------------ IMPORT COMPONENTS --------------------------------
   // ---------------------------------------------------------------------------------
   const checkImportCompName = () => {
     const name = document.getElementById("import_comp_name_input") as HTMLInputElement;
     let exists = 0;
+    // check the model for other components
     for (let i =0; i<listofComponents.length; i++) {
       if (listofComponents[i].name === name.value) exists = 1;
     }
-    // hard coded: replace later with the imported list
-    if (exists === 1) {
-	document.getElementById("import_comp_name_input").style.borderColor = "#d64545";  
-    } else if (exists === 0) {
-        document.getElementById("import_comp_name_input").style.borderColor = "#45d651";  
-    } else {
-      document.getElementById("import_comp_name_input").style.borderColor = "#d64545";
+    // check imported
+    for (let i = 0; i < shapes_.length; i++) {
+      if (shapes_[i].element_type == "import_component" && shapes_[i].name == name.value) exists = 1;
     }
+    if (exists === 1) {	document.getElementById("import_comp_name_input").style.borderColor = "#d64545"; } 
+    else if (name.value.match('^[a-zA-Z]+[a-zA-Z0-9_]*$')) { document.getElementById("import_comp_name_input").style.borderColor = "#45d651"; } 
+    else { document.getElementById("import_comp_name_input").style.borderColor = "#d64545"; }
   }
+
   const checkImportCompRef = () => {
     const name = document.getElementById("import_comp_ref_input") as HTMLInputElement;
     let exists = 0;
     for (let i =0; i<listofComponents.length; i++) {
       if (listofComponents[i].name === name.value) exists = 1;
     }
-    // hard coded: replace later with the imported list
-    if (exists === 1) {
-	document.getElementById("import_comp_ref_input").style.borderColor = "#45d651";  
-    } else {
-      document.getElementById("import_comp_ref_input").style.borderColor = "#d64545";
+    for (let i = 0; i < shapes_.length; i++) {
+      if (shapes_[i].element_type == "import_component" && shapes_[i].name == name.value) exists = 1;
     }
+    // hard coded: replace later with the imported list
+    if (exists === 1) {	document.getElementById("import_comp_ref_input").style.borderColor = "#45d651"; } 
+    else { document.getElementById("import_comp_ref_input").style.borderColor = "#d64545";}
   }
+
+
   // ---------------------------------------------------------------------------------
   // ---------------------------------------------------------------------------------
   // ---------------------------------------------------------------------------------
   // After the user is happy with what they have created they can generate the model
   const convert_to_text_model = () => {
-    console.log(shapes_);
+    console.log();
 
 
     const xml_version = `<?xml version="1.0" encoding="UTF-8"?>`;
     const new_line = "\n";
-
+    const n = "";
 
     const model_name_input = document.getElementById("insert_name_box") as HTMLInputElement;
     const model_name = model_name_input.value;
@@ -2432,6 +2965,15 @@ const CreateImgModel: React.FunctionComponent = () => {
     console.log(xml_version + new_line + model + new_line + model_end);
     
 
+  }
+
+
+  const on_hover_show_cellml_restrictions = (input_string: string) => {
+    document.getElementById(input_string).style.display = "block";
+  }
+
+  const on_leave_close_cellml_restrictions = (input_string: string) => {
+    document.getElementById(input_string).style.display = "none";
   }
 
   // top of page button to check console logs/funcitonality
@@ -2452,7 +2994,165 @@ const CreateImgModel: React.FunctionComponent = () => {
     console.log('hello');
   }*/
 
-  
+
+
+
+
+  // ----------------------------------------------------------------------------------------------------
+  // ----------------------------------------------------------------------------------------------------
+  // ----------------------------------------------------------------------------------------------------
+  // ----------------------------------------------------------------------------------------------------
+  // ----------------------------------------------------------------------------------------------------
+
+  // Delete the currently selected cellml element
+  async function delete_element() {
+    // get the element to delete
+    const element = shapes_[selectedShapeIndex];
+    if (element == undefined) return;
+
+    // loop through the individual lists and remove if it exists
+    if (element.element_type == "units") {
+      setListofUnits(listofUnits.filter(item => item.x != element.x && item.y != element.y));
+    }
+    else if (element.element_type == "component") {
+      setListofComponents(listofComponents.filter(item => item.x != element.x && item.y != element.y));
+    }
+    else if (element.element_type == "connection") {
+      setListofConnections(listofConnections.filter(item => item.x != element.x && item.y != element.y));
+    }
+    else if (element.element_type == "component_ref") {
+      setListofComponentRefs(listofComponentRefs.filter(item => item.x != element.x && item.y != element.y));
+    }
+    else if (element.element_type == "import") {
+      setListofImports(listofImports.filter(item => item.x != element.x && item.y != element.y));
+    }
+    else if (element.element_type == "reset") {
+      setListofReset(listofReset.filter(item => item.x != element.x && item.y != element.y));
+    }
+
+    // loop through and add every element besides current element
+    const deleted_shape_list = [];
+    for (let i = 0; i < shapes_.length; i++) {
+      if (i != selectedShapeIndex) deleted_shape_list.push(shapes_[i]);
+    }
+    setShapes(shapes_.filter(item => item.x != element.x && item.y != element.y));
+    drawAll();
+  }
+
+  useEffect(() => {
+    console.log('test if instant deletion');
+    drawAll();
+  }, [shapes_]);
+    
+  // Update the current cellml elemenet information
+  const edit_element = () => {
+    // If there is a valid element selected
+    const element = shapes_[selectedShapeIndex];
+    if (element == undefined) return;
+    console.log('Edit element: ');
+    console.log(element);
+    
+    if (element.element_type == "units") {
+      const units_name = document.getElementById("units_name_input") as HTMLInputElement;
+      shapes_[selectedShapeIndex].units_name = units_name.value;
+      for (let i = 0; i < listofUnits.length; i ++) {
+        if (listofUnits[i].x == element.x && listofUnits[i].y == element.y) listofUnits[i].units_name = units_name.value;
+      }
+    }
+    else if (element.element_type == "unit") {
+      const unit_id     = document.getElementById("units_ref_input") as HTMLInputElement;
+      const units       = document.getElementById("unit_ref_input") as HTMLInputElement;
+      const unit_prefix = document.getElementById("unit_prefix_input") as HTMLInputElement;
+      const unit_mult   = document.getElementById("unit_multiplier_input") as HTMLInputElement;
+      const unit_exp    = document.getElementById("unit_exp_input") as HTMLInputElement;
+      shapes_[selectedShapeIndex].units_parent = unit_id.value;
+      shapes_[selectedShapeIndex].units        = units.value;
+      shapes_[selectedShapeIndex].prefix       = unit_prefix.value;
+      shapes_[selectedShapeIndex].multiplier   = unit_mult.value;
+      shapes_[selectedShapeIndex].exponent     = unit_exp.value;
+    }
+    else if (element.element_type == "component") {
+      const comp_name = document.getElementById("comp_name_input") as HTMLInputElement;
+      const temp_shapes = shapes_;
+      temp_shapes[selectedShapeIndex].name = comp_name.value;
+      setShapes(temp_shapes);
+    }
+    else if (element.element_type == "variable") {
+      const comp_ref    = document.getElementById("var_comp_ref_input") as HTMLInputElement;
+      const v_name      = document.getElementById("var_name_input") as HTMLInputElement;
+      const v_units     = document.getElementById("var_units_input") as HTMLInputElement;
+      const v_interface = document.getElementById("var_interface_input") as HTMLInputElement;
+      const v_init      = document.getElementById("var_init_input") as HTMLInputElement;
+      shapes_[selectedShapeIndex].comp_parent = comp_ref.value;
+      shapes_[selectedShapeIndex].name        = v_name.value;
+      shapes_[selectedShapeIndex].units       = v_units.value;
+      shapes_[selectedShapeIndex].interface   = v_interface.value;
+      shapes_[selectedShapeIndex].initial_val = v_init.value;
+    }
+    else if (element.element_type == "reset") {
+      const comp_ref = document.getElementById("reset_comp_ref_input") as HTMLInputElement;
+      const r_var    = document.getElementById("reset_var_input") as HTMLInputElement;
+      const r_test   = document.getElementById("reset_test_input") as HTMLInputElement;
+      const r_order  = document.getElementById("reset_order_input") as HTMLInputElement;
+      shapes_[selectedShapeIndex].comp_parent = comp_ref.value;
+      shapes_[selectedShapeIndex].name        = r_var.value;
+      shapes_[selectedShapeIndex].units       = r_test.value;
+      shapes_[selectedShapeIndex].interface   = r_order.value;
+    }
+    else if (element.element_type == "test_val") {
+      const t_ref = document.getElementById("tv_comp_ref") as HTMLInputElement;
+      shapes_[selectedShapeIndex].comp_parent = t_ref.value;
+    }
+    else if (element.element_type == "reset_val") {
+      const r_ref = document.getElementById("rv_comp_ref") as HTMLInputElement;
+      shapes_[selectedShapeIndex].comp_parent = r_ref.value;
+    }
+    else if (element.element_type == "math") {
+      const m_ref = document.getElementById("math_comp_ref_input") as HTMLInputElement;
+      shapes_[selectedShapeIndex].comp_parent = m_ref.value;
+    }
+    else if (element.element_type == "component_ref") {
+      const cr_id  = document.getElementById("comp_ref_parent_id") as HTMLInputElement;
+      const cr_ref = document.getElementById("comp_ref_comp_input") as HTMLInputElement;
+      shapes_[selectedShapeIndex].compf_parent = cr_id.value;
+      shapes_[selectedShapeIndex].component    = cr_ref.value;
+    }
+    else if (element.element_type == "connection") {
+      const conn_1 = document.getElementById("connect_1_input") as HTMLInputElement;
+      const conn_2 = document.getElementById("connect_2_input") as HTMLInputElement;
+      shapes_[selectedShapeIndex].component1 = conn_1.value;
+      shapes_[selectedShapeIndex].component2 = conn_2.value;
+    }
+    else if (element.element_type == "map_var") {
+      const m_conn = document.getElementById("map_connect_input") as HTMLInputElement;
+      const m_var1 = document.getElementById("map_var_1_input") as HTMLInputElement;
+      const m_var2 = document.getElementById("map_var_2_input") as HTMLInputElement;
+      shapes_[selectedShapeIndex].conn_parent = m_conn.value;
+      shapes_[selectedShapeIndex].variable1   = m_var1.value;
+      shapes_[selectedShapeIndex].variable2   = m_var2.value;
+    }
+    else if (element.element_type == "import") {
+      const import_href = document.getElementById("import_ref_input") as HTMLInputElement;
+      shapes_[selectedShapeIndex].href = import_href.value;
+    }
+    else if (element.element_type == "import_units") {
+      const i_import_ref = document.getElementById("import_parent_reference_u") as HTMLInputElement;
+      const i_name       = document.getElementById("import_units_name_input") as HTMLInputElement;
+      const i_units_ref   = document.getElementById("import_units_ref_input") as HTMLInputElement;
+      shapes_[selectedShapeIndex].import_parent = i_import_ref.value;
+      shapes_[selectedShapeIndex].name          = i_name.value;
+      shapes_[selectedShapeIndex].units_ref     = i_units_ref.value;      
+    }
+    else if (element.element_type == "import_component") {
+      const i_import_ref = document.getElementById("import_parent_reference_c") as HTMLInputElement;
+      const i_name       = document.getElementById("import_comp_name_input") as HTMLInputElement;
+      const i_comp_ref   = document.getElementById("import_comp_ref_input") as HTMLInputElement;
+      shapes_[selectedShapeIndex].import_parent = i_import_ref.value;
+      shapes_[selectedShapeIndex].name          = i_name.value;
+      shapes_[selectedShapeIndex].comp_ref      = i_comp_ref.value;
+    }
+    drawAll();
+  }  
 
   // ----------------------------------------------------------------------------------------------------
   // ----------------------------------------------------------------------------------------------------
@@ -2475,118 +3175,124 @@ const CreateImgModel: React.FunctionComponent = () => {
             </p>
           </div> 
         </div>
-
         {/* ========================= Generate and Post buttons ======================== */}
         <div>
           <button className="modelbuttons" onClick={restartCanvas}>Restart Model <img id="model_refresh_img" src={refresh_img_string}/> </button>
           <button className="modelbuttons generatemodel" onClick={convert_to_text_model}>Generate Model ✔️</button>
         </div>
-        
-
-
-        <div id="model_padding"> </div>
+         {/* ========================= Just some styling padding ======================== */}
+        <div className="model_padding"> </div>
+         {/* ========================= The Canvas and Element Container ======================== */}
         <div id="canvas_and_model_container">
-          <canvas id="graphCanvas" onDrop={dropElem} onDragOver={allowDrop} height="500" width="1000" onMouseDown={(event)=>handleMouseDown(event)}
-                  onMouseOut={(event)=>handleMouseOut(event)} onMouseUp={(event)=>handleMouseUp(event)}  onMouseMove={(event)=>handleMouseMove(event)}></canvas>
-          <div id="element_info">{clickedElement}
+          <canvas id="graphCanvas" height="500" width="1000" 
+                  onDrop={dropElem} onDragOver={allowDrop} 
+                  onMouseDown={(event)=>handleMouseDown(event)}
+                  onMouseOut={(event)=>handleMouseOut(event)} 
+                  onMouseUp={(event)=>handleMouseUp(event)}  
+                  onMouseMove={(event)=>handleMouseMove(event)}></canvas>
+                  
+          <div id="element_info">
+            <div id="current_cellml_element_name">{clickedElement} </div>
           <div>
+            
             <div id="model_info" className="elem_info">
-              <div>Name: {modelname}</div>
+              Model Name: {modelname}
             </div>
+
             <div id="element_drag_img">
 
               <img id="drag_component" className="element_img" 
-                 src="https://cdn.pixabay.com/photo/2016/08/25/07/30/red-1618916_640.png" 
+                 src="https://i.imgur.com/mQJ9btp.png" 
                  draggable={true} 
                  onMouseOver={(event) => get_pos_elem(event)} 
                  onDragStart={(event) => dragElement(event)}/>
 
               <img id="drag_units" className="element_img" 
-                 src="https://svgsilh.com/svg/1618916-009688.svg" 
+                 src="https://i.imgur.com/knSsOjz.png" 
                  draggable={true} 
                  onMouseOver={(event) => get_pos_elem(event)} 
                  onDragStart={(event) => dragElement(event)}/>
 
               <img id="drag_unit" className="element_img" 
-                 src="https://svgsilh.com/svg/1618916-03a9f4.svg" 
+                 src="https://i.imgur.com/CZZxCSc.png" 
                  draggable={true} 
                  onMouseOver={(event) => get_pos_elem(event)} 
                  onDragStart={(event) => dragElement(event)}/>
 
               <img id="drag_variable" className="element_img" 
-                 src="https://svgsilh.com/svg/1618916-ff5722.svg" 
+                 src="https://i.imgur.com/UOaalhF.png" 
                  draggable={true} 
                  onMouseOver={(event) => get_pos_elem(event)} 
                  onDragStart={(event) => dragElement(event)}/>
 
               <img id="drag_reset" className="element_img" 
-                 src="https://svgsilh.com/svg/1618916-4caf50.svg" 
+                 src="https://i.imgur.com/N8yCmOx.png" 
                  draggable={true} 
                  onMouseOver={(event) => get_pos_elem(event)} 
                  onDragStart={(event) => dragElement(event)}/>
 
               <img id="drag_test_value" className="element_img" 
-                 src="https://svgsilh.com/svg/1618916-8bc34a.svg" 
+                 src="https://i.imgur.com/I19zwvu.png" 
                  draggable={true} 
                  onMouseOver={(event) => get_pos_elem(event)} 
                  onDragStart={(event) => dragElement(event)}/>
 
               <img id="drag_reset_value" className="element_img" 
-                 src="https://svgsilh.com/svg/1618916-cddc39.svg" 
+                 src="https://i.imgur.com/s11N2VD.png" 
                  draggable={true} 
                  onMouseOver={(event) => get_pos_elem(event)} 
                  onDragStart={(event) => dragElement(event)}/>
           
               <img id="drag_math" className="element_img" 
-                 src="https://svgsilh.com/svg/1618916-3f51b5.svg" 
+                 src="https://i.imgur.com/UtPNPLH.png" 
                  draggable={true} 
                  onMouseOver={(event) => get_pos_elem(event)} 
                  onDragStart={(event) => dragElement(event)}/>
 
               <img id="drag_encapsulation" className="element_img" 
-                 src="https://svgsilh.com/svg/1618916-607d8b.svg" 
+                 src="https://i.imgur.com/HiSWon1.png" 
                  draggable={true} 
                  onMouseOver={(event) => get_pos_elem(event)} 
                  onDragStart={(event) => dragElement(event)}/>
           
               <img id="drag_comp_ref" className="element_img" 
-                 src="https://svgsilh.com/svg/1618916-e91e63.svg" 
+                 src="https://i.imgur.com/5H9sHhw.png" 
                  draggable={true} 
                  onMouseOver={(event) => get_pos_elem(event)} 
                  onDragStart={(event) => dragElement(event)}/>
           
               <img id="drag_connection" className="element_img" 
-                 src="https://svgsilh.com/svg/1618916-673ab7.svg" 
+                 src="https://i.imgur.com/ptHOCqp.png" 
                  draggable={true} 
                  onMouseOver={(event) => get_pos_elem(event)} 
                  onDragStart={(event) => dragElement(event)}/>
           
               <img id="drag_map_variables" className="element_img" 
-                 src="https://svgsilh.com/svg/1618916-ffc107.svg" 
+                 src="https://i.imgur.com/T13MxYS.png" 
                  draggable={true} 
                  onMouseOver={(event) => get_pos_elem(event)} 
                  onDragStart={(event) => dragElement(event)}/>
 
               <img id="drag_import" className="element_img" 
-                 src="https://svgsilh.com/svg/1618916-666666.svg" 
+                 src="https://i.imgur.com/YPNhhi2.png" 
                  draggable={true} 
                  onMouseOver={(event) => get_pos_elem(event)} 
                  onDragStart={(event) => dragElement(event)}/>
           
               <img id="drag_import_units" className="element_img" 
-                 src="https://svgsilh.com/svg/1618916-ba352c.svg" 
+                 src="https://i.imgur.com/iKJCCXI.png" 
                  draggable={true} 
                  onMouseOver={(event) => get_pos_elem(event)} 
                  onDragStart={(event) => dragElement(event)}/>
           
               <img id="drag_import_component" className="element_img" 
-                 src="https://svgsilh.com/svg/1618916-027468.svg" 
+                 src="https://i.imgur.com/uNnCsVZ.png" 
                  draggable={true} 
                  onMouseOver={(event) => get_pos_elem(event)} 
                  onDragStart={(event) => dragElement(event)}/>
           
               <img id="drag_model" className="element_img" 
-                 src="https://svgsilh.com/svg/1618916.svg" 
+                 src="https://i.imgur.com/R9a7Awr.png" 
                  draggable={true} 
                  onMouseOver={(event) => get_pos_elem(event)} 
                  onDragStart={(event) => dragElement(event)}/>
@@ -2594,11 +3300,12 @@ const CreateImgModel: React.FunctionComponent = () => {
 
 
 
-
-            <div id="units_info" className="elem_info tooltip-wrap2">
+            {/* === UNITS === */}
+            <div id="units_info" className="elem_info">
               <div> Name: 
-                <input id="units_name_input" className="elem_info_input" placeholder="units_name" onKeyUp={checkUnitsName}></input>
-                <div className="tooltip-content2">
+                <input id="units_name_input" className="elem_info_input" placeholder="units name" onKeyUp={checkUnitsName} 
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_units_name")} onMouseOut={() => on_leave_close_cellml_restrictions("cellml_units_name")}></input>
+                <div id="cellml_units_name" className="cellml_restrictions">
                   <ul>
                     <li>Alphabetical first (A-Z | a-z), followed by alphanumeric or underscore (A-Z | a-z | 0-9 | _)</li>
                     <li>Must be a unique name in the model</li>
@@ -2608,416 +3315,665 @@ const CreateImgModel: React.FunctionComponent = () => {
               </div>
             </div>
 
-
-
-            <div id="unit_info" className="elem_info tooltip-wrap2">
+            {/* === UNIT === */}
+            <div id="unit_info" className="elem_info">
+              <div> 
+                <div> Units reference:
+                <input id="units_ref_input" className="elem_info_input" placeholder="units id" onKeyUp={checkUnitRef}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_unit_ref")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_unit_ref")}></input>
+                <div id="cellml_unit_ref" className="cellml_restrictions">
+                  Is an ID number to conenct this unit with parent units element.
+                </div>
+              </div>
               <div> Units: 
-                <input id="unit_ref_input" className="elem_info_input" placeholder="units_ref" onKeyUp={checkUnitName}></input>
-                <div className="tooltip-content2">
-                  {/*<ul>
+                <input id="unit_ref_input" className="elem_info_input" list="different_si_units" placeholder="type of unit" onKeyUp={checkUnitName} 
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_unit_name")} onMouseOut={() => on_leave_close_cellml_restrictions("cellml_unit_name")}></input>
+                <datalist id="different_si_units">
+                  <option>ampere</option>
+                  <option>becquerel</option>
+                  <option>candela</option>
+                  <option>dimensionless</option>
+                  <option>farad</option>
+                  <option>gram</option>
+                  <option>gray</option>
+                  <option>henry</option>
+                  <option>hertz</option>
+                  <option>joule</option>
+                  <option>katal</option>
+                  <option>kelvin</option>
+                  <option>kilogram</option>
+                  <option>litre</option>
+                  <option>lumen</option>
+                  <option>lux</option>
+                  <option>metre</option>
+                  <option>mole</option>
+                  <option>newton</option>
+                  <option>ohm</option>
+                  <option>pascal</option>
+                  <option>radian</option>
+                  <option>second</option>
+                  <option>siemens</option>
+                  <option>sievert</option>
+                  <option>steradian</option>
+                  <option>tesla</option>
+                  <option>volt</option>
+                  <option>watt</option>
+                  <option>weber</option>
+                </datalist>
+                <div id="cellml_unit_name" className="cellml_restrictions">
+                  <ul>
                     <li>Alphabetical first (A-Z | a-z), followed by alphanumeric or underscore (A-Z | a-z | 0-9 | _)</li>
                     <li>Must be a name of a units element in the model</li>
                     <li>Unit may be any built in unit element</li>
-		  </ul>*/}
-                </div>
-              </div>
-              <div> Units reference:
-                <input id="units_ref_input" className="elem_info_input" placeholder="1"></input>
-              </div>
-              <div> Base:
-                <input id="unit_base_input" className="elem_info_input" placeholder="base_element"></input>
-              </div>
-              <div> Prefix*:
-                <input id="unit_prefix_input" className="elem_info_input" defaultValue="0" onKeyUp={checkUnitPrefix}></input>
-		<div className="tooltip-content2">
-			{/*Must be a valid number & default is 0*/}
-                </div>
-              </div>
-              <div> Multiplier*:
-                <input id="unit_multiplier_input" className="elem_info_input" defaultValue="1.0" onKeyUp={checkUnitMul}></input>
-		<div className="tooltip-content2">
-			{/*Must be a valid number & default is 1.0*/}
-                </div>
-              </div>
-              <div> Exponent*:
-                <input id="unit_exp_input" className="elem_info_input" defaultValue="1.0" onKeyUp={checkUnitExp}></input>
-		<div className="tooltip-content2">
-			{/*Must be a valid number & default is 1.0*/}
-                </div>
-              </div>
-            </div>
-            
-            <div id="component_info" className="elem_info tooltip-wrap2">
-              <div> Name: 
-                <input id="comp_name_input" className="elem_info_input" placeholder="comp_name" onKeyUp={checkComponentName}></input>
-                <div className="tooltip-content2">
-                  <div className="tooltip-content2">
-                  <ul>
-                    <li>Alphabetical first (A-Z | a-z), followed by alphanumeric or underscore (A-Z | a-z | 0-9 | _)</li>
-                    <li>Must be a unique name in the model</li>
                   </ul>
                 </div>
+              </div>
+              </div>
+
+              <div> Prefix*:
+                <input id="unit_prefix_input" className="elem_info_input" placeholder="1" defaultValue="1" onKeyUp={checkUnitPrefix} list="different_si_prefix"
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_unit_prefix")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_unit_prefix")}></input>
+                <datalist id="different_si_prefix">
+                  <option>yotta</option>
+                  <option>zetta</option>
+                  <option>exa</option>
+                  <option>peta</option>
+                  <option>tera</option>
+                  <option>giga</option>
+                  <option>mega</option>
+                  <option>kilo</option>
+                  <option>hecto</option>
+                  <option>deca</option>
+                  <option>deci</option>
+                  <option>centi</option>
+                  <option>milli</option>
+                  <option>micro</option>
+                  <option>nano</option>
+                  <option>pico</option>
+                  <option>femto</option>
+                  <option>atto</option>
+                  <option>zepto</option>
+                  <option>yocto</option>
+                </datalist>
+                <div id="cellml_unit_prefix" className="cellml_restrictions">
+                  <ul>
+                    <li>Can be a real integer number </li>
+                    <li>Can be a string of a pre existing prefix value</li>
+                    <li>This field is optional (deafults to 1)</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div> Multiplier*:
+                <input id="unit_multiplier_input" className="elem_info_input" placeholder="1" defaultValue="1" onKeyUp={checkUnitMul}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_unit_mult")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_unit_mult")}></input>
+                <div id="cellml_unit_mult" className="cellml_restrictions">
+                  <ul>
+                    <li>Must be a real integer number </li>
+                    <li>Decimal is also a valid type</li>
+                    <li>This field is optional (deafults to 1)</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div> Exponent*:
+                <input id="unit_exp_input" className="elem_info_input" placeholder="1" defaultValue="1" onKeyUp={checkUnitExp}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_unit_exp")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_unit_exp")}></input>
+                <div id="cellml_unit_exp" className="cellml_restrictions">
+                  <ul>
+                    <li>Must be a real integer number </li>
+                    <li>Decimal is also a valid type</li>
+                    <li>This field is optional (deafults to 1)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            
+            {/* === COMPONENT === */}
+            <div id="component_info" className="elem_info">
+              <div> Name: 
+                <input id="comp_name_input" className="elem_info_input" placeholder="comp name" onKeyUp={checkComponentName}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_component_name")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_component_name")}></input>
+                <div id="cellml_component_name" className="cellml_restrictions">
+                  <ul>
+                    <li>Alphabetical first (A-Z | a-z), followed by alphanumeric or underscore (A-Z | a-z | 0-9 | _)</li>
+                    <li>Must be a unique name in the cellml model</li>
+                  </ul>
                 </div>
               </div>
             </div>
 
+            {/* === VARIABLE === */}
             <div id="variable_info" className="elem_info">
+              
               <div> Component Reference: 
-                <input id="var_comp_ref_input" className="elem_info_input" placeholder="var_name" onKeyUp={checkVariableName}></input>
+                <input id="var_comp_ref_input" className="elem_info_input" placeholder="ID of component" onKeyUp={checkVariableCompID}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_var_ref")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_var_ref")}></input>
+                <div id="cellml_var_ref" className="cellml_restrictions">
+                  Is the component reference to connect this variable with a component, determine by the component ID
+                </div>
               </div>
+
               <div> Name: 
-                <input id="var_name_input" className="elem_info_input" placeholder="var_name" onKeyUp={checkVariableName}></input>
+                <input id="var_name_input" className="elem_info_input" placeholder="var_name" onKeyUp={checkVariableName}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_var_name")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_var_name")}></input>
+                <div id="cellml_var_name" className="cellml_restrictions">
+                  <ul>
+                    <li>Alphabetical first (A-Z | a-z), followed by alphanumeric or underscore (A-Z | a-z | 0-9 | _)</li>
+                    <li>Must be a unique name in the cellml model</li>
+                  </ul>
+                </div>
               </div>
-	<div> Units: 
-                <input id="var_units_input" className="elem_info_input" placeholder="units" onKeyUp={checkVariableUnits}></input>
+
+              <div> Units:
+                <input id="var_units_input" className="elem_info_input" placeholder="units" onKeyUp={checkVariableUnits}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_var_units")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_var_units")}></input>
+                <div id="cellml_var_units" className="cellml_restrictions">
+                    Must be a valid units element reference
+                </div>
               </div>
-              <div> Interface (*):
-                <select id="var_interface_input" className="elem_info_input" placeholder="none">
-			<option value="public">Public</option>
-			<option value="private">Private</option>
-			<option value="public_and_private">Public & Private</option>
-			<option value="none">None</option>
-		</select>
+
+              <div> Interface:
+                <select id="var_interface_input" className="elem_info_input" placeholder="none" defaultValue="none">
+                  <option value="public">Public (+)</option>
+                  <option value="private">Private (-)</option>
+                  <option value="public_and_private">Public & Private (X)</option>
+                  <option value="none">None</option>
+                </select>
               </div>
+
               <div> Initial_Value (*):
-                <input id="var_init_input" className="elem_info_input" placeholder="initial_value" onKeyUp={checkVariableInitValue}></input>
+                <input id="var_init_input" className="elem_info_input" placeholder="initial value" onKeyUp={checkVariableInitValue}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_var_init")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_var_init")}></input>
+                <div id="cellml_var_init" className="cellml_restrictions">
+                  <ul>
+                    <li>Must be a valid integer or valid variable reference</li>
+                    <li>Is an optional field</li>
+                  </ul>
+                </div>
               </div>
             </div>
 
+            {/* === RESET === */}
             <div id="reset_info" className="elem_info">
               <div> Component Reference: 
-                <input id="reset_comp_ref_input" className="elem_info_input" placeholder="var_name" defaultValue="a" onKeyUp={checkVariableName}></input>
+                <input id="reset_comp_ref_input" className="elem_info_input" placeholder="component ref" onKeyUp={checkResetRef}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_reset_comp_ref")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_reset_comp_ref")}></input>
+                <div id="cellml_reset_comp_ref" className="cellml_restrictions">
+                  Is the Component ID to make a connection between this reset element and the component element
+                </div>
               </div>
               <div> Variable: 
-                <input id="reset_var_input" className="elem_info_input" placeholder="var_ref" defaultValue="b" onKeyUp={checkResetVar}></input>
+                <input id="reset_var_input" className="elem_info_input" placeholder="variable" onKeyUp={checkResetVar}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_reset_var")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_reset_var")}></input>
+                <div id="cellml_reset_var" className="cellml_restrictions">
+                  Must be a valid variable element reference
+                </div>
               </div>
               <div> Test Variable: 
-                <input id="reset_test_input" className="elem_info_input" placeholder="test_var" defaultValue="c" onKeyUp={checkResetTest}></input>
+                <input id="reset_test_input" className="elem_info_input" placeholder="test variable" onKeyUp={checkResetTest}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_reset_test")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_reset_test")}></input>
+                <div id="cellml_reset_test" className="cellml_restrictions">
+                  Must be a valid variable element reference
+                </div>
               </div>
               <div> Order: 
-                <input id="reset_order_input" className="elem_info_input" placeholder="order" defaultValue="d" onKeyUp={checkResetOrder}></input>
+                <input id="reset_order_input" className="elem_info_input" placeholder="order" onKeyUp={checkResetOrder}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_reset_order_restrictions")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_reset_order_restrictions")}></input>
+                <div id="cellml_reset_order_restrictions" className="cellml_restrictions">
+                  <ul>
+                    <li>Must be a valid integer number</li>
+                    <li>Must be unique in the model</li>
+                  </ul>
+                </div>
               </div>
             </div>
 
+            {/* === RESET - TEST VALUE === */}
             <div id="test_value_info" className="elem_info">
-              <div> Component Reference: 
-                <input id="tv_comp_ref" className="elem_info_input" placeholder="var_name" onKeyUp={checkVariableName}></input>
+              <div> Reset Parent: 
+                <input id="tv_comp_ref" className="elem_info_input" placeholder="reset parent" onKeyUp={() => checkResetParent("tv_comp_ref")}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_reset_test_v")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_reset_test_v")}></input>
+                <div id="cellml_reset_test_v" className="cellml_restrictions">
+                  Is the Reset ID to make a connection between this reset test element and the parent reset element
+                </div> 
               </div>
-              <div> Needs Math Element </div>
             </div>
+            {/* === RESET - RESET VALUE === */}
             <div id="reset_value_info" className="elem_info">
-              <div> Component Reference: 
-                <input id="rv_comp_ref" className="elem_info_input" placeholder="var_name" onKeyUp={checkVariableName}></input>
+              <div> Reset Parent: 
+                <input id="rv_comp_ref" className="elem_info_input" placeholder="reset parent" onKeyUp={() => checkResetParent("rv_comp_ref")}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_reset_value")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_reset_value")}></input>
+                <div id="cellml_reset_value" className="cellml_restrictions">
+                  Is the Reset ID to make a connection between this reset test element and the parent reset element
+                </div> 
               </div>
-              <div> Needs Math Element </div>
-            </div>
-            <div id="math_info" className="elem_info">
-              <div> Edit Later </div>
-            </div>
-            <div id="encapsulation_info" className="elem_info">
-              <div> Needs Component Ref Element </div>
             </div>
 
+            {/* === MATH === */}
+            <div id="math_info" className="elem_info">
+              <button className="elem_info_input" 
+                      onMouseOver={() => on_hover_show_cellml_restrictions("cellml_math_elem")} 
+                      onMouseOut={() => on_leave_close_cellml_restrictions("cellml_math_elem")}>
+                More Info</button>
+              <div> Component Reference: 
+                <input id="math_comp_ref_input" className="elem_info_input" placeholder="ID of component" onKeyUp={checkMathCompID}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_math_c_ref")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_math_c_ref")}></input>
+                <div id="cellml_math_c_ref" className="cellml_restrictions">
+                  Is the component reference to connect this variable with a component, determine by the component ID
+                </div>
+              </div>
+
+              <div id="cellml_math_elem" className="cellml_restrictions"> 
+                To implement use equation viewer after creating the model 
+              </div>
+            </div>
+            
+            {/* === ENCAPSULATION === */}
+            <div id="encapsulation_info" className="elem_info">
+              <button className="elem_info_input" 
+                      onMouseOver={() => on_hover_show_cellml_restrictions("cellml_encap_elem")} 
+                      onMouseOut={() => on_leave_close_cellml_restrictions("cellml_encap_elem")}>
+                More Info</button>
+              <div id="cellml_encap_elem" className="cellml_restrictions"> 
+                Encapsulation just captures all chosen component_ref children and
+                a silver encapsulation is used with lines to indicate all the children
+              </div>
+            </div>
+
+            {/* === COMPONENT REF === */}
             <div id="component_ref_info" className="elem_info">
               <div> Component Ref Parent: 
-                <input id="comp_ref_parent_id" className="elem_info_input" placeholder="0" defaultValue="1" onKeyUp={checkCompRefComp}></input>
+                <input id="comp_ref_parent_id" className="elem_info_input" placeholder="1" defaultValue="1" onKeyUp={checkCompRefID}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_comp_ref_ref")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_comp_ref_ref")}></input>
+                <div id="cellml_comp_ref_ref" className="cellml_restrictions">
+                  Must be an integer number inicating an ID
+                  <ul>
+                    <li>ID = 1 means a connection to encapsulation</li>
+                    <li>else ID indicates the parent component ref ID</li>
+                  </ul>
+                </div>
               </div>
               <div> Component: 
-                <input id="comp_ref_comp_input" className="elem_info_input" placeholder="component" onKeyUp={checkCompRefComp}></input>
+                <input id="comp_ref_comp_input" className="elem_info_input" placeholder="component" onKeyUp={checkCompRefComp}
+                      onMouseOver={() => on_hover_show_cellml_restrictions("cellml_comp_ref_component")} 
+                      onMouseOut={() => on_leave_close_cellml_restrictions("cellml_comp_ref_component")}></input>
+                <div id="cellml_comp_ref_component" className="cellml_restrictions">
+                  Must be a valid component element reference
+                </div>
               </div>
             </div>
-    
+
+            {/* === CONNECTION === */}
             <div id="connection_info" className="elem_info">
               <div> Component 1: 
-                <input id="connect_1_input" className="elem_info_input" placeholder="comp_ref_1" onKeyUp={checkConnectionComp}></input>
+                <input id="connect_1_input" className="elem_info_input" placeholder="comp_ref_1" onKeyUp={checkConnectionComp}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_connection_1")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_connection_1")}></input>
+                <div id="cellml_connection_1" className="cellml_restrictions">
+                  <ul>
+                    <li>Must be a valid component reference</li>
+                    <li>Component 1 can't be equal to component 2</li>
+                  </ul>
+                </div>
               </div>
               <div> Component 2: 
-                <input id="connect_2_input" className="elem_info_input" placeholder="comp_ref_2" onKeyUp={checkConnectionComp}></input>
+                <input id="connect_2_input" className="elem_info_input" placeholder="comp_ref_2" onKeyUp={checkConnectionComp}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_connection_2")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_connection_2")}></input>
+                <div id="cellml_connection_2" className="cellml_restrictions">
+                  <ul>
+                    <li>Must be a valid component reference</li>
+                    <li>Component 1 can't be equal to component 2</li>
+                  </ul>
+                </div>
               </div>
             </div>
     
+            {/* === MAP VARIABLES === */}
             <div id="map_variables_info" className="elem_info">
               <div> Connection Ref: 
-                <input id="map_connect_input" className="elem_info_input" placeholder="component" onKeyUp={checkCompRefComp}></input>
+                <input id="map_connect_input" className="elem_info_input" placeholder="component" onKeyUp={checkMapVariableRefID}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_connection_parent")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_connection_parent")}></input>
+                <div id="cellml_connection_parent" className="cellml_restrictions">
+                  The ID of a connection element which connects this Map Variable element and the connection element
+                </div>
               </div>
               <div> Variable 1: 
-                <input id="map_var_1_input" className="elem_info_input" placeholder="variable_1" onKeyUp={checkMapVariablesVar}></input>
+                <input id="map_var_1_input" className="elem_info_input" placeholder="variable_1" onKeyUp={checkMapVariablesVar}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_var_1")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_var_1")}></input>
+                <div id="cellml_var_1" className="cellml_restrictions">
+                  <ul>
+                    <li>Must be a valid variable reference</li>
+                    <li>Variable 1 can't be equal to variable 2</li>
+                    <li>Only one map_variables item between any two variables</li>
+                  </ul>
+                </div>
               </div>
               <div> Variable 2: 
-                <input id="map_var_2_input" className="elem_info_input" placeholder="variable_2" onKeyUp={checkMapVariablesVar}></input>
+                <input id="map_var_2_input" className="elem_info_input" placeholder="variable_2" onKeyUp={checkMapVariablesVar}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_var_2_restrictions")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_var_2_restrictions")}></input>
+                <div id="cellml_var_2_restrictions" className="cellml_restrictions">
+                  <ul>
+                    <li>Must be a valid variable reference</li>
+                    <li>Variable 1 can't be equal to variable 2</li>
+                    <li>Only one map_variables item between any two variables</li>
+                  </ul>
+                </div>
               </div>
             </div>
 
+            {/* === IMPORT === */}
             <div id="import_info" className="elem_info">
               <div> HREF: 
-                <input id="import_ref_input" className="elem_info_input" placeholder="component" onKeyUp={checkImportHREF}></input>
+                <input id="import_ref_input" className="elem_info_input" placeholder="component" onKeyUp={checkImportHREF}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_import_restrictions")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_import_restrictions")}></input>
+                <div id="cellml_import_restrictions" className="cellml_restrictions">
+                  HREF should be a valid locator of XLink specification
+                </div>
               </div>
             </div>
 
+            {/* === IMPORT UNITS === */}
             <div id="import_units_info" className="elem_info">
               <div> Import Reference: 
-                <input id="import_parent_reference_u" className="elem_info_input" placeholder="import_u_ref" onKeyUp={checkImportUnitsRef}></input>
+                <input id="import_parent_reference_u" className="elem_info_input" placeholder="import_u_ref" onKeyUp={() => checkImportUnitsImportRef("import_parent_reference_u")}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_import_units_restrictions")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_import_units_restrictions")}></input>
+                <div id="cellml_import_units_restrictions" className="cellml_restrictions">
+                  An ID to determine what Imported element the imported units should connect to
+                </div>
               </div>
               <div> Name: 
-                <input id="import_units_name_input" className="elem_info_input" placeholder="import_u_name" onKeyUp={checkImportUnitsName}></input>
+                <input id="import_units_name_input" className="elem_info_input" placeholder="import_u_name" onKeyUp={checkImportUnitsName}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_import_units_name_restrictions")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_import_units_name_restrictions")}></input>
+                <div id="cellml_import_units_name_restrictions" className="cellml_restrictions">
+                  <ul>
+                    <li>Alphabetical first (A-Z | a-z), followed by alphanumeric or underscore (A-Z | a-z | 0-9 | _)</li>
+                    <li>Can't be the same as another units name or imported units name</li>
+                  </ul>
+                </div>
               </div>
-              <div> Units Ref: 
-                <input id="import_units_ref_input" className="elem_info_input" placeholder="import_u_ref" onKeyUp={checkImportUnitsRef}></input>
+              <div> Units Reference: 
+                <input id="import_units_ref_input" className="elem_info_input" placeholder="import_u_ref" onKeyUp={checkImportUnitsRef}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_import_units_ref_restrictions")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_import_units_ref_restrictions")}></input>
+                <div id="cellml_import_units_ref_restrictions" className="cellml_restrictions">
+                  <ul>
+                    <li>Alphabetical first (A-Z | a-z), followed by alphanumeric or underscore (A-Z | a-z | 0-9 | _)</li>
+                    <li>Must be identical to another units name in the cellml model</li>
+                  </ul>
+                </div>
               </div>
             </div>
 
+            {/* === IMPORT COMPONENT === */}
             <div id="import_container_info" className="elem_info">
               <div> Import Reference: 
-                <input id="import_parent_reference_c" className="elem_info_input" placeholder="import_u_ref" onKeyUp={checkImportUnitsRef}></input>
+                <input id="import_parent_reference_c" className="elem_info_input" placeholder="import_u_ref" onKeyUp={() => checkImportUnitsImportRef("import_parent_reference_c")}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_import_comp_imp_ref_restrictions")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_import_comp_imp_ref_restrictions")}></input>
+                <div id="cellml_import_comp_imp_ref_restrictions" className="cellml_restrictions">
+                  An ID to determine what Imported element the imported units should connect to
+                </div>
               </div>
               <div> Name: 
-                <input id="import_comp_name_input" className="elem_info_input" placeholder="import_c_name" onKeyUp={checkImportCompName}></input>
+                <input id="import_comp_name_input" className="elem_info_input" placeholder="import_c_name" onKeyUp={checkImportCompName}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_import_comp_name_restrictions")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_import_comp_name_restrictions")}></input>
+                <div id="cellml_import_comp_name_restrictions" className="cellml_restrictions">
+                  <ul>
+                    <li>Alphabetical first (A-Z | a-z), followed by alphanumeric or underscore (A-Z | a-z | 0-9 | _)</li>
+                    <li>Can't be the same as another component name or imported component name, must be unique</li>
+                  </ul>
+                </div>
               </div>
-              <div> Units Ref: 
-                <input id="import_comp_ref_input" className="elem_info_input" placeholder="import_c_ref" onKeyUp={checkImportCompRef}></input>
+              <div> Component Ref: 
+                <input id="import_comp_ref_input" className="elem_info_input" placeholder="import_c_ref" onKeyUp={checkImportCompRef}
+                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_import_comp_ref_restrictions")} 
+                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_import_comp_ref_restrictions")}></input>
+                <div id="cellml_import_comp_ref_restrictions" className="cellml_restrictions">
+                  <ul>
+                    <li>Alphabetical first (A-Z | a-z), followed by alphanumeric or underscore (A-Z | a-z | 0-9 | _)</li>
+                    <li>Must be identical to another component name in the cellml model or imported models</li>
+                  </ul>
+                </div>
               </div>
             </div>
-    
           </div>
             
-
-            
-            <div id="children_section">
-              <div id="children">Children</div>
-              <div id="model_children" className="children_list">
-                <ul>
-                  <li>Component</li>
-                  <li>Connection</li>
-                  <li>Encapsulation</li>
-                  <li>Import</li>
-                  <li>Units</li>
-                </ul>
-              </div>
-              <div id="import_children" className="children_list">
-                <ul>
-                  <li>Import Component</li>
-                  <li>Import Units</li>
-                </ul>
-              </div>
-              <div id="import_units_children" className="children_list">
-                <ul>
-                  <li>N/A</li>
-                </ul>
-              </div>
-              <div id="import_component_children" className="children_list">
-                <ul>
-                  <li>N/A</li>
-                </ul>
-              </div>
-              <div id="units_children" className="children_list">
-                <ul>
-                  <li>Unit</li>
-                </ul>
-              </div>
-              <div id="unit_children" className="children_list">
-                <ul>
-                  <li>N/A</li>
-                </ul>
-              </div>
-              <div id="component_children" className="children_list">
-                <ul>
-                  <li>Math</li>
-                  <li>Reset</li>
-                  <li>Variable</li>
-                </ul>
-              </div>
-              <div id="variable_children" className="children_list">
-                <ul>
-                  <li>N/A</li>
-                </ul>
-              </div>
-              <div id="reset_children" className="children_list">
-                <ul>
-                  <li>Reset Value</li>
-                  <li>Test Value</li>
-                </ul>
-              </div>
-              <div id="test_value_children" className="children_list">
-                <ul>
-                  <li>Math</li>
-                </ul>
-              </div>
-              <div id="reset_value_children" className="children_list">
-                <ul>
-                  <li>Math</li>
-                </ul>
-              </div>
-              <div id="math_children" className="children_list">
-                <ul>
-                  <li>N/A</li>
-                </ul>
-              </div>
-              <div id="encapsulation_children" className="children_list">
-                <ul>
-                  <li>Component Ref</li>
-                </ul>
-              </div>
-              <div id="component_ref_children" className="children_list">
-                <ul>
-                  <li>Component Ref</li>
-                </ul>
-              </div>
-              <div id="connection_children" className="children_list">
-                <ul>
-                  <li>Map Variables</li>
-                </ul>
-              </div>
-              <div id="map_variables_children" className="children_list">
-                <ul>
-                  <li>N/A</li>
-                </ul>
-              </div>
+          {/* ========================= Each element has children ======================== */}
+          <div id="children_section">
+            <div id="children"> Children </div>
+            <div id="model_children" className="children_list">
+              <ul>
+                <li>Component</li>
+                <li>Connection</li>
+                <li>Encapsulation</li>
+                <li>Import</li>
+                <li>Units</li>
+              </ul>
             </div>
+            <div id="import_children" className="children_list">
+              <ul>
+                <li>Import Component</li>
+                <li>Import Units</li>
+              </ul>
+            </div>
+            <div id="import_units_children" className="children_list"></div>
+            <div id="import_component_children" className="children_list"></div>
+
+            <div id="units_children" className="children_list">
+              <ul>
+                <li>Unit</li>
+              </ul>
+            </div>
+            <div id="unit_children" className="children_list"></div>
+            <div id="component_children" className="children_list">
+              <ul>
+                <li>Math</li>
+                <li>Reset</li>
+                <li>Variable</li>
+              </ul>
+            </div>
+            <div id="variable_children" className="children_list"></div>
+            <div id="reset_children" className="children_list">
+              <ul>
+                <li>Reset Value</li>
+                <li>Test Value</li>
+              </ul>
+            </div>
+            <div id="test_value_children" className="children_list">
+              <ul>
+                <li>Math</li>
+              </ul>
+            </div>
+            <div id="reset_value_children" className="children_list">
+              <ul>
+                <li>Math</li>
+              </ul>
+            </div>
+            <div id="math_children" className="children_list"></div>
+            <div id="encapsulation_children" className="children_list">
+              <ul>
+                <li>Component Ref</li>
+              </ul>
+            </div>
+            <div id="component_ref_children" className="children_list">
+              <ul>
+                <li>Component Ref</li>
+              </ul>
+            </div>
+            <div id="connection_children" className="children_list">
+              <ul>
+                <li>Map Variables</li>
+              </ul>
+            </div>
+            <div id="map_variables_children" className="children_list"></div>
+          </div>
+          <div id="cellml_element_btn_container">
+            <button className="cellml_element_edit_btns" onClick={edit_element}>Update</button>
+            <button className="cellml_element_edit_btns" onClick={delete_element}>Delete</button>
           </div>
         </div>
-        
-        
-        <div>===========================================================================================</div>
-       {/*} <img id="img1" src="http://static.tumblr.com/vcbmwcj/foumiteqs/arrow_up_alt1.svg" 
-             draggable={true} onMouseOver={(event) => get_pos_elem(event)} 
-    onDragStart={(event) => dragElement(event)} />*/}
       </div>
+    </div>
     
 
 
 
-        <div id="element_information_items_set" className="flex-container">
+    <div id="element_information_items_set" className="flex-container">
 
-          <div id="units_container" className="flex-item">
-            <img id="units_container_image" className="element_img" 
-            src="https://svgsilh.com/svg/1618916-009688.svg"
-                 onClick={()=>change_element("units_children", "Units", "units_info", "drag_units")}>
-            </img>
-            <div className="bottomtext">Units</div>
-          </div>
-
-          <div id="unit_container"  className="flex-item">
-            <img id="unit_container_image" className="element_img" 
-            src="https://svgsilh.com/svg/1618916-03a9f4.svg"
-                 onClick={()=>change_element("unit_children", "Unit", "unit_info", "drag_unit")}>
-            </img>
-            <div className="bottomtext">Unit</div>
-          </div>
-
-          <div id="component_container"  className="flex-item">
-            <img id="component_container_image" className="element_img" 
-                 src="https://cdn.pixabay.com/photo/2016/08/25/07/30/red-1618916_640.png" 
-                 onClick={()=>change_element("component_children", "Component", "component_info", "drag_component")}/>
-            <div className="bottomtext">Component</div>
-          </div>
-
-          <div id="variable_container"  className="flex-item">
-            <img id="variable_container_image" className="element_img" 
-            src="https://svgsilh.com/svg/1618916-ff5722.svg"
-                onClick={()=>change_element("variable_children", "Variable", "variable_info", "drag_variable")}>
-            </img>
-            <div className="bottomtext">Variable</div>
-          </div>
-
-          <div id="reset_container" className="flex-item">
-            <img id="reset_container_image" className="element_img" 
-            src="https://svgsilh.com/svg/1618916-4caf50.svg"
-                 onClick={()=>change_element("reset_children", "Reset", "reset_info", "drag_reset")}>
-            </img>
-            <div className="bottomtext">Reset</div>
-          </div>
-
-          <div id="test_value_container" className="flex-item">
-            <img id="test_value_container_image" className="element_img" 
-            src="https://svgsilh.com/svg/1618916-8bc34a.svg"
-                 onClick={()=>change_element("test_value_children", "Test Value", "test_value_info", "drag_test_value")}>
-            </img>
-            <div className="bottomtext">Test Value</div>
-          </div>
-
-          <div id="reset_value_container" className="flex-item">
-            <img id="reset_value_container_image" className="element_img" 
-            src="https://svgsilh.com/svg/1618916-cddc39.svg"
-                 onClick={()=>change_element("reset_value_children", "Reset Value", "reset_value_info", "drag_reset_value")}>
-            </img>
-            <div className="bottomtext">Reset Value</div>
-          </div>
-
-          <div id="math_container" className="flex-item">
-            <img id="math_container_image" className="element_img" 
-            src="https://svgsilh.com/svg/1618916-3f51b5.svg"
-                 onClick={()=>change_element("math_children", "Math", "math_info", "drag_math")}>
-            </img>
-            <div className="bottomtext">Math</div>
-          </div>
-
-          <div id="encapsulation_container" className="flex-item">
-            <img id="encapsulation_container_image" className="element_img" 
-            src="https://svgsilh.com/svg/1618916-607d8b.svg"
-                 onClick={()=>change_element("encapsulation_children", "Encapsulation", "encapsulation_info", "drag_encapsulation")}>
-            </img>
-            <div className="bottomtext">Encapsulation</div>
-          </div>
-
-          <div id="component_ref_container" className="flex-item">
-            <img id="component_ref_container_image" className="element_img" 
-            src="https://svgsilh.com/svg/1618916-e91e63.svg"
-                 onClick={()=>change_element("component_ref_children", "Component Reference", "component_ref_info", "drag_comp_ref")}>
-            </img>
-            <div className="bottomtext">Component Ref</div>
-          </div>
-
-          <div id="connection_container" className="flex-item">
-            <img id="connection_container_image" className="element_img" 
-            src="https://svgsilh.com/svg/1618916-673ab7.svg"
-                 onClick={()=>change_element("connection_children", "Connection", "connection_info", "drag_connection")}>
-            </img>
-            <div className="bottomtext">Connection</div>
-          </div>
-
-          <div id="map_variables_container" className="flex-item">
-            <img id="map_variables_container_image" className="element_img" 
-            src="https://svgsilh.com/svg/1618916-ffc107.svg"
-                 onClick={()=>change_element("map_variables_children", "Map Variables", "map_variables_info", "drag_map_variables")}>
-            </img>
-            <div className="bottomtext">Map Variables</div>
-          </div>
-
-          <div id="import_container" className="flex-item">
-            <img id="import_container_image" className="element_img" 
-            src="https://svgsilh.com/svg/1618916-666666.svg"
-                 onClick={()=>change_element("import_children", "Import", "import_info", "drag_import")}>
-            </img>
-            <div className="bottomtext">Import</div>
-          </div>
-
-          <div id="import_units_container" className="flex-item">
-            <img id="import_units_container_image" className="element_img" 
-            src="https://svgsilh.com/svg/1618916-ba352c.svg"
-                 onClick={()=>change_element("import_units_children", "Import Units", "import_units_info", "drag_import_units")}>
-            </img>
-            <div className="bottomtext">Import Units</div>
-          </div>
-
-          <div id="import_component_container" className="flex-item">
-            <img id="import_component_container_image" className="element_img" 
-            src="https://svgsilh.com/svg/1618916-027468.svg"
-                 onClick={()=>change_element("import_component_children", "Import Component", "import_container_info", "drag_import_component")}>
-            </img>
-            <div className="bottomtext">Import Comp.</div>
-          </div>
-
-          <div id="model_container" className="flex-item">
-            <img id="model_container_image" className="element_img" 
-            src="https://svgsilh.com/svg/1618916.svg"
-                 onClick={()=>change_element("model_children", "Model", "model_info", "drag_model")}>
-            </img>
-            <div className="bottomtext">Model</div>
-          </div>
-
+      <div id="units_container" className="flex-item">
+        <img id="units_container_image" className="element_img" draggable="false"
+             src="https://i.imgur.com/knSsOjz.png" 
+             onClick={()=>change_element("units_children", "Units", "units_info", "drag_units")}>
+        </img>
+        <div className="bottomtext">Units</div>
       </div>
 
+      <div id="unit_container"  className="flex-item">
+        <img id="unit_container_image" className="element_img" draggable="false"
+             src="https://i.imgur.com/CZZxCSc.png" 
+             onClick={()=>change_element("unit_children", "Unit", "unit_info", "drag_unit")}>
+        </img>
+        <div className="bottomtext">Unit</div>
+      </div>
+
+      <div id="component_container"  className="flex-item">
+        <img id="component_container_image" className="element_img" draggable="false"
+             src="https://i.imgur.com/mQJ9btp.png"  
+             onClick={()=>change_element("component_children", "Component", "component_info", "drag_component")}/>
+        <div className="bottomtext">Component</div>
+      </div>
+
+      <div id="variable_container"  className="flex-item">
+        <img id="variable_container_image" className="element_img" draggable="false"
+             src="https://i.imgur.com/UOaalhF.png" 
+            onClick={()=>change_element("variable_children", "Variable", "variable_info", "drag_variable")}>
+        </img>
+        <div className="bottomtext">Variable</div>
+      </div>
+
+      <div id="reset_container" className="flex-item">
+        <img id="reset_container_image" className="element_img" draggable="false"
+             src="https://i.imgur.com/N8yCmOx.png"
+             onClick={()=>change_element("reset_children", "Reset", "reset_info", "drag_reset")}>
+        </img>
+        <div className="bottomtext">Reset</div>
+      </div>
+
+      <div id="test_value_container" className="flex-item">
+        <img id="test_value_container_image" className="element_img" draggable="false"
+             src="https://i.imgur.com/I19zwvu.png"
+             onClick={()=>change_element("test_value_children", "Test Value", "test_value_info", "drag_test_value")}>
+        </img>
+        <div className="bottomtext">Test Value</div>
+      </div>
+
+      <div id="reset_value_container" className="flex-item">
+        <img id="reset_value_container_image" className="element_img" draggable="false"
+             src="https://i.imgur.com/s11N2VD.png"
+             onClick={()=>change_element("reset_value_children", "Reset Value", "reset_value_info", "drag_reset_value")}>
+        </img>
+        <div className="bottomtext">Reset Value</div>
+      </div>
+
+      <div id="math_container" className="flex-item">
+        <img id="math_container_image" className="element_img" draggable="false"
+             src="https://i.imgur.com/UtPNPLH.png" 
+             onClick={()=>change_element("math_children", "Math", "math_info", "drag_math")}>
+        </img>
+        <div className="bottomtext">Math</div>
+      </div>
+
+      <div id="encapsulation_container" className="flex-item">
+        <img id="encapsulation_container_image" className="element_img" draggable="false"
+             src="https://i.imgur.com/HiSWon1.png" 
+             onClick={()=>change_element("encapsulation_children", "Encapsulation", "encapsulation_info", "drag_encapsulation")}>
+        </img>
+        <div className="bottomtext">Encapsulation</div>
+      </div>
+
+      <div id="component_ref_container" className="flex-item">
+        <img id="component_ref_container_image" className="element_img" draggable="false"
+             src="https://i.imgur.com/5H9sHhw.png" 
+             onClick={()=>change_element("component_ref_children", "Component Reference", "component_ref_info", "drag_comp_ref")}>
+        </img>
+        <div className="bottomtext">Component Ref</div>
+      </div>
+
+      <div id="connection_container" className="flex-item">
+        <img id="connection_container_image" className="element_img" draggable="false"
+             src="https://i.imgur.com/ptHOCqp.png" 
+             onClick={()=>change_element("connection_children", "Connection", "connection_info", "drag_connection")}>
+        </img>
+        <div className="bottomtext">Connection</div>
+      </div>
+
+      <div id="map_variables_container" className="flex-item">
+        <img id="map_variables_container_image" className="element_img" draggable="false"
+             src="https://i.imgur.com/T13MxYS.png"
+             onClick={()=>change_element("map_variables_children", "Map Variables", "map_variables_info", "drag_map_variables")}>
+        </img>
+        <div className="bottomtext">Map Variables</div>
+      </div>
+
+      <div id="import_container" className="flex-item">
+        <img id="import_container_image" className="element_img" draggable="false"
+             src="https://i.imgur.com/YPNhhi2.png" 
+             onClick={()=>change_element("import_children", "Import", "import_info", "drag_import")}>
+        </img>
+        <div className="bottomtext">Import</div>
+      </div>
+
+      <div id="import_units_container" className="flex-item">
+        <img id="import_units_container_image" className="element_img" draggable="false"
+             src="https://i.imgur.com/iKJCCXI.png" 
+             onClick={()=>change_element("import_units_children", "Import Units", "import_units_info", "drag_import_units")}>
+        </img>
+        <div className="bottomtext">Import Units</div>
+      </div>
+
+      <div id="import_component_container" className="flex-item">
+        <img id="import_component_container_image" className="element_img" draggable="false"
+             src="https://i.imgur.com/uNnCsVZ.png" 
+             onClick={()=>change_element("import_component_children", "Import Component", "import_container_info", "drag_import_component")}>
+        </img>
+        <div className="bottomtext">Import Comp.</div>
+      </div>
+
+      <div id="model_container" className="flex-item">
+        <img id="model_container_image" className="element_img" draggable="false"
+             src="https://i.imgur.com/R9a7Awr.png"
+             onClick={()=>change_element("model_children", "Model", "model_info", "drag_model")}>
+        </img>
+        <div className="bottomtext">Model</div>
+      </div>
     </div>
+  </div>
   );
 };
 

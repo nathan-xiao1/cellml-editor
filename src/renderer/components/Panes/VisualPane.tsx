@@ -3,6 +3,9 @@ import TreeView from "@material-ui/lab/TreeView";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
 import TreeItem from "@material-ui/lab/TreeItem";
+import { MathJaxContext, MathJax, MathJax2Config, MathJaxContextProps } from 'better-react-mathjax';
+// Import interface which normally isn't public to extend it
+import { MathMLInputProcessor } from 'better-react-mathjax/MathJax2';
 import { IDOM, Prefix } from "Types";
 import "./TreePane/TreePane.scss";
 
@@ -22,6 +25,66 @@ let cellml_elements = [] as any;
 let isDragging_ = false;
 let startX_:number, startY_:number;
 let selectedShapeIndex: number;
+
+const defaultStr = `
+<math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:cellml="http://www.cellml.org/cellml/2.0#">
+      <mrow>
+    <mrow>
+    <msup>
+        <mi>x</mi>
+        <mn>2</mn>
+    </msup>
+        <mo>+</mo>
+    <mrow>
+        <mn>4</mn>
+        <mo>&InvisibleTimes;</mo>
+        <mi>x</mi>
+    </mrow>
+        <mo>+</mo>
+        <mn>4</mn>
+    </mrow>
+    <mo>=</mo>
+    <mn>0</mn>
+</mrow>
+    </math>
+`;
+
+const defaultStr2 = `
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+        <eq/>
+        <ci>i</ci>
+        <apply>
+            <times/>
+            <ci>g</ci>
+            <apply>
+                <minus/>
+                <ci>V</ci>
+                <ci>L</ci>
+            </apply>
+        </apply>
+    </apply>
+</math>
+`;
+
+const temp_math = `<cn units="cellml:dimensionless">123</cn>`;
+
+
+
+interface MathMLInputProcessorE extends MathMLInputProcessor {
+    useMathMLspacing?: boolean;
+    extensions?: string[];
+}
+
+const extensions : MathMLInputProcessorE = { extensions: ["content-mathml.js"]};
+
+const config : MathJax2Config = {
+    MathML: extensions
+}
+
+interface EFProps {
+    mathmlstr?: string;
+}
 
 
 
@@ -1267,9 +1330,9 @@ export default class VisualPane extends React.Component<TPProps> {
 
   drawModel(canvas: HTMLCanvasElement) {
     // Update The Canvas Depending on the Elements list
-      canvas.height = cellml_elements.length*50 + 100;
-      const context: CanvasRenderingContext2D = canvas.getContext("2d");
-      context.clearRect(0,0,canvas.width, canvas.height);
+    canvas.height = cellml_elements.length*50 + 100;
+    const context: CanvasRenderingContext2D = canvas.getContext("2d");
+    context.clearRect(0,0,canvas.width, canvas.height);
 
     // function to draw a diamond (for connection)
       function drawDiamond(context:any, shape: any, x:number, y:number, width:number, height:number, inside_color: string, gradient_color: string, border_color: string) {
@@ -1594,12 +1657,22 @@ export default class VisualPane extends React.Component<TPProps> {
           context.strokeStyle = "rgb(193, 2, 12)";
           context.fillStyle = "rgb(110, 1, 6)";
           context.font =  "bold 16px Arial";
-          context.fillText(prefix, shape.x - 15, shape.y + 8);
-          context.fillText(units_value, shape.x + 11*(prefix.length) - 15, shape.y + 8);
-          context.font =  "bold 14px Arial";
-          context.fillText(exponent, shape.x - 20 + (prefix.length)*11 + (units_value)*11, shape.y - 8);
-          context.font =  "bold 16px Arial";
-          if (multiplier != 1) context.fillText(multiplier + "*", shape.x - (prefix.length)*10 + 10, shape.y + 8);
+          if (shape.multiplier) {
+            context.fillText(prefix, shape.x - 15 + 10*(shape.multiplier.length), shape.y + 8);
+            context.fillText(units_value, shape.x + 10*(prefix.length) - 15 + 10*(shape.multiplier.length), shape.y + 8);
+            context.font =  "bold 14px Arial";
+            context.fillText(exponent, shape.x - 20 + (prefix.length)*10 + (units_value)*10 + 10*(shape.multiplier.length), shape.y - 8);
+            context.font =  "bold 16px Arial";
+          } else {
+            context.fillText(prefix, shape.x - 15, shape.y + 8);
+            context.fillText(units_value, shape.x + 11*(prefix.length) - 15, shape.y + 8);
+            context.font =  "bold 14px Arial";
+            console.log(exponent);
+            if (exponent != 1) context.fillText(exponent, shape.x + 10*(units_value.length), shape.y - 8);
+            context.font =  "bold 16px Arial";
+          }
+          
+          if (multiplier != 1) context.fillText(multiplier + "*", shape.x - (prefix.length)*11 - 15, shape.y + 8);
           context.lineWidth = 5;
           context.fill();
           context.stroke();
@@ -1921,17 +1994,38 @@ export default class VisualPane extends React.Component<TPProps> {
          // context.fillRect(shape.x,shape.y,shape.width,shape.height);
          // context.fillText("dingos", shape.x + 5, shape.y + 25);
 
-          const parser = new DOMParser();
-          const document = parser.parseFromString(shape.mathml_format.outerHTML, "text/html");
+         /* const mathjax_example = document.getElementById("mathjaxexample") as any;
+          mathjax_example.dangerouslySetInnerHTML = {__html: shape.mathml_format.outerHTML};
+          
+          "<div dangerouslySetInnerHTML={{__html: defaultStr}}/>";*/
+          //context.fillText("documenat", 100, 100);
 
-          context.fillText("documenat", 100, 100);
+          //defaultStr = shape.mathml_format.outerHTML;
+          /*const temp = document.getElementById("mathjaxexample") as any;
+          console.log(temp);
+          context.drawImage(temp, shape.x + 5, shape.y + 25);*/
+
+          const mathjax = document.getElementById("mathjaxexample");
+
+          console.log(mathjax);
+          const mathjax_children = mathjax.childNodes;
+          console.log(mathjax_children);
+          const mathjax_span_2 = mathjax_children[2];
+          console.log(mathjax_children[1])
+          console.log(mathjax_span_2);
+          const mathjax_svg = mathjax_span_2.childNodes;
+          console.log(mathjax_svg[0]);
+          const svg_elem = mathjax_svg[0] as any;
+          console.log(typeof svg_elem);
+          console.log(svg_elem.outerHTML);
+
+
+
+
           context.stroke();
 
           
         }
-
-
-
 
         else if (shape.element_type == "test") {
           context.beginPath(); 
@@ -1947,6 +2041,10 @@ export default class VisualPane extends React.Component<TPProps> {
       }
   }
   
+
+
+
+
 
 
   roundRect(ctx : any, x : number, y: number, width:number, height:number, radius:any, fill: boolean, stroke: boolean) {
@@ -1994,16 +2092,61 @@ export default class VisualPane extends React.Component<TPProps> {
    //       <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
           
 
+  changeinnermath() {
+    console.log('change math');
+    
+    const canvas = document.getElementById("myCanvas") as HTMLCanvasElement;
+    const context: CanvasRenderingContext2D = canvas.getContext("2d");
+
+    
+    context.beginPath();
+    //context.drawImage(img, 10, 10);
+    
+    const svg_container = document.getElementById("mathjaxexample");
+    const children = svg_container.childNodes;
+    console.log(children);
+    console.log(children[1]);
+    console.log(children[2]);
+    console.log(children[3]);
+    console.log(children[4]);    
+    console.log(children[5]);
+    
+
+    const math2nd = children[2];
+    const svg = math2nd.childNodes;
+    console.log(svg);
+    console.log(svg[0]);
+    console.log(svg[1]);
+
+    const svg_math_content = svg[1] as HTMLElement;
+    svg_math_content.innerHTML = temp_math;
+
+    svg_math_content.innerHTML = temp_math;
+
+    const a = document.getElementsByClassName("MJX_Assistive_MathML")[0] as HTMLElement;
+    a.innerHTML = temp_math;
+
+    const temp = svg[0] as HTMLElement;
+    console.log(temp.outerHTML); 
+    //context.drawImage(svg_img, 10, 10);
+    const base64data = btoa(unescape(encodeURIComponent(temp.outerHTML)));
+    const image = new Image();
+    image.src=`data:image/svg+xml;base64,${base64data}`;
+
+    console.log(image);
+
+    context.drawImage(image, 0, 0);
+    context.stroke();
+
+
+
+
+  }
+  
   render(): React.ReactNode {
     return (
       <html>
         <head>
-          <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-          <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/mml-chtml.js"> </script>   
-           <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/mml-svg.js"></script>
-  <script>
-    
-  </script>
 
         </head>
     <body>
@@ -2015,7 +2158,14 @@ export default class VisualPane extends React.Component<TPProps> {
         <div>Render Image</div> 
 
         <div id="tttttttttt">
+          <button onClick={this.changeinnermath}>Change math</button>
+          <img />
 
+          <MathJaxContext version={2} config={config}> 
+            <MathJax inline={true}>
+                <div id="mathjaxexample" dangerouslySetInnerHTML={{__html: defaultStr}}/>
+            </MathJax>
+          </MathJaxContext>
            
         </div>
 
