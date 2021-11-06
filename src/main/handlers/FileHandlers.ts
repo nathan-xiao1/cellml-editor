@@ -1,4 +1,4 @@
-import { ipcMain, dialog } from "electron";
+import { ipcMain, dialog, shell } from "electron";
 import { editorSystem } from "../index";
 import fetch from "electron-fetch";
 import IPCChannel from "./IpcChannels";
@@ -218,10 +218,21 @@ ipcMain.on(IPCChannel.OPEN_DOCUMENTATION, (event) => {
   }
 });
 
-// ipcMain.on(IPCChannel.OPEN_CELLML_DOCUMENTATION, (event) => {
-//   editorSystem.openFilePdf("static/cellml_2_0_normative_specification.pdf");
-//   event.sender.send(
-//     IPCChannel.RENDERER_UPDATE_OPENED_FILE,
-//     editorSystem.getOpenedFilesState()
-//   );
-// });
+/* Open a prompt that display instruction on how to report bugs or submit feedbacks */
+const EMAIL = "z5205737@unsw.edu.au";
+ipcMain.on(IPCChannel.OPEN_REPORT_DIALOG, () => {
+  dialog
+    .showMessageBox({
+      type: "info",
+      title: "Report a Bug or Submit Feedback",
+      message: `To report a bug or submit feedback on this editor send an email to us at ${EMAIL}`,
+      buttons: ["Ok", "Open Email"],
+    })
+    .then((res) => {
+      if (res.response == 1) {
+        shell.openExternal(
+          `mailto:${EMAIL}?subject=CellML%20Editor%20Bug%20%2F%20Feedback`
+        );
+      }
+    });
+});
