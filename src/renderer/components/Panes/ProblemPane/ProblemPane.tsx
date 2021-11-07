@@ -1,8 +1,8 @@
 import React from "react";
 import { IProblemItem, ProblemSeverity } from "Types";
-import InfoIcon from '@material-ui/icons/InfoOutlined';
-import WarningIcon from '@material-ui/icons/ReportProblemOutlined';
-import ErrorIcon from '@material-ui/icons/ErrorOutlineOutlined';
+import InfoIcon from "@material-ui/icons/InfoOutlined";
+import WarningIcon from "@material-ui/icons/ReportProblemOutlined";
+import ErrorIcon from "@material-ui/icons/ErrorOutlineOutlined";
 import "./ProblemPane.scss";
 
 interface ProblemItemProps {
@@ -57,14 +57,17 @@ export default class ProblemPane extends React.Component<PPProps> {
           />
         )}
         {this.props.problems &&
-          this.props.problems.map((problem, index) => (
-            <ProblemPaneItem
-              key={index}
-              type={problem.severity}
-              title={problem.title}
-              description={problem.description}
-            />
-          ))}
+          this.props.problems.map((problem, index) => {
+            if (!problem.hidden)
+              return (
+                <ProblemPaneItem
+                  key={index}
+                  type={problem.severity}
+                  title={problem.title}
+                  description={problem.description}
+                />
+              );
+          })}
       </div>
     );
   }

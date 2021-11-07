@@ -6,7 +6,6 @@ import { IFileState, ViewMode } from "Types";
 
 import "./Header.scss";
 
-
 /* HeaderTab Class */
 interface TabProps {
   title: string;
@@ -31,13 +30,15 @@ function Tab(props: TabProps): JSX.Element {
         {!props.saved && !props.readonly && "*"}
         {props.readonly && " (Read-only)"}
       </div>
-      <CloseIcon
-        className="tab-close-btn"
-        style={{ fontSize: 14 }}
-        onClick={() => {
-          props.onTabClose(props.title);
-        }}
-      />
+      <div title="Close File">
+        <CloseIcon
+          className="tab-close-btn"
+          style={{ fontSize: 14 }}
+          onClick={() => {
+            props.onTabClose(props.title);
+          }}
+        />
+      </div>
     </div>
   );
 }

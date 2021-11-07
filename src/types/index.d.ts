@@ -70,6 +70,7 @@ export interface IProblemItem {
   endColumn: number;
   startLineNumber: number;
   endLineNumber: number;
+  hidden?: boolean;
 }
 
 export interface IFileState {

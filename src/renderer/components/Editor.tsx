@@ -132,6 +132,12 @@ export default class Editor extends React.Component<unknown, EditorState> {
       }
     );
 
+    // Set listener to set the active file
+    ipcRenderer.on(IPCChannel.RENDERER_SET_ACTIVE_FILE, (_, filepath) => {
+      if (this.state.openedFiles.find((file) => file.filepath == filepath))
+        this.setActiveFile(filepath);
+    });
+
     // Get monaco instance
     loader.init().then(
       function (monacoInstance: Monaco) {
@@ -388,6 +394,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
     ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_OPENED_FILE);
     ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_FILE_STATE);
     ipcRenderer.removeAllListeners(IPCChannel.RENDERER_UPDATE_FILE_CONTENT);
+    ipcRenderer.removeAllListeners(IPCChannel.RENDERER_SET_ACTIVE_FILE);
     Mousetrap.unbind("mod+w");
   }
 

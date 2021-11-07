@@ -1,16 +1,59 @@
 import { IDOM } from "Types";
 import libxmljs from "libxmljs2";
 
-export function getXPath(text: string): string {
+export function getXPath(text: string, target: string): string {
   const dom = new DOMParser().parseFromString(text, "text/xml");
+  let targetNode;
   let node = dom.lastElementChild;
-  while (
-    node.lastElementChild &&
-    node.lastElementChild.tagName !== "parsererror"
-  ) {
+  while (node && node.tagName != "parsererror") {
+    if (node.tagName == target) {
+      targetNode = node;
+    }
     node = node.lastElementChild;
   }
-  return _xpath(node);
+  return _xpath(targetNode);
+}
+
+export function getCursorElement(text: string): string {
+  const regex = /<(\/?[^/>\s]+[^>]*)>/g; // /<(\/?[^/>\s]+[^>]*)>.*$/
+  const matches = text.match(regex);
+  if (!matches || matches.length == 0) return null;
+  const match = matches[matches.length - 1].match(/<(\/?[^/>\s]+[^>]*)>/);
+  console.log(match);
+  const tagName = match[1].split(" ")[0];
+  if (tagName.endsWith("/")) return tagName.substring(0, tagName.length - 1);
+  if (tagName.startsWith("/")) return tagName.substring(1);
+  return tagName;
+}
+
+function getCursorElement2(text: string): string {
+  const regex = /<(\/?[^/>\s]+[^>]*)>/g;
+  const stack = [];
+  let match;
+  while ((match = regex.exec(text)) != null) {
+    const selfClosing = match[1].endsWith("/");
+    if (selfClosing) continue;
+
+    const endTag = match[1].startsWith("/");
+    let tagName = match[1].split(" ")[0];
+    if (endTag) tagName = tagName.substring(1);
+    // Start tag
+    if (!endTag) {
+      stack.push(tagName);
+    }
+    // End tag
+    else if (stack.length == 0) {
+      // throw Error("Pop on empty stack");
+    } else {
+      const lastTag = stack[stack.length - 1];
+      if (lastTag == tagName) {
+        stack.pop();
+      } else {
+        return tagName;
+      }
+    }
+  }
+  return stack[stack.length - 1];
 }
 
 // https://gist.github.com/iimos/e9e96f036a3c174d0bf4

@@ -9,7 +9,7 @@ import CellMLDocumentFormattingProvider from "./definitions/FormattingProvider";
 import CellMLLanguageConfiguration from "./definitions/LanguageConfiguration";
 import CellMLHoverProvider from "./definitions/HoverProvider";
 import CellMLFormattingProvider from "./definitions/FormattingProvider";
-import { getXPath } from "src/commons/utils/xpath";
+import { getCursorElement, getXPath } from "src/commons/utils/xpath";
 import { IProblemItem } from "Types";
 import IPCChannel from "IPCChannels";
 import findApplyMatch, { findApplyMatches } from "../EquationViewer/regexApply";
@@ -83,8 +83,11 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
           endLineNumber: event.position.lineNumber,
           endColumn: model.getLineLength(event.position.lineNumber) + 1,
         });
-        // If element selected is in math component, send math string for eq viewer
-        const xpath = getXPath(textUntilPosition);
+        const cursorElement = getCursorElement(textUntilPosition);
+        console.log("Cursor Element:", cursorElement);
+        const xpath = cursorElement
+          ? getXPath(textUntilPosition, cursorElement)
+          : null;
         this.props.onCursorPositionChangedCallback(xpath);
         
         const offset = model.getOffsetAt(event.position);

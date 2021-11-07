@@ -1,10 +1,20 @@
-import { IComponent, ILibrary } from "Types";
+import { app } from "electron";
+import fs from "fs";
 import Datastore from "nedb";
+import path from "path";
+
+import { IComponent, ILibrary } from "Types";
+
+const USER_DATA_PATH = app ? app.getPath("userData") : "./cellmleditor";
+const LIBRARY_DIRECTORY = path.join(USER_DATA_PATH, "Library");
+if (!fs.existsSync(LIBRARY_DIRECTORY)) {
+  fs.mkdirSync(LIBRARY_DIRECTORY);
+}
 
 export default class Library implements ILibrary {
   private db: Datastore;
 
-  constructor(dbFilename = ".cellmleditor/components.nedb") {
+  constructor(dbFilename = path.join(LIBRARY_DIRECTORY, "components.nedb")) {
     this.db = new Datastore({
       filename: dbFilename,
       autoload: true,

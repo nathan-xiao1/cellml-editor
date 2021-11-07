@@ -55,7 +55,7 @@ export default class AttributePane extends React.Component<APProps> {
                 }
                 return (
                   <tr key={this.props.node.id + attribute.key}>
-                    <td className="attribute-table-key" title={attribute.key}>
+                    <td className="attribute-table-key" title={attribute.key + (schemaAttr.required ? " (Required)" : "")}>
                       {attribute.key}
                       {schemaAttr.required && "*"}
                     </td>

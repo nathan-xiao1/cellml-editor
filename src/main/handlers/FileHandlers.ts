@@ -1,4 +1,4 @@
-import { ipcMain, dialog } from "electron";
+import { ipcMain, dialog, shell } from "electron";
 import { editorSystem } from "../index";
 import fetch from "electron-fetch";
 import IPCChannel from "./IpcChannels";
@@ -34,7 +34,6 @@ ipcMain.on(IPCChannel.OPEN_FROM_URL, (event, url) => {
   fetch(url)
     .then((res) => res.text())
     .then((body) => {
-      console.log("HERE");
       editorSystem.newFile(body);
       event.sender.send(
         IPCChannel.RENDERER_UPDATE_OPENED_FILE,
@@ -59,11 +58,18 @@ ipcMain.on(IPCChannel.OPEN_FILE, (event) => {
     })
     .then((result) => {
       if (!result.canceled) {
-        editorSystem.openFiles(result.filePaths);
-        event.sender.send(
-          IPCChannel.RENDERER_UPDATE_OPENED_FILE,
-          editorSystem.getOpenedFilesState()
-        );
+        const files = editorSystem.openFiles(result.filePaths);
+        if (!files || files.length == 0) {
+          event.sender.send(
+            IPCChannel.RENDERER_SET_ACTIVE_FILE,
+            result.filePaths[result.filePaths.length - 1]
+          );
+        } else {
+          event.sender.send(
+            IPCChannel.RENDERER_UPDATE_OPENED_FILE,
+            editorSystem.getOpenedFilesState()
+          );
+        }
       }
     })
     .catch((err) => {
@@ -200,17 +206,33 @@ ipcMain.handle(IPCChannel.GET_FILE_STATE_ASYNC, (_, filepath) => {
 });
 
 ipcMain.on(IPCChannel.OPEN_DOCUMENTATION, (event) => {
-  editorSystem.openFilePdf("Help & Documentation"); // "static/cellml_editor_documentation.pdf"
-  event.sender.send(
-    IPCChannel.RENDERER_UPDATE_OPENED_FILE,
-    editorSystem.getOpenedFilesState()
-  );
+  const FILENAME = "Help & Documentation"; // "static/cellml_editor_documentation.pdf"
+  const file = editorSystem.openFilePdf(FILENAME);
+  if (file) {
+    event.sender.send(
+      IPCChannel.RENDERER_UPDATE_OPENED_FILE,
+      editorSystem.getOpenedFilesState()
+    );
+  } else {
+    event.sender.send(IPCChannel.RENDERER_SET_ACTIVE_FILE, FILENAME);
+  }
 });
 
-// ipcMain.on(IPCChannel.OPEN_CELLML_DOCUMENTATION, (event) => {
-//   editorSystem.openFilePdf("static/cellml_2_0_normative_specification.pdf");
-//   event.sender.send(
-//     IPCChannel.RENDERER_UPDATE_OPENED_FILE,
-//     editorSystem.getOpenedFilesState()
-//   );
-// });
+/* Open a prompt that display instruction on how to report bugs or submit feedbacks */
+const EMAIL = "z5205737@unsw.edu.au";
+ipcMain.on(IPCChannel.OPEN_REPORT_DIALOG, () => {
+  dialog
+    .showMessageBox({
+      type: "info",
+      title: "Report a Bug or Submit Feedback",
+      message: `To report a bug or submit feedback on this editor send an email to us at ${EMAIL}`,
+      buttons: ["Ok", "Open Email"],
+    })
+    .then((res) => {
+      if (res.response == 1) {
+        shell.openExternal(
+          `mailto:${EMAIL}?subject=CellML%20Editor%20Bug%20%2F%20Feedback`
+        );
+      }
+    });
+});

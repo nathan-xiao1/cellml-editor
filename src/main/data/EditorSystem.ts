@@ -84,7 +84,8 @@ export default class EditorSystem implements IEditorSystem {
   public openFiles(filepaths: string[]): IFile[] {
     const files: IFile[] = [];
     for (const filepath of filepaths) {
-      files.push(this.openFile(filepath));
+      const file = this.openFile(filepath);
+      if (file) files.push(file);
     }
     return files;
   }
