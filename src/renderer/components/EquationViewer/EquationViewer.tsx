@@ -6,6 +6,7 @@ import { getPoller, destroyPoller } from './SingletonPoller';
 import mathml2openmath from './mathml2openmath';
 import mergeCn from './mergeUnits';
 import ViewOnly from './ViewOnly-ts';
+import { Button } from '@mui/material';
 import './styles.css';
 // import redent from 'redent';
 // import stripIndent from 'stip-indent';
@@ -269,10 +270,11 @@ class EquationViewer extends React.Component<EVProp, EVState> {
                         <div id='equationMain'/>
                         
                         {/* Buttons */}
-                        <button onClick={this.handleReplaceButton}>Confirm Changes</button>
-                        {/* Delete button only appears when selecting an existing math element */}
-                        {this.props.str ? <button onClick={this.handleDeleteButton}>Delete Math Element</button> : null}
-                        
+                        <div className='buttonContainer'>
+                            <Button variant="contained" onClick={this.handleReplaceButton}>Confirm Changes</Button>
+                            {/* Delete button only appears when selecting an existing math element */}
+                            {this.props.str ? <Button variant="outlined" onClick={this.handleDeleteButton}>Delete Math Element</Button> : null}
+                        </div>
                         {/* Used to load scripts for formula editor */}
                         <div id='loadScript'></div>
                     </div>
@@ -281,7 +283,9 @@ class EquationViewer extends React.Component<EVProp, EVState> {
                         {/* TODO: add notice that math element is not editable */}
                         <ViewOnly mathmlstr={this.state.viewStr ? this.state.viewStr : ''}/>
                         {/* Delete button only appears when selecting an existing math element */}
-                        {this.props.str ? <button onClick={this.handleDeleteButton}>Delete Math Element</button> : null}
+                        <div className='buttonContainer'> 
+                            {this.props.str ? <Button variant="outlined" onClick={this.handleDeleteButton}>Delete Math Element</Button> : null}
+                        </div>
                     </div>
                 </>
             );
