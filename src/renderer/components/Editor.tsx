@@ -551,15 +551,15 @@ export default class Editor extends React.Component<unknown, EditorState> {
                 </ReflexElement>
 
                 <ReflexSplitter className="primary-splitter splitter" />
-                    <ReflexElement className="aaaaa"
-                  minSize={300}
-                  flex={0.50}>
-                      <VisualPane
+                
+                  <ReflexElement className="aaaaa" minSize={300} flex={0.50}>
+                  <Pane title="Model Viewer" collapsible={false}><VisualPane
                       dom={this.state.activeFileDOM}
                       filepath={activeFilepath}
                       onClickHandler={this.domTreeClickHandler.bind(this)}
-                    />
-                      </ReflexElement>
+                    /></Pane>
+                    
+                  </ReflexElement>
                 
               </ReflexContainer>
 

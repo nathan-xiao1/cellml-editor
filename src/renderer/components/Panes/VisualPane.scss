@@ -13,3 +13,41 @@
   width: 500px;
   background-color: aliceblue;
 }
+
+.model_view_btns {
+  margin-top: 10px;
+  margin-bottom: 5px;
+  margin-left: 10px;
+  width: 110px;
+  font-size: 12px;
+  font-weight: bold;
+  padding-top: 5px;
+  padding-bottom: 5px; 
+  color: rgb(200,200,200);
+  background-color: rgb(42,42,42);
+  border-radius: 5px;
+  border-width: 1px;
+  border-color: rgb(200,200,200);
+
+  &:hover {
+    border: 0px !important;
+    background-color: rgb(180, 180, 180);
+    border-color: rgb(45, 45, 45);
+    color:rgb(45, 45, 45);
+    transition: all 0.1s ease-in;
+  }
+}
+
+
+#canvas_width, #canvas_height {
+  border-radius: 5px;
+  border: 2px rgb(200,200,200) solid;
+  width: 50px;
+  height: 20px;
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
+.resize_btn {
+  width: 80px;
+}

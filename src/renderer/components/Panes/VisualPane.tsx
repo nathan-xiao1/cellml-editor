@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import TreeView from "@material-ui/lab/TreeView";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
@@ -69,7 +69,38 @@ const defaultStr2 = `
 
 const temp_math = `<cn units="cellml:dimensionless">123</cn>`;
 
-
+const defaul3 = `
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+                    <mi>a</mi><mo>&#x2260;</mo><mn>0</mn>
+                  </math>,
+                  there are two solutions to
+                  <math xmlns="http://www.w3.org/1998/Math/MathML">
+                    <mi>a</mi><msup><mi>x</mi><mn>2</mn></msup>
+                    <mo>+</mo> <mi>b</mi><mi>x</mi>
+                    <mo>+</mo> <mi>c</mi> <mo>=</mo> <mn>0</mn>
+                  </math>
+                  and they are
+                  <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+                    <mi>x</mi> <mo>=</mo>
+                    <mrow>
+                      <mfrac>
+                        <mrow>
+                          <mo>&#x2212;</mo>
+                          <mi>b</mi>
+                          <mo>&#x00B1;</mo>
+                          <msqrt>
+                            <msup><mi>b</mi><mn>2</mn></msup>
+                            <mo>&#x2212;</mo>
+                            <mn>4</mn><mi>a</mi><mi>c</mi>
+                          </msqrt>
+                        </mrow>
+                        <mrow>
+                          <mn>2</mn><mi>a</mi>
+                        </mrow>
+                      </mfrac>
+                    </mrow>
+                    <mtext>.</mtext>
+                  </math>`
 
 interface MathMLInputProcessorE extends MathMLInputProcessor {
     useMathMLspacing?: boolean;
@@ -85,8 +116,6 @@ const config : MathJax2Config = {
 interface EFProps {
     mathmlstr?: string;
 }
-
-
 
 export default class VisualPane extends React.Component<TPProps> {
 
@@ -106,10 +135,13 @@ export default class VisualPane extends React.Component<TPProps> {
 
 
 
-  testXMLconvert = (dom: IDOM) => {
+  testXMLconvert = (filepath: string) => {
     console.log("read file");
     //console.log(dom);
-    const test_file = 'C:\\Users\\admin\\Downloads\\finalversion\\cellml-editor\\example\\SodiumChannelModel-Test.cellml';
+    const temp_file = 'C:\\Users\\admin\\Downloads\\finalversion\\cellml-editor\\example\\SodiumChannelModel-Test.cellml';
+
+    let test_file = "";
+    (filepath == undefined || filepath == "") ? test_file = temp_file : test_file = filepath;
 
     // read the actual file 
     this.fs.readFile(test_file, function (err:any, data:any) {
@@ -125,32 +157,39 @@ export default class VisualPane extends React.Component<TPProps> {
       cellml_elements = [];
 
       // function to draw a diamond (for connection)
-      function drawDiamond(context:any, x:number, y:number, width:number, height:number) {
+      function drawDiamond(context:any, shape: any, x:number, y:number, width:number, height:number, inside_color: string, gradient_color: string, border_color: string) {
         context.beginPath();
-        context.fillStyle = "red";
-        context.strokeStyle="purple";
+        const grd = context.createRadialGradient(shape.x, shape.y, 5, shape.x + 30, shape.y + 40, 60);
+        grd.addColorStop(0, inside_color);
+        grd.addColorStop(1, gradient_color);
+        context.fillStyle = grd;
+        context.strokeStyle= border_color;
         context.moveTo(x, y);   
         context.lineTo(x - width / 2, y + height / 2); // top left edge
         context.lineTo(x, y + height);                 // bottom left edge
         context.lineTo(x + width / 2, y + height / 2); // bottom right edge
         context.closePath();                           // finish triangle
         context.fill();
+        highlight_stroke(context, shape, border_color);
         context.stroke();
       }
       // function to draw pentagon (for map variables) 
-      function drawPentagon(context: any, x:number, y:number, size:number) {
+      function drawPentagon(context: any, shape: any, x:number, y:number, size:number, stroke:string, fill:string) {
         const numberOfSides = 5,
         step  = 2 * Math.PI / numberOfSides,  //Precalculate step value
         shift = (Math.PI / 180.0) * -18;      //Quick fix
-
         context.beginPath();
         for (let i = 0; i <= numberOfSides;i++) {
           const curStep = i * step + shift;
           context.lineTo (x + size * Math.cos(curStep), y + size * Math.sin(curStep));
         }
-
-        context.strokeStyle = "#000000";
         context.lineWidth = 5;
+        const grd = context.createRadialGradient(shape.x, shape.y, 5, shape.x + 30, shape.y + 40, 60);
+        grd.addColorStop(0, stroke);
+        grd.addColorStop(1, fill);
+        context.fillStyle = grd;
+        context.fill();
+        highlight_stroke(context, shape, stroke);
         context.stroke();
       }
 
@@ -171,7 +210,7 @@ export default class VisualPane extends React.Component<TPProps> {
         for (let i = 0; i < unit_list.length; i++) {
           console.log(unit_list[i]);
           console.log(unit_list[i].getAttribute('exponent'));
-          const unit_x_pos = 150;
+          const unit_x_pos = 180;
           const unit_y_pos = 10 + cellml_elements.length*50;
 
           let exp, mult, pref, un;
@@ -189,7 +228,7 @@ export default class VisualPane extends React.Component<TPProps> {
         const variable_list = elemNode.querySelectorAll("variable");
         const math_list     = elemNode.querySelectorAll("math");
         const reset_list    = elemNode.querySelectorAll("reset");
-        const comp_x_pos = 180;
+        const comp_x_pos = 200;
         const comp_y_pos = 10 + cellml_elements.length*50;
         for (let i = 0; i < variable_list.length; i++) {     
           let v_name, v_units, v_interface, v_initial;
@@ -205,7 +244,7 @@ export default class VisualPane extends React.Component<TPProps> {
           console.log(math_list[i]);
           console.log(typeof math_list[i]);
           console.log("***********");
-          cellml_elements.push( {x:comp_x_pos, y:comp_y_pos, radius:35, color:'pink', element_type:'math', mathml_format: math_list[i]})
+          cellml_elements.push( {x:comp_x_pos + 80, y:comp_y_pos + i*60, radius:35, color:'pink', element_type:'math', mathml_format: math_list[i], math_parent: elemNode.getAttribute('name')})
         }
         for (let i = 0; i < reset_list.length; i++) {
           console.log(i);
@@ -229,20 +268,28 @@ export default class VisualPane extends React.Component<TPProps> {
 
         const test_value_list = elemNode.querySelectorAll("test_value");
         const reset_value_list = elemNode.querySelectorAll("reset_value");
-        const value_x_pos = 160;
+        const value_x_pos = 180;
         const value_y_pos = 10 + cellml_elements.length*50;
+
+        let num_tv = 0; let num_rv = 0;
+        for (let i = 0; i < cellml_elements.length; i++) {
+          if (cellml_elements[i].element_type == 'test_value') num_tv ++;
+          if (cellml_elements[i].element_type == 'reset_value') num_rv ++;
+        }
 
         let total = 0;
         for (let i =0; i<test_value_list.length; i++) {
           // since order is unique
-          cellml_elements.push( {x:value_x_pos, y:value_y_pos + total*60, radius:30, color:'purple', element_type:'test_value', reset_parent: elemNode.getAttribute('order')})
+          cellml_elements.push( {x:value_x_pos, y:value_y_pos + total*60, radius:30, color:'purple', element_type:'test_value', reset_parent: elemNode.getAttribute('order'), id: "test" + num_tv})
+          cellml_elements.push( {x:value_x_pos + 80, y:value_y_pos + total*60, radius:30, color:'pink', element_type:'math', mathml_format: test_value_list[i], reset_parent: "test" + num_tv})
           total ++;
-          // need to add math element
+          num_tv++;
         }
         for (let j = 0; j < reset_value_list.length; j++) {
-          cellml_elements.push( {x:value_x_pos, y:value_y_pos + total*60, radius:30, color:'purple', element_type:'reset_value', reset_parent: elemNode.getAttribute('order')})
+          cellml_elements.push( {x:value_x_pos, y:value_y_pos + total*60, radius:30, color:'purple', element_type:'reset_value', reset_parent: elemNode.getAttribute('order'), id: "reset" + num_rv})
+          cellml_elements.push( {x:value_x_pos + 80, y:value_y_pos + total*60, radius:30, color:'pink', element_type:'math', mathml_format: test_value_list[j], reset_parent: "reset" + num_rv})
           total++;
-          // need to add math element
+          num_rv++;
         }
       }
 
@@ -272,7 +319,7 @@ export default class VisualPane extends React.Component<TPProps> {
         //if(comp_ref_list.length != 0) {check_encapsulation_elements}// should loop though more component ref's
       }
 
-      function check_import_elements(elemNode: any, x_pos: number, y_pos: number) {
+      function check_import_elements(elemNode: any, x_pos: number, y_pos: number, import_parent_id: number) {
         console.log(elemNode);
         const href = elemNode.getAttribute('xlink:href');
         const imp_unt_list = elemNode.querySelectorAll("variable");
@@ -280,34 +327,209 @@ export default class VisualPane extends React.Component<TPProps> {
         const imp_x = 90;
         const imp_y = 10 + cellml_elements.length*50;
 
+        
+
         for (let i = 0; i < imp_com_list.length; i++) {
           console.log(imp_com_list[i].getAttribute("name"));
-          cellml_elements.push( {x:imp_x, y:imp_y + i*50, radius:35, color:'green', element_type:'component', name: imp_com_list[i].getAttribute("name"), component_ref:imp_com_list[i].getAttribute("component_ref"), href_reference: href});
+          cellml_elements.push( {x:imp_x, y:imp_y + i*50, radius:35, color:'green', element_type:'import_component', name: imp_com_list[i].getAttribute("name"), component_ref:imp_com_list[i].getAttribute("component_ref"), imp_id: import_parent_id});
           check_component_elements(elemNode, imp_x, imp_y);
         }
         for (let j = 0; j < imp_unt_list.length; j++) {
           let u_name, u_ref;
           (imp_unt_list[j].getAttribute('name')) ? u_name = imp_unt_list[j].getAttribute('name') : u_name = '';
           (imp_unt_list[j].getAttribute('units_ref')) ? u_ref = imp_unt_list[j].getAttribute('units_ref') : u_ref = '';
-          cellml_elements.push({x:imp_x, y:imp_y + j*50, radius:35, color:'green', element_type:'variable', name:u_name, units_ref: u_ref})
+          cellml_elements.push({x:imp_x, y:imp_y + j*50, radius:35, color:'green', element_type:'import_units', name:u_name, units_ref: u_ref, imp_id: import_parent_id})
           check_unit_elements(elemNode, imp_x, imp_y);
         }
+      }
+
+      function highlight_stroke(context: any, shape: any, alt_color: string) {
+        if (cellml_elements[selectedShapeIndex] != undefined) {
+          if (shape.x == cellml_elements[selectedShapeIndex].x && 
+              shape.y == cellml_elements[selectedShapeIndex].y) {
+            context.lineWidth = 5; 
+            context.strokeStyle = "rgb(222, 190, 7)";
+          } else { 
+            context.strokeStyle = alt_color; 
+            context.lineWidth = 3; 
+          }
+        } else { 
+          context.strokeStyle = alt_color; 
+          context.lineWidth = 3; 
+        }
+      }
+
+      function roundRect(ctx : any, x : number, y: number, width:number, height:number, radius:any, fill: boolean, stroke: boolean) {
+        if (typeof stroke === 'undefined') {
+          stroke = true;
+        }
+        if (typeof radius === 'undefined') {
+          radius = 5;
+        }
+        if (typeof radius === 'number') {
+          radius = {tl: radius, tr: radius, br: radius, bl: radius};
+        } else {
+          const defaultRadius: any = {tl: 0, tr: 0, br: 0, bl: 0};
+          
+          for (const side in defaultRadius) {
+            radius[side] = radius[side] || defaultRadius[side];
+          }
+        }
+        ctx.beginPath();
+        ctx.moveTo(x + radius.tl, y);
+        ctx.lineTo(x + width - radius.tr, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+        ctx.lineTo(x + width, y + height - radius.br);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+        ctx.lineTo(x + radius.bl, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+        ctx.lineTo(x, y + radius.tl);
+        ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+        ctx.closePath();
+        if (fill) {
+          ctx.fill();
+        }
+        if (stroke) {
+          ctx.stroke();
+        }
+      }
+
+      function calculate_width(shape_name:string) {
+        // have a general size and if text too long increase the size to fit
+        if (shape_name.length < 10) return 100; 
+        else return 10*shape_name.length + 10; // add 10 for padding
+      }
+
+      function calculate_prefix(shape:any) {
+        let prefix = "";
+        if (shape.prefix == '') prefix = '';
+        else if (shape.prefix.toLowerCase() == "yotta") prefix = "Y";
+        else if (shape.prefix.toLowerCase() == "zetta") prefix = "Z";
+        else if (shape.prefix.toLowerCase() == "exa")   prefix = "E";
+        else if (shape.prefix.toLowerCase() == "peta")  prefix = "P";
+        else if (shape.prefix.toLowerCase() == "tera")  prefix = "T";
+        else if (shape.prefix.toLowerCase() == "giga")  prefix = "G";
+        else if (shape.prefix.toLowerCase() == "mega")  prefix = "M";
+        else if (shape.prefix.toLowerCase() == "kilo")  prefix = "k";
+        else if (shape.prefix.toLowerCase() == "hecto") prefix = "h";
+        else if (shape.prefix.toLowerCase() == "deca")  prefix = "da";
+        else if (shape.prefix.toLowerCase() == "deci")  prefix = "d";
+        else if (shape.prefix.toLowerCase() == "centi") prefix = "c";
+        else if (shape.prefix.toLowerCase() == "milli") prefix = "m";
+        else if (shape.prefix.toLowerCase() == "micro") prefix = "µ";
+        else if (shape.prefix.toLowerCase() == "nano")  prefix = "n";
+        else if (shape.prefix.toLowerCase() == "pico")  prefix = "p";
+        else if (shape.prefix.toLowerCase() == "femto") prefix = "f";
+        else if (shape.prefix.toLowerCase() == "atto")  prefix = "a";
+        else if (shape.prefix.toLowerCase() == "zepto") prefix = "z";
+        else if (shape.prefix.toLowerCase() == "yocto") prefix = "y";
+        else prefix = "";
+        return prefix;
+      }
+
+      function calculate_units_base(shape: any) {
+        if (shape.units) {
+          const unit = shape.units.toLowerCase();
+          if (unit == "metre") return "m";
+          else if (unit == "ampere") return "A";
+          else if (unit == "becquerel") return "Bq";
+          else if (unit == "candela") return "cd";
+          else if (unit == "coulomb") return "C";
+          else if (unit == "dimensionless") return " ";
+          else if (unit == "farad") return "F";
+          else if (unit == "gram") return "g";
+          else if (unit == "gray") return "Gy";
+          else if (unit == "henry") return "H";
+          else if (unit == "hertz") return "Hz";
+          else if (unit == "joule") return "J";
+          else if (unit == "katal") return "kat";
+          else if (unit == "kelvin") return "K";
+          else if (unit == "kilogram") return "kg";
+          else if (unit == "litre") return "L";
+          else if (unit == "lumen") return "lm";
+          else if (unit == "lux") return "lx";
+          else if (unit == "mole") return "mol";
+          else if (unit == "newton") return "N";
+          else if (unit == "ohm") return "Ω";
+          else if (unit == "pascal") return "Pa";
+          else if (unit == "radian") return "rad";
+          else if (unit == "second") return "s";
+          else if (unit == "siemens") return "S";
+          else if (unit == "sievert") return "Sv";
+          else if (unit == "steradian") return "sr";
+          else if (unit == "tesla") return "T";
+          else if (unit == "volt") return "V";
+          else if (unit == "watt") return "W";
+          else if (unit == "weber") return "Wb";
+          else if (unit == "degree Celsius") return "°C";
+          else return shape.units;
+      }
+          else return "";
+      }
+
+      function calculate_exponent(shape:any) {
+        let exponent;
+        if (shape.exponent == '') exponent = 1.0;
+        else if (shape.exponent) exponent = shape.exponent;
+        else exponent = 1.0;
+        return exponent;
+      }
+
+      function calculate_variable_center_x(var_name: string, x_pos: number) {
+        if (var_name.length == 1) return x_pos - 7;
+        else return x_pos - (5*var_name.length);
+      }
+      
+      function select_interface_type(shape:any) {
+        let v_interface;
+        if(shape.interface == "none") {v_interface = "";}
+        else if (shape.interface == "private") {v_interface = "-"}
+        else if (shape.interface == "public") {v_interface = "+"}
+        else if (shape.interface == "public_and_private") {v_interface = "x"}
+        else {v_interface = "";}
+        return v_interface;
+      }
+
+      function drawArrow(ctx: any, fromx: number, fromy:number, tox: number, toy: number, arrow_color: string){
+        const width = 15;
+        const headlen = 10;
+        // This makes it so the end of the arrow head is located at tox, toy, don't ask where 1.15 comes from
+        const angle = Math.atan2(toy-fromy,tox-fromx);
+        tox -= Math.cos(angle) * ((width*1.15));     
+        toy -= Math.sin(angle) * ((width*1.15));
+        
+        //starting path of the arrow from the start square to the end square and drawing the stroke
+        ctx.beginPath();
+        ctx.moveTo(fromx, fromy);
+        ctx.lineTo(tox, toy);
+        ctx.strokeStyle = arrow_color;
+        ctx.lineWidth = width;
+        ctx.stroke();
+        
+        //starting a new path from the head of the arrow to one of the sides of the point
+        ctx.beginPath();
+        ctx.moveTo(tox, toy);
+        ctx.lineTo(tox-headlen*Math.cos(angle-Math.PI/7),toy-headlen*Math.sin(angle-Math.PI/7));
+        
+        //path from the side point of the arrow, to the other side point
+        ctx.lineTo(tox-headlen*Math.cos(angle+Math.PI/7),toy-headlen*Math.sin(angle+Math.PI/7));
+        
+        //path from the side point back to the tip of the arrow, and then again to the opposite side point
+        ctx.lineTo(tox, toy);
+        ctx.lineTo(tox-headlen*Math.cos(angle-Math.PI/7),toy-headlen*Math.sin(angle-Math.PI/7));
+
+        //draws the paths created above
+        ctx.strokeStyle = arrow_color;
+        ctx.lineWidth = width;
+        ctx.stroke();
+        ctx.fillStyle = "rgb(164, 190, 219)";
+        ctx.fill();
       }
 
       const parser = new DOMParser();
       const xmlDOM = parser.parseFromString(data.toString(), 'application/xml');
       // xmlDom convers the text into a dom like style
-      
-
-      
-
-
-
-      
-
       // Check all the base components [Units, Component, Connection, Encapsulation, Import]
-
-      
       //{dom.children.length > 0 ? dom.children.map((element) => this.domToTreeItem(element)) : null} // this is the tree level model
       // check every units element in the DOM
       const cellml_units = xmlDOM.querySelectorAll('units');
@@ -349,246 +571,524 @@ export default class VisualPane extends React.Component<TPProps> {
       cellml_imports.forEach(elemNode => {
         const imp_x = 10;
         const imp_y = 10 + cellml_elements.length*50;
-        cellml_elements.push({x:imp_x, y:imp_y, radius:35, color:'green', element_type:'import', href: elemNode.getAttribute('xlink:href')});
-        check_import_elements(elemNode, imp_x, imp_y);
+
+        let import_id = 0;
+        for (let i = 0; i < cellml_elements.length; i++) {
+          if (cellml_elements[i].element_type == 'import') import_id++;
+        }
+
+        cellml_elements.push({x:imp_x, y:imp_y, radius:35, color:'green', element_type:'import', href: elemNode.getAttribute('xlink:href'), import_id: import_id});
+        check_import_elements(elemNode, imp_x, imp_y, import_id);
       });
 
 
+      
+
       // Update The Canvas Depending on the Elements list
       canvas.height = cellml_elements.length*50 + 100;
+      // draw the lines
       for (const i in cellml_elements) {
         const shape = cellml_elements[i];
         if (shape.element_type=="units") {
-          
           context.beginPath(); 
-          // draw lines between elements
+          context.lineWidth = 5;
+          context.strokeStyle = "rgb(193, 2, 12)";
           for (let j = 0; j < cellml_elements.length; j++) {
-            
-            context.moveTo(shape.x, shape.y);
             if (cellml_elements[j].element_type == "unit" && cellml_elements[j].units_parent == shape.units_name) {
-              console.log('found match: ' + cellml_elements[j].units)
-              context.lineTo(cellml_elements[j].x, cellml_elements[j].y);
-              
+              drawArrow(context, shape.x + 50, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(255, 175, 175, 0.5)");
+            }
+            else if (cellml_elements[j].element_type == "variable" && cellml_elements[j].units == shape.units_name) {
+              drawArrow(context, shape.x + 50, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(255, 175, 175, 0.5)");
             }
           }
-          // drawing the container
-          context.rect(shape.x, shape.y, 100, 42);
-          context.font =  "16px Arial";
-          context.strokeStyle="rgb(61,146,61)";
-          context.lineWidth = 5;
-          context.fillStyle = "#51DCFF";
-          context.fill();
-          context.fillRect(shape.x,shape.y,shape.width,shape.height);         
-          context.stroke();
-          // drawing the text for the element
-          context.beginPath(); 
-          context.fillStyle='black';
-          context.fillText(shape.units_name, shape.x + 5, shape.y + 25);
-          context.stroke();
-        } else if (shape.element_type == "unit") {
-
-          let prefix;
-          if (shape.prefix == '') prefix = 0;
-          else if (+(shape.prefix)) prefix = shape.prefix;
-          else if (shape.prefix == "yotta") prefix = 24;
-          else if (shape.prefix == "zetta") prefix = 21;
-          else if (shape.prefix == "exa") prefix = 18;
-          else if (shape.prefix == "peta") prefix = 15;
-          else if (shape.prefix == "tera") prefix = 12;
-          else if (shape.prefix == "giga") prefix = 9;
-          else if (shape.prefix == "mega") prefix = 6;
-          else if (shape.prefix == "kilo") prefix = 3;
-          else if (shape.prefix == "hecto") prefix = 2;
-          else if (shape.prefix == "deca") prefix = 1;
-          else if (shape.prefix == "deci") prefix = -1;
-          else if (shape.prefix == "centi") prefix = -2;
-          else if (shape.prefix == "milli") prefix = -3;
-          else if (shape.prefix == "micro") prefix = -6;
-          else if (shape.prefix == "nano") prefix = -9;
-          else if (shape.prefix == "pico") prefix = -12;
-          else if (shape.prefix == "femto") prefix = -15;
-          else if (shape.prefix == "atto") prefix = -18;
-          else if (shape.prefix == "zepto") prefix = -21;
-          else if (shape.prefix == "yocto") prefix = -24;
-          else prefix = 0;
-
-          let exponent;
-          if (shape.exponent == '') exponent = 1.0;
-          else if (shape.exponent) exponent = shape.exponent;
-          else exponent = 1.0;
-
-          let multiplier;
-          if (shape.multiplier == '') multiplier = 1.0;
-          else if (shape.multiplier) multiplier = shape.multiplier;
-          else multiplier = 1.0;
-
-          context.beginPath();
-          context.fillStyle='black';
-          context.arc(shape.x,shape.y,shape.radius,0,Math.PI*2);
-          context.font =  "16px Arial";
-          context.fillText(prefix, shape.x, shape.y + 10);
-          context.font =  "12px Arial";
-          context.fillText(exponent, shape.x + 10, shape.y - 10);
-          context.font =  "16px Arial";
-          context.fillText(multiplier + "*", shape.x - 20, shape.y + 10);
-
-          context.lineWidth = 5;
-          context.strokeStyle = "rgb(73,177,75)";
           context.stroke();
         }
         else if (shape.element_type == "component") {
-
-          //var_parent - draw connecting lines 
           context.beginPath();
+          context.strokeStyle = "rgb(123,161,203)";
+          context.fillStyle = "rgb(123,161,203)";
+          context.lineWidth = 1;
           for (let j = 0; j < cellml_elements.length; j++) {
-            context.moveTo(shape.x, shape.y);
             if (cellml_elements[j].var_parent == shape.name && cellml_elements[j].element_type == "variable") {
-              context.lineTo(cellml_elements[j].x, cellml_elements[j].y);
+              drawArrow(context, shape.x + calculate_width(shape.name)/2, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(175, 245, 185, 0.5)");
+            }
+            else if (cellml_elements[j].res_parent == shape.c_id && cellml_elements[j].element_type == "reset") {
+              drawArrow(context, shape.x + calculate_width(shape.name)/2, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(175, 245, 185, 0.5)");
+            }
+            else if (cellml_elements[j].math_parent == shape.name && cellml_elements[j].element_type == "math") {
+              drawArrow(context, shape.x + calculate_width(shape.name)/2, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(175, 245, 185, 0.5)");
+            }
+            else if (cellml_elements[j].component == shape.name && cellml_elements[j].element_type == "component_ref") {
+              drawArrow(context, cellml_elements[j].x, cellml_elements[j].y, shape.x + calculate_width(shape.name)/2, shape.y + 21, "rgb(175, 245, 185, 0.5)");
+            }
+          }
+          context.fill();
+          context.stroke();
+        }
+        else if (shape.element_type == "reset") {
+          // lines between children
+          for (let j = 0; j < cellml_elements.length; j++) {
+            if (cellml_elements[j].reset_parent == shape.order && (cellml_elements[j].element_type == "test_value" || cellml_elements[j].element_type == "reset_value")) {
+              drawArrow(context, shape.x, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(175, 245, 185, 0.5)");
+            }
+            if (cellml_elements[j].element_type == "variable" && cellml_elements[j].name == shape.variable) {
+              drawArrow(context, shape.x, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(175, 245, 185, 0.5)");
+            }
+          }
+        }
+        else if (shape.element_type == "reset_value" || shape.element_type == "test_value") {
+          for (let j = 0; j < cellml_elements.length; j++) {
+            if (cellml_elements[j].element_type == "math" && cellml_elements[j].reset_parent == shape.id) {
+              drawArrow(context, shape.x, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(175, 245, 185, 0.5)");
+            }
+          }
+        }
+        else if (shape.element_type == "connection") {
+          // draw the children lines between connection and map variables
+          context.beginPath();
+          context.lineWidth = 2;
+          context.strokeStyle = "rgb(115,50,115)";
+          for (let i = 0; i < cellml_elements.length; i++) {
+            if (cellml_elements[i].element_type == "map_variables" && cellml_elements[i].connection_ref == shape.connection_parent) {
+              drawArrow(context, shape.x, shape.y, cellml_elements[i].x, cellml_elements[i].y, "rgb(245, 206, 177, 0.5)");
             }
           }
           context.stroke();
-          // draw compoennt square
-          context.beginPath(); 
-          context.rect(shape.x, shape.y, 100, 42);
-          context.fillStyle='black';
-          context.font =  "16px Arial";
-          context.strokeStyle="orange";
-          context.lineWidth = 5;
-          context.fillRect(shape.x,shape.y,shape.width,shape.height);
-          console.log(shape);
-          context.fillText(shape.name, shape.x + 5, shape.y + 25);
-          context.stroke();
-        }
-        else if (shape.element_type == "variable") {
-          //console.log('variable name: ' + shape.name);
+          // draw connection lines between the components
           context.beginPath();
-          context.arc(shape.x,shape.y,shape.radius,0,Math.PI*2);
-          context.fillStyle= "black";
-          context.lineWidth = 5;
-          context.font =  "16px Arial";
-          context.strokeStyle = "rgb(245,139,22)";
-          context.fillText(shape.name, shape.x - 5, shape.y + 7);
-          context.stroke();
-          // draw the interface attribute onto the circle
-          context.beginPath();
-          context.arc(shape.x + 25,shape.y -15,10,0,Math.PI*2);
-          context.fillStyle = "white";
-          context.fill();
-          context.fillStyle= "black";
           context.lineWidth = 3;
-          context.font =  "16px Arial";
-          context.strokeStyle = "rgb(245,139,22)";
-          let v_interface;
-          if(shape.interface == "none") {v_interface = "";}
-          else if (shape.interface == "private") {v_interface = "-"}
-          else if (shape.interface == "public") {v_interface = "+"}
-          else if (shape.interface == "public_and_private") {v_interface = "x"}
-          else {v_interface = "";}
-          context.fillText(v_interface, shape.x + 22, shape.y - 12);
-          context.stroke();
-        }
-        else if (shape.element_type == "import") {
-          context.beginPath();
-          // drawing the container
-          context.rect(shape.x, shape.y, 100, 42);
-          context.font =  "16px Arial";
-          context.strokeStyle="purple";
-          context.lineWidth = 5;
-          context.fillRect(shape.x,shape.y,shape.width,shape.height);         
-          context.stroke();
-          // drawing the text for the element
-          context.beginPath(); 
-          context.fillStyle='black';
-          context.fillText(shape.href, shape.x + 5, shape.y + 25);
-          context.stroke();
-        }
-        else if ((shape.element_type == "reset") || (shape.element_type == "test_value") || (shape.element_type == "reset_value")) {
-          context.beginPath(); 
-          context.rect(shape.x, shape.y, 100, 42);
-          context.fillStyle='red';
-          context.font =  "16px Arial";
-          context.strokeStyle="rgb(61,146,61)";
-          context.lineWidth = 5;
-          context.fillRect(shape.x,shape.y,shape.width,shape.height);
-          context.fillText(shape.units_name, shape.x + 5, shape.y + 25);
-          context.stroke();
-        }
-        else if (shape.element_type == "connection") {
-          console.log('C1: ' + shape.component_1);
-          console.log('C2: ' + shape.component_2);
-          // draw the connecting lines
-          context.beginPath();
-          context.lineWidth = 2;
-          context.setLineDash([10,10]);
+          context.strokeStyle = "rgb(115,50,115)";
+          context.fillStyle   = "rgb(115,50,115)";
           for (let j = 0; j < cellml_elements.length; j++) {
-            context.moveTo(shape.x + 150, shape.y);
-            // If component 1 is found
-            if (cellml_elements[j].element_type == "component" && 
-                cellml_elements[j].name == shape.component_1) {
-              console.log('found match 1: ' + cellml_elements[j].name)
-              //context.lineTo(cellml_elements[j].x, cellml_elements[j].y); // lines ugly
+            // Checking component 1 & 2
+            if (cellml_elements[j].element_type == "component" && cellml_elements[j].name == shape.component_1) {
+                drawArrow(context, shape.x, shape.y, cellml_elements[j].x, cellml_elements[j].y, "rgb(191, 242, 211, 0.5)");
             }
-            else if (cellml_elements[j].element_type == "component" && 
-              cellml_elements[j].name == shape.component_2) {
-                console.log('found match 2: ' + cellml_elements[j].name)
-                //context.lineTo(cellml_elements[j].x, cellml_elements[j].y); // lines ugly
+            else if (cellml_elements[j].element_type == "component" && cellml_elements[j].name == shape.component_2) {
+                drawArrow(context, shape.x, shape.y, cellml_elements[j].x, cellml_elements[j].y, "rgb(191, 242, 211, 0.5)");
               }
           }
           context.stroke();
-          // draw connection diamond
-          drawDiamond(context, shape.x + 100, shape.y, 75, 100);
-          // draw the name
+        }
+        else if (shape.element_type == "map_variables") {
+          // drawing connecting lines between variables
           context.beginPath();
-          context.setLineDash([]);
-          context.fillStyle='black';
-          context.font =  "16px Arial";
-          context.strokeStyle="rgb(61,146,61)";
           context.lineWidth = 5;
-          context.fillText(shape.component_1, shape.x + 25, shape.y + 25);
-          context.fillText("x", shape.x + 5, shape.y + 35);
-          context.fillText(shape.component_2, shape.x + 25, shape.y + 45);
-          context.stroke();        
+          context.strokeStyle = "rgb(115,50,115)";
+          context.fillStyle   = "rgb(115,50,115)";
+          context.setLineDash([10,10]);
+          for (let j = 0; j < cellml_elements.length; j++) {
+            // Checking component 1 & 2
+            if (cellml_elements[j].element_type == "variable" && cellml_elements[j].name == shape.variable_1 ) {
+                drawArrow(context,shape.x, shape.y, cellml_elements[j].x, cellml_elements[j].y, "rgb(235, 211, 250, 0.5)");
+            }
+            if (cellml_elements[j].element_type == "variable" && cellml_elements[j].name == shape.variable_2 ) {
+              //  context.lineTo(cellml_elements[j].x, cellml_elements[j].y);
+              drawArrow(context,shape.x, shape.y, cellml_elements[j].x, cellml_elements[j].y, "rgb(235, 211, 250, 0.5)");
+            }
+          }
+          context.stroke();
+          context.setLineDash([]);
+        }
+        else if (shape.element_type == "import") {
+          // drawing connecting lines between variables
+          context.beginPath();
+          context.lineWidth = 5;
+          context.strokeStyle = "rgb(115,50,115)";
+          context.fillStyle   = "rgb(115,50,115)";
+          context.setLineDash([]);
+          for (let j = 0; j < cellml_elements.length; j++) {
+            // Checking component 1 & 2
+            if (cellml_elements[j].element_type == "import_units" && cellml_elements[j].imp_id == shape.import_id ) {
+                drawArrow(context,shape.x, shape.y, cellml_elements[j].x, cellml_elements[j].y, "rgb(235, 211, 250, 0.5)");
+            }
+            if (cellml_elements[j].element_type == "import_component" && cellml_elements[j].imp_id == shape.import_id ) {
+              //  context.lineTo(cellml_elements[j].x, cellml_elements[j].y);
+              drawArrow(context,shape.x, shape.y, cellml_elements[j].x, cellml_elements[j].y, "rgb(235, 211, 250, 0.5)");
+            }
+          }
+          context.stroke();
+          
+        }
+      }
+      // draw the elements
+      for (const i in cellml_elements) {
+        const shape = cellml_elements[i];
+
+        if (shape.element_type=="units") {
+          context.beginPath();
+          context.lineWidth = 3;
+          roundRect(context, shape.x, shape.y, calculate_width(shape.units_name) + 10, 48, 5, true, true);
+          context.font =  "16px Arial";
+          const grd = context.createRadialGradient(shape.x + calculate_width(shape.units_name)/2, shape.y + 25, 5, shape.x + calculate_width(shape.units_name)/3, shape.y + 30, 100);
+          grd.addColorStop(0, "rgb(254, 148, 155)");
+          grd.addColorStop(1, "rgb(252, 36, 42)");
+          context.fillStyle = grd;
+          context.fill();       
+          highlight_stroke(context, shape, "rgb(193, 2, 12)");
+          context.stroke();
+          context.beginPath(); 
+          context.fillStyle ='rgb(110, 1, 6)';
+          context.font = "bold 18px Arial";
+          context.strokeStyle="rgb(193, 2, 12)";
+          context.fillText(shape.units_name, shape.x + 5, shape.y + 30);
+          context.stroke();
+        } 
+        else if (shape.element_type == "unit") {
+          const units_value = calculate_units_base(shape);
+          const prefix     = calculate_prefix(shape);
+          const exponent   = calculate_exponent(shape);
+
+          context.beginPath();
+          const grd = context.createRadialGradient(shape.x - 5, shape.y - 5, 5, shape.x + 5, shape.y - 5, 30);
+          grd.addColorStop(1, "rgb(242, 87, 95)");
+          grd.addColorStop(0, "rgb(245, 137, 142)");
+          context.fillStyle = grd;
+          context.arc(shape.x, shape.y, 35, 0, Math.PI*2);
+          context.fill();
+          highlight_stroke(context, shape, "rgb(193, 2, 12)");
+          context.stroke();
+
+          context.beginPath();
+          context.font =  "bold 16px Arial";
+          let unit_string = "";
+          if (shape.multiplier != undefined && shape.multiplier != 1 && shape.multiplier != "") unit_string += shape.multiplier + ".";
+          if (prefix != undefined && prefix != "1" && prefix != "") unit_string += prefix + ".";
+          unit_string += units_value;
+          const unit_size = unit_string.length*11/3;
+          context.strokeStyle = "rgb(110, 1, 6)";
+          if (unit_string.length > 7) {roundRect(context, shape.x - unit_size - 15, shape.y - 15, unit_string.length*10, 30, 5, true, true);}
+          context.fillStyle = "rgb(245, 139, 145)";
+          context.font =  "bold 16px Arial";
+          context.lineWidth = 5;
+          context.fill();
+          highlight_stroke(context, shape, "rgb(193, 2, 12)");
+          context.stroke();
+
+          context.beginPath();
+          context.fillStyle = "rgb(110, 1, 6)";
+          context.fillText(unit_string, shape.x - unit_size - 5, shape.y + 5);
+          context.stroke();
+
+          context.beginPath();
+          context.fillStyle = "rgb(110, 1, 6)";
+          if (exponent != "" && exponent != undefined && exponent != "1") {context.fillText(exponent, shape.x + unit_size + 5, shape.y - 5);}
+          context.stroke();
+        }
+        else if (shape.element_type == "component") {
+          context.beginPath(); 
+          context.lineWidth = 3;
+          context.strokeStyle = "rgb(3, 83, 5)";
+          roundRect(context, shape.x, shape.y, calculate_width(shape.name), 50, 5, true, true);
+          const grd = context.createRadialGradient(shape.x + calculate_width(shape.name)/2, shape.y + 25, 5, shape.x + calculate_width(shape.name)/3, shape.y + 30, 100);
+          grd.addColorStop(0, "rgb(181, 242, 204)");
+          grd.addColorStop(1, "rgb(53, 181, 104)");
+          context.fillStyle = grd;
+          context.fill();
+
+          // The actual text of the components name
+          context.strokeStyle="rgb(4, 131, 6)";
+          context.font =  "bold 16px Arial";
+          context.lineWidth = 3;
+          context.fillStyle='rgb(2, 80, 4)';
+          context.fillText(shape.name, shape.x + 15, shape.y + 30);
+          highlight_stroke(context, shape, "rgb(4, 131, 6)");
+          context.stroke();
+        }
+        else if (shape.element_type == "variable") {
+           // Draw the container
+          context.beginPath();
+          context.lineWidth = 3;
+          context.arc(shape.x, shape.y, 35, 0, Math.PI * 2);
+          const grd = context.createRadialGradient(shape.x - 5, shape.y - 5, 5, shape.x + 5, shape.y - 5, 30);
+          grd.addColorStop(0, "rgb(181, 242, 204)");
+          grd.addColorStop(1, "rgb(53, 181, 104)");
+          context.fillStyle = grd;
+          context.fill();
+          context.fillStyle= 'rgb(2, 80, 4)';
+          context.lineWidth = 3;
+          context.font =  "bold 18px Arial";
+          context.fillText(shape.name, calculate_variable_center_x(shape.name, shape.x), shape.y + 8);
+          highlight_stroke(context, shape, "rgb(4, 131, 6)");
+          context.stroke();
+          // draw the interface attribute onto the circle (x:both, +:public, -:private)
+          context.beginPath();
+          context.arc(shape.x + 35, shape.y -15, 15, 0, Math.PI * 2);
+          context.fillStyle = "rgb(163, 234, 190)";
+          context.fill();
+          context.fillStyle= "black";
+          highlight_stroke(context, shape, "rgb(4, 131, 6)");
+          context.font =  "bold 16px Arial";
+          context.fillText(select_interface_type(shape), shape.x + 30, shape.y - 10);
+          context.stroke();
+        }
+        else if (shape.element_type == "import") {
+          context.beginPath(); 
+          context.lineWidth = 5;
+          highlight_stroke(context, shape, "rgb(63, 81, 181)");
+          roundRect(context, shape.x, shape.y, calculate_width(shape.href), 50, 5, true, true);
+          const grd = context.createRadialGradient(shape.x + calculate_width(shape.href)/2, shape.y + 25, 5, shape.x + calculate_width(shape.href)/3, shape.y + 30, 100);
+          grd.addColorStop(0, "rgb(187, 222, 232)");
+          grd.addColorStop(1, "rgb(105, 181, 203)");
+          context.fillStyle = grd;
+          context.fill();
+          context.stroke();
+          context.beginPath();
+          context.strokeStyle= "rgb(187, 222, 232)";
+          context.lineWidth = 3;
+          context.fillStyle= "rgb(63, 81, 181)";
+          context.font='bold 12px Arial'
+          context.fillText("Import from:", shape.x + 5, shape.y + 15);
+          context.font =  "bold 16px Arial";
+          context.fillText("/" + shape.href, shape.x + 5, shape.y + 35);
+          context.stroke();
+        }
+        else if (shape.element_type == "reset") {
+          context.beginPath();
+          context.lineWidth = 5;
+          context.arc(shape.x, shape.y, 40, 0, Math.PI * 2);
+          const grd = context.createRadialGradient(shape.x - 5, shape.y - 5, 5, shape.x + 5, shape.y - 5, 30);
+          grd.addColorStop(0, "rgb(181, 242, 204)");
+          grd.addColorStop(1, "rgb(53, 181, 104)");
+          context.fillStyle = grd;
+          context.fill();
+          highlight_stroke(context, shape, "rgb(2, 48, 134)");
+          context.stroke();
+
+          // The variable reference
+          context.beginPath();
+          context.lineWidth = 2;
+          context.strokeStyle = "rgb(2, 48, 134)";
+          context.fillStyle = "rgb(174, 239, 199)";
+          context.fill();
+          highlight_stroke(context, shape, "rgb(2, 48, 134)");
+          roundRect(context, shape.x - 50, shape.y - 40, calculate_width(shape.variable) + 35, 20, 5, true, true);
+          context.stroke();
+
+          context.beginPath();
+          context.font = "bold 14px Arial";
+          context.fillStyle = "rgb(2, 80, 4)";
+          context.fillText("Var: " + shape.variable, shape.x - 40, shape.y - 26);
+          context.stroke();
+
+          context.beginPath();
+          context.strokeStyle = "rgb(2, 48, 134)";
+          context.fillStyle = "rgb(174, 239, 199)";
+          context.fill();
+          highlight_stroke(context, shape, "rgb(30, 70, 70)");
+          roundRect(context, shape.x - 50, shape.y + 20, calculate_width(shape.test_variable) + 35, 20, 5, true, true);
+          context.stroke();
+
+          context.beginPath();
+          context.font = "bold 14px Arial";
+          context.fillStyle = "rgb(2, 80, 4)";
+          context.fillText("Test_V: " + shape.test_variable, shape.x - 40, shape.y + 35);
+          context.stroke();
+        }
+        else if (shape.element_type == "test_value" || shape.element_type == "reset_value") {
+          // Draw Container
+          context.beginPath();
+          context.lineWidth = 3;
+          context.arc(shape.x, shape.y, 35, 0, Math.PI * 2);
+          const grd = context.createRadialGradient(shape.x - 5, shape.y - 5, 5, shape.x + 5, shape.y - 5, 30);
+          grd.addColorStop(0, "rgb(181, 242, 204)");
+          grd.addColorStop(1, "rgb(53, 181, 104)");
+          context.fillStyle = grd;
+          context.fill();
+          highlight_stroke(context, shape, "rgb(30, 70, 70)");
+          context.stroke();
+
+          // Add text depending on version
+          context.beginPath();
+          context.font = "bold 18px Arial";
+          context.strokeStyle = "rgb(2, 80, 4)";
+          context.fillStyle = "rgb(2, 80, 4)";
+          if (shape.element_type == "test_value" ) context.fillText("Test: ", shape.x - 30, shape.y + 8);
+          if (shape.element_type == "reset_value") context.fillText("Reset: ", shape.x - 30, shape.y + 8);
+
+        }
+
+        else if (shape.element_type == "connection") {
+          let component1name = "";
+          let component2name = "";
+          for (let j = 0; j < cellml_elements.length; j++) {
+            if (cellml_elements[j].element_type == "component" && cellml_elements[j].name == shape.component_1) { component1name = cellml_elements[j].name; }
+            if (cellml_elements[j].element_type == "component" && cellml_elements[j].name == shape.component_2) { component2name = cellml_elements[j].name; }
+          }
+          // draw connection diamond
+          let diamond_width;
+          (component1name.length > component2name.length) ? diamond_width = calculate_width(component1name) : diamond_width = calculate_width(component2name);
+          const diamond_height= 95;
+          context.lineWidth = 3;
+          drawDiamond(context, shape, shape.x + diamond_width/4, shape.y - diamond_height/4, diamond_width , diamond_height, "rgb(245,209,188)", "rgb(230, 130, 70)", "rgb(225, 108, 34)");
+          // draw the name boxes
+          context.beginPath();
+          context.fillStyle = "rgb(243, 196, 167)";
+          context.strokeStyle = "rgb(255, 102, 0)";
+          context.font = "bold 16px Arial";
+          context.lineWidth = 2;
+          roundRect(context, shape.x - 20, shape.y - 10, calculate_width(component1name), 25, 5, true, true);
+          roundRect(context, shape.x - 20, shape.y + 30, calculate_width(component2name), 25, 5, true, true);
+          context.stroke();
+          // draw the related components
+          context.beginPath();
+          context.fillStyle = "rgb(217, 87, 0)";
+          context.fillText(shape.component_1, shape.x, shape.y + 7);
+          context.fillText(shape.component_2, shape.x, shape.y + 47);
+          context.font = "bold 24px Arial";  
+          context.fillText("X", shape.x + diamond_width/4 - 10, shape.y + 30);
+          context.stroke();
+          context.font = "16px Arial";         
         }
         else if (shape.element_type == "map_variables") {
 
-          drawPentagon(context, shape.x, shape.y, 50);
+          // Draw the pentagon for the map variable element
+          context.beginPath();
+          context.lineWidth = 5;
+          let shape_width;
+          const var1length = calculate_width(shape.variable_1);
+          const var2length = calculate_width(shape.variable_2);
+          (var1length > var2length) ? shape_width = var1length : shape_width = var2length;
+          drawPentagon(context, shape, shape.x + shape_width/4, shape.y + shape_width/4, shape_width/2 , "rgb(185,100,185)", "rgb(230,205,230)");
+          // Draw the boxes for the pentagon
+          context.beginPath();
+          context.fillStyle = "rgb(223,187,232)";
+          context.font = "bold 16px Arial";
+          context.lineWidth = 2;
+          highlight_stroke(context, shape, "rgb(115,50,115)");
+          roundRect(context, shape.x - 25, shape.y - 10, calculate_width(shape.variable_1), 25, 5, true, true);
+          roundRect(context, shape.x - 25, shape.y + shape_width/3, calculate_width(shape.variable_2), 25, 5, true, true);
+          context.stroke();
+          // Write the names onto the element container
+          context.beginPath();
+          context.fillStyle='rgb(101, 39, 116)';
+          context.font =  "bold 16px Arial";
+          context.lineWidth = 5;
+          context.fillText(shape.variable_1, shape.x - 15,  shape.y + 8);
+          context.fillText("   X   ",  shape.x + shape_width/4 - 15,  shape.y + shape_width/4 + 5);
+          context.fillText(shape.variable_2, shape.x - 15,  shape.y + shape_width/3 + 20);
+          context.stroke();
+        }
+        else if (shape.element_type == "math") {
+          context.beginPath();
+          roundRect(context, shape.x, shape.y, 125, 50, 10, true, true);
+          const grd = context.createRadialGradient(shape.x + 125/2, shape.y + 25, 5, shape.x + 125/3, shape.y + 30, 100);
+          grd.addColorStop(0, "rgb(170, 190, 217)");
+          grd.addColorStop(1, "rgb(74, 114, 166)");
+          context.fillStyle = grd;
+          context.fill();
+          context.lineWidth = 3;
+          highlight_stroke(context, shape, "rgb(65,100,147)");
+          context.stroke();
+          context.beginPath();
+          context.strokeStyle = "rgb(43,65,96)";
+          context.fillStyle = "rgb(43,65,96)";
+          context.font = "bold 18px Arial"
+          context.fillText("<Math>", shape.x + 30, shape.y + 30);
+          context.stroke();
+        }
+        else if (shape.element_type == "encapsulation") {
+          context.lineWidth = 2;
+          // Iterate through the list of everything to calculate the encapsulated elements
+          let number_of_comp_ref = 2; // 2 extra to allow more space for the elements
+          for (let i = 0; i < cellml_elements.length; i++) {
+            if (cellml_elements[i].element_type == "component_ref") number_of_comp_ref ++;
+          }
+          const encapsulation_height = 50 * number_of_comp_ref;
+          const encapsulation_width = (50 * number_of_comp_ref) / 1.5;
+          // To change the color on the rectangle, just manipulate the context
+          context.strokeStyle = "rgb(150, 150, 150)";
+          context.fillStyle = "rgba(225, 225, 225, .5)";
+          roundRect(context, shape.x, shape.y, encapsulation_width, encapsulation_height, 10, true, true);
+          roundRect(context, shape.x + 2.5, shape.y + 2.5, encapsulation_width - 5, encapsulation_height - 5, 10, true, true);
+          roundRect(context, shape.x + 2.5, shape.y + 2.5, encapsulation_width - 5, 30, 5, true, true);
+          context.beginPath();
+          context.fillStyle='rgb(65,65,65)';
+          context.font =  "bold 24px Arial";
+          context.strokeStyle="rgb(65,65,65)";
+          context.fillText("Encapsulated", shape.x + 15, shape.y + 25);
+          context.stroke();
+        }
+        else if (shape.element_type == "component_ref") {
+          // The border for the element
+          context.beginPath(); 
+          context.lineWidth = 3;
+          context.setLineDash([]);
+          context.rect(shape.x, shape.y, calculate_width(shape.component), 45);
+          context.strokeStyle = "black";
+          context.stroke();
+          // Create component_ref gradient:
+          const grd = context.createRadialGradient(shape.x + calculate_width(shape.component)/2, shape.y + 25, 5, shape.x + calculate_width(shape.component)/3, shape.y + 30, 100);
+          grd.addColorStop(0, "rgb(181, 242, 204)");
+          grd.addColorStop(1, "rgb(53, 181, 104)");
+          // Fill the inside of the component with the gradient created
+          context.fillStyle = grd;
+          context.fillRect(shape.x, shape.y, calculate_width(shape.component), 45);
+          // Add the text to the encapsulated component
+          context.beginPath();
+          context.font =  "bold 18px Arial";
+          context.strokeStyle="rgb(1, 65, 1)";
+          context.fillStyle = "rgb(1, 65, 1)";
+          context.fillText(shape.component, shape.x + 5, shape.y + 28);
+          context.stroke();
+        }
+        else if (shape.element_type == "import_component") {
+          context.beginPath(); 
+          highlight_stroke(context, shape, "rgb(63, 81, 181)");
+          // The border is blue to help indicate it's imported
+          roundRect(context, shape.x, shape.y, calculate_width(shape.name), 50, 10, true, true);
+          context.stroke();
+          // The inner border is green to indicate it's a component
+          context.beginPath();
+          context.strokeStyle = "rgb(3, 83, 5)";
+          context.lineWidth = 2;
+          roundRect(context, shape.x + 3, shape.y + 3, calculate_width(shape.name) - 6, 44, 5, true, true);
+          const grd = context.createRadialGradient(shape.x + calculate_width(shape.name)/2, shape.y + 25, 5, shape.x + calculate_width(shape.name)/3, shape.y + 30, 100);
+          grd.addColorStop(0, "rgb(181, 242, 204)");
+          grd.addColorStop(1, "rgb(53, 181, 104)");
+          context.fillStyle = grd;
+          context.fill();
+          // The actual text of the components name
+          context.strokeStyle="rgb(4, 131, 6)";
+          context.font =  "bold 16px Arial";
+          context.lineWidth = 3;
+          context.fillStyle='rgb(2, 80, 4)';
+          context.fillText(shape.name, shape.x + 15, shape.y + 30);
+          context.font =  "bold 10px Arial";
+          context.fillText("Imported: (" + shape.component_ref + ")", shape.x + 10, shape.y + 40);
+          context.stroke();
+        }
+        else if (shape.element_type == "import_units") {
+          context.beginPath();
+          highlight_stroke(context, shape, "rgb(63, 81, 181)");
+          roundRect(context, shape.x, shape.y, calculate_width(shape.name), 50, 10, true, true);
+          context.stroke();
 
           context.beginPath();
-          context.rect(shape.x, shape.y, 100, 42);
-          context.fillStyle='black';
+          context.lineWidth = 3;
+          roundRect(context, shape.x + 3, shape.y + 3, calculate_width(shape.name) - 6, 44, 5, true, true);
           context.font =  "16px Arial";
-          context.strokeStyle="blue";
-          context.lineWidth = 5;
-          context.fillRect(shape.x,shape.y,shape.width,shape.height);
-          context.fillText("appples", shape.x + 5, shape.y + 25);
+          context.strokeStyle="rgb(193, 2, 12)";
+          context.lineWidth = 3;
+          const grd = context.createRadialGradient(shape.x + calculate_width(shape.name)/2, shape.y + 25, 5, shape.x + calculate_width(shape.name)/3, shape.y + 30, 100);
+          grd.addColorStop(0, "rgb(254, 148, 155)");
+          grd.addColorStop(1, "rgb(252, 36, 42)");
+          context.fillStyle = grd;
+          context.fill();       
           context.stroke();
-        }
-        else if (shape.element_type == "math" || (shape.element_type == "encapsulation") || (shape.element_type == "component_ref") || (shape.element_type == "connection")) {
+          // drawing the text for the element
           context.beginPath(); 
-          context.rect(shape.x, shape.y, 100, 42);
-          context.fillStyle='purple';
-          context.font =  "16px Arial";
-          context.strokeStyle="rgb(61,146,61)";
-          context.lineWidth = 5;
-          context.fillRect(shape.x,shape.y,shape.width,shape.height);
-          context.fillText(shape.units_name, shape.x + 5, shape.y + 25);
-          context.stroke();
-        }
-        else if (shape.element_type == "map_variabless") {
-          context.beginPath(); 
-          context.rect(shape.x, shape.y, 100, 42);
-          context.fillStyle='yellow';
-          context.font =  "16px Arial";
-          context.strokeStyle="rgb(61,146,61)";
-          context.lineWidth = 5;
-          context.fillRect(shape.x,shape.y,shape.width,shape.height);
-          context.fillText(shape.units_name, shape.x + 5, shape.y + 25);
+          context.fillStyle='rgb(110, 1, 6)';
+          context.font = "bold 16px Arial";
+          context.strokeStyle="rgb(193, 2, 12)";
+          context.fillText(shape.name, shape.x + 15, shape.y + 30);
+          context.font =  "bold 10px Arial";
+          context.fillText("Imported: " + shape.units_ref + "", shape.x + 10, shape.y + 40);
           context.stroke();
         }
       }
       console.log(cellml_elements);
     });
-    
   }
 
 
@@ -683,28 +1183,10 @@ export default class VisualPane extends React.Component<TPProps> {
 
 
 
-  addimage() {
+  addimage(filepath: string) {
     //console.log(this.props.filepath);
     console.log('C:\\Users\\admin\\Downloads\\finalversion\\cellml-editor\\example\\SodiumChannelModel-Test.cellml');
-    console.log(this.props.dom);
-    console.log(this.props.dom.children.length);
-  }
-
-
-  renderModel = () => {
-    console.log('render');
-    
-   // const canvas = document.getElementById("myCanvas") as HTMLCanvasElement;
-   // const context: CanvasRenderingContext2D = canvas.getContext("2d"); 
-
-    console.log(this.props.filepath);
-    console.log(this.props.dom);
-    console.log(this.props.dom.children.length);
-    const temp = this.props.dom.children.length;
-    const canvas = document.getElementById("myCanvas") as HTMLCanvasElement;
-    canvas.width = temp*50 + 200;
-    canvas.height = (temp*50 + 200);
-
+    console.log(filepath);
   }
 
   // recursively call each children element list and then draw a
@@ -1008,7 +1490,7 @@ export default class VisualPane extends React.Component<TPProps> {
     event.preventDefault();
   }
 
-  handleMouseDown(e: any) {
+  handleMouseDown(e: any, dom: IDOM) {
     e.preventDefault();
     e.stopPropagation();
 
@@ -1028,10 +1510,240 @@ export default class VisualPane extends React.Component<TPProps> {
         console.log('valid element');
         selectedShapeIndex = i;
         isDragging_ = true;
+
+        if (dom != undefined) {
+          //change to dom number
+
+
+          const found_line = this.find_the_line_number(dom);
+
+         // console.log("line number is: " + dom.lineNumber);
+          this.props.onClickHandler(found_line);
+          //console.log(dom);
+        }
+        
+
         return;
       }
     }
   }
+
+  find_the_line_number(dom: IDOM) {
+    const children = dom.children;
+    const element = cellml_elements[selectedShapeIndex];
+
+    console.log("=====");
+    console.log(children);
+    console.log(element);
+
+    if (element.element_type == "units") {
+      for (let i = 0; i < children.length; i++) {
+        if (children[i].name == "units" && children[i].attributes[0].value == element.units_name) {
+          console.log('found at:' + children[i].lineNumber);
+          return children[i].lineNumber;
+        }
+      }
+    } 
+    else if (element.element_type == "unit") {
+      for (let i = 0; i < children.length; i++) {
+        if (children[i].name == "units") {
+          for (let j = 0; j < children[i].children.length; j++) {
+            if (children[i].children[j].name == "unit") {
+              let temp = 0;
+              if (element.exponent != "" && element.exponent != "1") {
+                let exists = 0;
+                for (let a = 0; a < children[i].children[j].attributes.length; a++) {if (children[i].children[j].attributes[a].key == "exponent") exists = 1;}
+                if (exists == 0) temp = 1; 
+              }
+              if (element.prefix != "" && element.prefix != "1") {
+                let exists = 0;
+                for (let a = 0; a < children[i].children[j].attributes.length; a++) {if (children[i].children[j].attributes[a].key == "prefix") exists = 1;}
+                if (exists == 0) temp = 1; 
+              }
+              if (element.multiplier != "" && element.multiplier != "1") {
+                let exists = 0;
+                for (let a = 0; a < children[i].children[j].attributes.length; a++) {if (children[i].children[j].attributes[a].key == "multiplier") exists = 1;}
+                if (exists == 0) temp = 1; 
+              }
+              if (element.units != "") {
+                let exists = 0;
+                for (let a = 0; a < children[i].children[j].attributes.length; a++) {if (children[i].children[j].attributes[a].key == "units") exists = 1;}
+                if (exists == 0) temp = 1; 
+              }
+              for (let k = 0; k < children[i].children[j].attributes.length; k++) {
+                if (children[i].children[j].attributes[k].key == "prefix" && children[i].children[j].attributes[k].value != element.prefix) {temp = 1; }
+                if (children[i].children[j].attributes[k].key == "units"  && children[i].children[j].attributes[k].value != element.units) {temp = 1; }
+                if (children[i].children[j].attributes[k].key == "exponent" && children[i].children[j].attributes[k].value != element.exponent) {temp = 1}
+              }
+              if (temp == 0) return children[i].children[j].lineNumber;
+            }
+          }
+        }
+      }
+    }
+    else if (element.element_type == "component") {
+      for (let i = 0; i < children.length; i++) {
+        if (children[i].name == "component"  && children[i].attributes[0].value == element.name) {
+          return children[i].lineNumber;
+        }
+      }
+    }
+    else if (element.element_type == "variable") {
+      for (let i = 0; i < children.length; i++) { 
+        if (children[i].name == "component") {
+          for (let j = 0; j < children[i].children.length; j++) {
+            if (children[i].children[j].name == "variable") {
+              let temp = 0;
+
+              if (element.name != "") {
+                let exists = 0;
+                for (let a = 0; a < children[i].children[j].attributes.length; a++) {if (children[i].children[j].attributes[a].key == "name") exists = 1; }
+                if (exists == 0) temp = 1; 
+              }
+              if (element.units != "") {
+                let exists = 0;
+                for (let a = 0; a < children[i].children[j].attributes.length; a++) {if (children[i].children[j].attributes[a].key == "units") exists = 1; }
+                if (exists == 0) temp = 1; 
+              }
+              if (element.initial_value != "") {
+                let exists = 0;
+                for (let a = 0; a < children[i].children[j].attributes.length; a++) {if (children[i].children[j].attributes[a].key == "initial_value") exists = 1;}
+                if (exists == 0) temp = 1; 
+              }
+              if (element.interface != "") {
+                let exists = 0;
+                for (let a = 0; a < children[i].children[j].attributes.length; a++) {if (children[i].children[j].attributes[a].key == "interface") exists = 1;}
+                if (exists == 0) temp = 1; 
+              }
+
+              for (let k = 0; k < children[i].children[j].attributes.length; k++) {
+                if (children[i].children[j].attributes[k].key == "name" && children[i].children[j].attributes[k].value != element.name) {temp = 1; }
+                if (children[i].children[j].attributes[k].key == "units"  && children[i].children[j].attributes[k].value != element.units) {temp = 1; }
+                if (children[i].children[j].attributes[k].key == "initial_value" && children[i].children[j].attributes[k].value != element.initial_value) {temp = 1}
+                if (children[i].children[j].attributes[k].key == "interface" && children[i].children[j].attributes[k].value != element.interface) {temp = 1}
+              }
+              if (temp == 0) return children[i].children[j].lineNumber;
+            }
+          }
+        }
+      }
+    }
+    else if (element.element_type == "math") {
+      for (let i = 0; i < children.length; i++) { 
+        if (children[i].name == "component") {
+          for (let j = 0; j < children[i].children.length; j++) {
+            if (children[i].children[j].name == "math") {
+              console.log(children[i].children[j]);
+              return children[i].children[j].lineNumber;
+            }
+          }
+        }
+      }
+    }
+    else if (element.element_type == "reset") {
+      for (let i = 0; i < children.length; i++) {
+        if (children[i].name == "component") {
+          for (let j = 0; j < children[i].children.length; j++) {
+            if (children[i].children[j].name == "reset") {
+              let temp = 0;
+
+              if (element.variable != "") {
+                let exists = 0;
+                for (let a = 0; a < children[i].children[j].attributes.length; a++) {if (children[i].children[j].attributes[a].key == "variable") exists = 1; }
+                if (exists == 0) temp = 1; 
+              }
+              if (element.test_variable != "") {
+                let exists = 0;
+                for (let a = 0; a < children[i].children[j].attributes.length; a++) {if (children[i].children[j].attributes[a].key == "test_variable") exists = 1; }
+                if (exists == 0) temp = 1; 
+              }
+              if (element.order != "") {
+                let exists = 0;
+                for (let a = 0; a < children[i].children[j].attributes.length; a++) {if (children[i].children[j].attributes[a].key == "order") exists = 1;}
+                if (exists == 0) temp = 1; 
+              }
+              for (let k = 0; k < children[i].children[j].attributes.length; k++) {
+                if (children[i].children[j].attributes[k].key == "variable" && children[i].children[j].attributes[k].value != element.variable) {temp = 1; }
+                if (children[i].children[j].attributes[k].key == "test_variable"  && children[i].children[j].attributes[k].value != element.test_variable) {temp = 1; }
+                if (children[i].children[j].attributes[k].key == "order" && children[i].children[j].attributes[k].value != element.order) {temp = 1}
+              }
+              if (temp == 0) return children[i].children[j].lineNumber;
+            }
+          }
+        }
+      }
+    }
+    else if (element.element_type == "connection") {
+      for (let i = 0; i < children.length; i++) {
+        if (children[i].name == "connection"  && children[i].attributes[0].value == element.component_1 && children[i].attributes[1].value == element.component_2) {
+          return children[i].lineNumber;
+        }
+      }
+    }
+    else if (element.element_type == "map_variables") {
+      for (let i = 0; i < children.length; i++) {
+        if (children[i].name == "connection") {
+          for (let j = 0; j < children[i].children.length; j++) {
+            if (children[i].children[j].attributes[0].value == element.variable_1 &&
+                children[i].children[j].attributes[1].value == element.variable_2) return children[i].children[j].lineNumber;
+          }
+        }
+      }
+    }
+    else if (element.element_type == "encapsulation") {
+      for (let i = 0; i < children.length; i++) {
+        if (children[i].name == "encapsulation") {
+          return children[i].lineNumber;
+        }
+      }
+    }
+    else if (element.element_type == "component_ref") {
+      for (let i = 0; i < children.length; i++) {
+        if (children[i].name == "encapsulation") {
+          for (let j = 0; j < children[i].children.length; j++) {
+            if (children[i].children[j].name == "component_ref") {
+              return children[i].children[j].lineNumber;
+            }
+          }
+        }
+      }
+    }
+    else if (element.element_type == "import") {
+      for (let i = 0; i < children.length; i++) {
+        if (children[i].name == "import" && children[i].attributes[0].value == element.href) {
+          return children[i].lineNumber;
+        }
+      }
+    }
+    else if (element.element_type == "import_component") {
+      for (let i = 0; i < children.length; i++) {
+        if (children[i].name == "import") {
+          for (let j = 0; j < children[i].children.length; j++) {
+            if (children[i].children[j].name == "component" && 
+                children[i].children[j].attributes[0].value == element.component_ref &&
+                children[i].children[j].attributes[1].value == element.name) {
+              return children[i].children[j].lineNumber;
+            }
+          }
+        }
+      }
+    }
+    else if (element.element_type == "import_units") {
+      for (let i = 0; i < children.length; i++) {
+        if (children[i].name == "import") {
+          for (let j = 0; j < children[i].children.length; j++) {
+            if (children[i].children[j].name == "units" && 
+                children[i].children[j].attributes[0].value == element.units &&
+                children[i].children[j].attributes[1].value == element.name) {
+              return children[i].children[j].lineNumber;
+            }
+          }
+        }
+      }
+    }
+    return 2;
+  }
+
 
   isMouseInShape(mx: number, my: number, shape: any) {
     const rLeft  = shape.x
@@ -1040,62 +1752,54 @@ export default class VisualPane extends React.Component<TPProps> {
     const rBott  = shape.y;
     // math test to see if mouse is inside the shape
 
-    /*let encap_x = 0;
-    let encap_y = 0;
-    let number_of_comp_ref = 2;
-    for (let i = 0; i < cellml_elements.length; i++ ) {
-      if (cellml_elements[i].element_type == "encapsulation") {
-        encap_x = cellml_elements[i].x;
-        encap_y = cellml_elements[i].y;
+    if (shape == undefined) {
+      selectedShapeIndex = -1;
+    }
+
+    if (shape != undefined) {
+      //console.log(shape);
+      const dx = mx - shape.x;
+      const dy = my - shape.y;
+
+      if (shape.element_type == "units" || shape.element_type == "component" || 
+          shape.element_type == "component_ref" || shape.element_type == "import" || 
+          shape.element_type == "import_units" || shape.element_type == "import_component") {
+        if (mx > shape.x && mx < shape.x + 150 && my > shape.y && my < shape.y + 50) return(true);
+      } 
+      else if (shape.element_type == "unit") {
+        if(mx > shape.x - 25 && mx < shape.x + 25 && my > shape.y - 25 && my < shape.y + 25) return(true);
       }
-      if (cellml_elements[i].element_type == "component_ref") number_of_comp_ref ++;
-    }
-    const encapsulation_height = 50 * number_of_comp_ref;
-    const encapsulation_width = (50 * number_of_comp_ref) / 1.5;
-    if (shape.element_type == "component_ref") {
-      if (mx>rLeft && mx<rRight + this.calculate_width(shape.component) && my>rTop && my<rBott + 50 &&
-          mx > encap_x && mx < encap_x + encapsulation_width &&
-          my > encap_y && my < encap_y + encapsulation_height) {
-          console.log("current element is COMPONENT REF");
-          return(true); 
-      } else {
-        return(false);
+      else if (shape.element_type == "variable" || shape.element_type == "reset") {
+        if(mx > shape.x - 30 && mx < shape.x + 30 && my > shape.y - 30 && my < shape.y + 30) return(true);
       }
-    }*/
-
-
-    // Standard Rectangle Shape: Units
-    if( mx>rLeft && mx<rRight + 100 && my>rTop && my<rBott + 50 && shape.element_type == "units"){
-      console.log("current element is UNITS");
-      return(true);
-    }
-    // Standard Circular Shape: Unit
-    else if( mx>rLeft - 25 && mx<rRight + 25 && my>rTop - 25 && my<rBott + 25 && shape.element_type == "unit"){
-      console.log("current element is UNIT");
-      return(true);
-    }
-    // Standard Circular Shape: Component
-    else if( mx>rLeft && mx<rRight + 100 && my>rTop && my<rBott + 50 && shape.element_type == "component"){
-      console.log("current element is COMPONENT");
-      return(true);
-    }
-    // Standard Circular Shape: Variable
-    else if( mx>rLeft - 25 && mx<rRight + 25 && my>rTop - 25 && my<rBott + 25 && shape.element_type == "variable"){
-      console.log("current element is VARIABLE");
-      return(true);
-    }
-
-    else if (shape.element_type == "component_ref") {
-      if (mx>rLeft && mx<rRight + this.calculate_width(shape.component) && my>rTop && my<rBott + 50) {
-        console.log("current element is COMPONENT REF");
-        return(true);
+      else if (shape.element_type == "test_value" || shape.element_type == "reset_value") {
+        if(mx > shape.x - 40 && mx < shape.x + 40 && my > shape.y - 40 && my < shape.y + 40) return(true);
       }
-    }
+      else if (shape.element_type == "math") {
+        if (mx > shape.x && mx < shape.x + 150 && my > shape.y && my < shape.y + 50) return(true);
+      }
+      else if (shape.element_type == "encapsulation") {
+        if (mx > shape.x && mx < shape.x + 150 && my > shape.y && my < shape.y + 100) return(true);
+      }
+      else if (shape.element_type == "connection" || shape.element_type == "map_variables") {
+        if (mx > shape.x && mx < shape.x + 150 && my > shape.y && my < shape.y + 80) return(true);
+      }
+      
 
-    // in case i miss another element or error
-    else if( mx>rLeft && mx<rRight + 100 && my>rTop && my<rBott + 50){
-      console.log(shape.element_type);
-        return(true);
+      else if(dx*dx+dy*dy<shape.radius*shape.radius){
+          // yes, mouse is inside this circle
+          return(true);
+        }
+        
+    } else if (shape.width) {
+      const rLeft=shape.x;
+      const rRight=shape.x+shape.width;
+      const rTop=shape.y;
+      const rBott=shape.y+shape.height;
+      // math test to see if mouse is inside rectangle
+      if( mx>rLeft && mx<rRight && my>rTop && my<rBott){
+          return(true);
+      }
     }
     return(false);
   }
@@ -1202,7 +1906,8 @@ export default class VisualPane extends React.Component<TPProps> {
     else if (selectedShape.element_type == "component" || selectedShape.element_type == "variable" || selectedShape.element_type == "units" ||
              selectedShape.element_type == "unit" || selectedShape.element_type == "import" || selectedShape.element_type == "reset" || 
              selectedShape.element_type == "test_value" || selectedShape.element_type == "reset_value" || selectedShape.element_type == "math" ||
-             selectedShape.element_type == "encapsulation" || selectedShape.element_type == "connection" || selectedShape.element_type == "map_variables") {
+             selectedShape.element_type == "encapsulation" || selectedShape.element_type == "connection" || selectedShape.element_type == "map_variables" ||
+             selectedShape.element_type == "import_units" || selectedShape.element_type == "import_component") {
       selectedShape.x = mouseX_;
       selectedShape.y = mouseY_;
     }
@@ -1315,7 +2020,7 @@ export default class VisualPane extends React.Component<TPProps> {
       ctx.strokeStyle = arrow_color;
       ctx.lineWidth = width;
       ctx.stroke();
-      ctx.fillStyle = "rgb(164, 190, 219)";
+      ctx.fillStyle = "rgb(164, 190, 219,0.5)";
       ctx.fill();
   }
 
@@ -1328,157 +2033,244 @@ export default class VisualPane extends React.Component<TPProps> {
     return x_pos - prefix_name.length;
   }
 
+
+
+
+
+  // =============================================================================
+  // =============================================================================
+  // =============================================================================
+  // Draw the model
   drawModel(canvas: HTMLCanvasElement) {
     // Update The Canvas Depending on the Elements list
     canvas.height = cellml_elements.length*50 + 100;
     const context: CanvasRenderingContext2D = canvas.getContext("2d");
     context.clearRect(0,0,canvas.width, canvas.height);
-
+    // =============================================================================
     // function to draw a diamond (for connection)
-      function drawDiamond(context:any, shape: any, x:number, y:number, width:number, height:number, inside_color: string, gradient_color: string, border_color: string) {
-        context.beginPath();
-        const grd = context.createRadialGradient(shape.x, shape.y, 5, shape.x + 30, shape.y + 40, 60);
-        grd.addColorStop(0, inside_color);
-        grd.addColorStop(1, gradient_color);
-        context.fillStyle = grd;
-        context.strokeStyle= border_color;
-        context.moveTo(x, y);   
-        context.lineTo(x - width / 2, y + height / 2); // top left edge
-        context.lineTo(x, y + height);                 // bottom left edge
-        context.lineTo(x + width / 2, y + height / 2); // bottom right edge
-        context.closePath();                           // finish triangle
-        context.fill();
-        context.stroke();
+    function drawDiamond(context:any, shape: any, x:number, y:number, width:number, height:number, inside_color: string, gradient_color: string, border_color: string) {
+      context.beginPath();
+      const grd = context.createRadialGradient(shape.x, shape.y, 5, shape.x + 30, shape.y + 40, 60);
+      grd.addColorStop(0, inside_color);
+      grd.addColorStop(1, gradient_color);
+      context.fillStyle = grd;
+      context.strokeStyle= border_color;
+      context.moveTo(x, y);   
+      context.lineTo(x - width / 2, y + height / 2); // top left edge
+      context.lineTo(x, y + height);                 // bottom left edge
+      context.lineTo(x + width / 2, y + height / 2); // bottom right edge
+      context.closePath();                           // finish triangle
+      context.fill();
+      highlight_stroke(context, shape, border_color);
+      context.stroke();
+    }
+    // =============================================================================
+    // function to draw pentagon (for map variables) 
+    function drawPentagon(context: any, shape: any, x:number, y:number, size:number, stroke:string, fill:string) {
+      const numberOfSides = 5,
+      step  = 2 * Math.PI / numberOfSides,  //Precalculate step value
+      shift = (Math.PI / 180.0) * -18;      //Quick fix
+      context.beginPath();
+      for (let i = 0; i <= numberOfSides;i++) {
+        const curStep = i * step + shift;
+        context.lineTo (x + size * Math.cos(curStep), y + size * Math.sin(curStep));
       }
-
-      // function to draw pentagon (for map variables) 
-      function drawPentagon(context: any, x:number, y:number, size:number) {
-        const numberOfSides = 5,
-        step  = 2 * Math.PI / numberOfSides,  //Precalculate step value
-        shift = (Math.PI / 180.0) * -18;      //Quick fix
-        context.beginPath();
-        for (let i = 0; i <= numberOfSides;i++) {
-          const curStep = i * step + shift;
-          context.lineTo (x + size * Math.cos(curStep), y + size * Math.sin(curStep));
+      context.lineWidth = 5;
+      const grd = context.createRadialGradient(shape.x, shape.y, 5, shape.x + 30, shape.y + 40, 60);
+      grd.addColorStop(0, stroke);
+      grd.addColorStop(1, fill);
+      context.fillStyle = grd;
+      context.fill();
+      highlight_stroke(context, shape, stroke);
+      context.stroke();
+    }
+    // =============================================================================
+    // function to highlight the element when clicked
+    function highlight_stroke(context: any, shape: any, alt_color: string) {
+      if (cellml_elements[selectedShapeIndex] != undefined) {
+        if (shape.x == cellml_elements[selectedShapeIndex].x && 
+            shape.y == cellml_elements[selectedShapeIndex].y) {
+          context.lineWidth = 5; 
+          context.strokeStyle = "rgb(222, 190, 7)";
+        } else { 
+          context.strokeStyle = alt_color; 
+          context.lineWidth = 3; 
         }
-        context.strokeStyle = "rgb(185,100,185)";
-        context.lineWidth = 5;
-        context.fillStyle = "rgb(230,205,230)";
-        context.fill();
-        context.stroke();
+      } else { 
+        context.strokeStyle = alt_color; 
+        context.lineWidth = 3; 
       }
-      
-      
+    }
+    // =============================================================================
+    // function so if an existing SI prefix base - abbreviate to SI standard
+    function calculate_prefix(shape:any) {
+      let prefix = "";
+      if (shape.prefix == '') prefix = '';
+      else if (shape.prefix.toLowerCase() == "yotta") prefix = "Y";
+      else if (shape.prefix.toLowerCase() == "zetta") prefix = "Z";
+      else if (shape.prefix.toLowerCase() == "exa")   prefix = "E";
+      else if (shape.prefix.toLowerCase() == "peta")  prefix = "P";
+      else if (shape.prefix.toLowerCase() == "tera")  prefix = "T";
+      else if (shape.prefix.toLowerCase() == "giga")  prefix = "G";
+      else if (shape.prefix.toLowerCase() == "mega")  prefix = "M";
+      else if (shape.prefix.toLowerCase() == "kilo")  prefix = "k";
+      else if (shape.prefix.toLowerCase() == "hecto") prefix = "h";
+      else if (shape.prefix.toLowerCase() == "deca")  prefix = "da";
+      else if (shape.prefix.toLowerCase() == "deci")  prefix = "d";
+      else if (shape.prefix.toLowerCase() == "centi") prefix = "c";
+      else if (shape.prefix.toLowerCase() == "milli") prefix = "m";
+      else if (shape.prefix.toLowerCase() == "micro") prefix = "µ";
+      else if (shape.prefix.toLowerCase() == "nano")  prefix = "n";
+      else if (shape.prefix.toLowerCase() == "pico")  prefix = "p";
+      else if (shape.prefix.toLowerCase() == "femto") prefix = "f";
+      else if (shape.prefix.toLowerCase() == "atto")  prefix = "a";
+      else if (shape.prefix.toLowerCase() == "zepto") prefix = "z";
+      else if (shape.prefix.toLowerCase() == "yocto") prefix = "y";
+      else prefix = "";
+      return prefix;
+    }
+    // =============================================================================
+    // function so if an existing SI unit base - abbreviate to SI standard
+    function calculate_units_base(shape: any) {
+      if (shape.units) {
+        const unit = shape.units.toLowerCase();
+        if (unit == "metre") return "m";
+        else if (unit == "ampere") return "A";
+        else if (unit == "becquerel") return "Bq";
+        else if (unit == "candela") return "cd";
+        else if (unit == "coulomb") return "C";
+        else if (unit == "dimensionless") return " ";
+        else if (unit == "farad") return "F";
+        else if (unit == "gram") return "g";
+        else if (unit == "gray") return "Gy";
+        else if (unit == "henry") return "H";
+        else if (unit == "hertz") return "Hz";
+        else if (unit == "joule") return "J";
+        else if (unit == "katal") return "kat";
+        else if (unit == "kelvin") return "K";
+        else if (unit == "kilogram") return "kg";
+        else if (unit == "litre") return "L";
+        else if (unit == "lumen") return "lm";
+        else if (unit == "lux") return "lx";
+        else if (unit == "mole") return "mol";
+        else if (unit == "newton") return "N";
+        else if (unit == "ohm") return "Ω";
+        else if (unit == "pascal") return "Pa";
+        else if (unit == "radian") return "rad";
+        else if (unit == "second") return "s";
+        else if (unit == "siemens") return "S";
+        else if (unit == "sievert") return "Sv";
+        else if (unit == "steradian") return "sr";
+        else if (unit == "tesla") return "T";
+        else if (unit == "volt") return "V";
+        else if (unit == "watt") return "W";
+        else if (unit == "weber") return "Wb";
+        else if (unit == "degree Celsius") return "°C";
+        else return shape.units;
+    }
+        else return "";
+    }
 
-      function calculate_prefix(shape:any) {
-        let prefix;
-        if (shape.prefix == '') prefix = '';
-        else if (+(shape.prefix)) prefix = shape.prefix;
-        else if (shape.prefix == "yotta") prefix = "Y";
-        else if (shape.prefix == "zetta") prefix = "Z";
-        else if (shape.prefix == "exa") prefix = "E";
-        else if (shape.prefix == "peta") prefix = "P";
-        else if (shape.prefix == "tera") prefix = "T";
-        else if (shape.prefix == "giga") prefix = "G";
-        else if (shape.prefix == "mega") prefix = "M";
-        else if (shape.prefix == "kilo") prefix = "k";
-        else if (shape.prefix == "hecto") prefix = "h";
-        else if (shape.prefix == "deca") prefix = "da";
-        else if (shape.prefix == "deci") prefix = "d";
-        else if (shape.prefix == "centi") prefix = "c";
-        else if (shape.prefix == "milli") prefix = "m";
-        else if (shape.prefix == "micro") prefix = "µ";
-        else if (shape.prefix == "nano") prefix = "n";
-        else if (shape.prefix == "pico") prefix = "p";
-        else if (shape.prefix == "femto") prefix = "f";
-        else if (shape.prefix == "atto") prefix = "a";
-        else if (shape.prefix == "zepto") prefix = "z";
-        else if (shape.prefix == "yocto") prefix = "y";
+    // =============================================================================
+    // function to calculate the exponent of a unit
+    function calculate_exponent(shape:any) {
+      let exponent;
+      if (shape.exponent == '') exponent = 1.0;
+      else if (shape.exponent) exponent = shape.exponent;
+      else exponent = 1.0;
+      return exponent;
+    }
 
-        if (shape.prefix) return prefix;
-        else return shape.prefix;
-       
-      }
+    // =============================================================================
+    // function to calculate the multiplier of a unit
+    function calculate_multiplier(shape:any) {
+      let multiplier;
+      if (shape.multiplier == '') multiplier = 1.0;
+      else if (shape.multiplier) multiplier = shape.multiplier;
+      else multiplier = 1.0;
+      return multiplier;
+    }
 
+    // =============================================================================
+    // function to decide which interface type it is
+    function select_interface_type(shape:any) {
+      let v_interface;
+      if(shape.interface == "none") {v_interface = "";}
+      else if (shape.interface == "private") {v_interface = "-"}
+      else if (shape.interface == "public") {v_interface = "+"}
+      else if (shape.interface == "public_and_private") {v_interface = "x"}
+      else {v_interface = "";}
+      return v_interface;
+    }
 
-      function calculate_units_base(shape: any) {
-        if (shape.units) {
-          const unit = shape.units;
-          if (unit == "metre") return "m";
-          else if (unit == "ampere") return "A";
-          else if (unit == "becquerel") return "Bq";
-          else if (unit == "candela") return "cd";
-          else if (unit == "coulomb") return "C";
-          else if (unit == "dimensionless") return " ";
-          else if (unit == "farad") return "F";
-          else if (unit == "gram") return "g";
-          else if (unit == "gray") return "Gy";
-          else if (unit == "henry") return "H";
-          else if (unit == "hertz") return "Hz";
-          else if (unit == "joule") return "J";
-          else if (unit == "katal") return "kat";
-          else if (unit == "kelvin") return "K";
-          else if (unit == "kilogram") return "kg";
-          else if (unit == "litre") return "L";
-          else if (unit == "lumen") return "lm";
-          else if (unit == "lux") return "lx";
-          else if (unit == "mole") return "mol";
-          else if (unit == "newton") return "N";
-          else if (unit == "ohm") return "Ω";
-          else if (unit == "pascal") return "Pa";
-          else if (unit == "radian") return "rad";
-          else if (unit == "second") return "s";
-          else if (unit == "siemens") return "S";
-          else if (unit == "sievert") return "Sv";
-          else if (unit == "steradian") return "sr";
-          else if (unit == "tesla") return "T";
-          else if (unit == "volt") return "V";
-          else if (unit == "watt") return "W";
-          else if (unit == "weber") return "Wb";
-          else if (unit == "degree Celsius") return "°C";
-          else return shape.units;
-      }
-          else return "";
-      }
-
-
-      function calculate_exponent(shape:any) {
-        let exponent;
-        if (shape.exponent == '') exponent = 1.0;
-        else if (shape.exponent) exponent = shape.exponent;
-        else exponent = 1.0;
-        return exponent;
-      }
-
-      function calculate_multiplier(shape:any) {
-        let multiplier;
-        if (shape.multiplier == '') multiplier = 1.0;
-        else if (shape.multiplier) multiplier = shape.multiplier;
-        else multiplier = 1.0;
-        return multiplier;
-      }
-
-      function select_interface_type(shape:any) {
-        let v_interface;
-        if(shape.interface == "none") {v_interface = "";}
-        else if (shape.interface == "private") {v_interface = "-"}
-        else if (shape.interface == "public") {v_interface = "+"}
-        else if (shape.interface == "public_and_private") {v_interface = "x"}
-        else {v_interface = "";}
-        return v_interface;
-      }
-
-      // Do the lines first to make it less ugly
-      for (const i in cellml_elements) {
+    // =============================================================================
+    // =============================================================================
+    // =============================================================================
+    // Create the lines between the elements
+    for (const i in cellml_elements) {
         const shape = cellml_elements[i];
-        if (shape.element_type == "connection") {
+        if (shape.element_type=="units") {
+          context.beginPath(); 
+          context.lineWidth = 5;
+          context.strokeStyle = "rgb(193, 2, 12)";
+          for (let j = 0; j < cellml_elements.length; j++) {
+            if (cellml_elements[j].element_type == "unit" && cellml_elements[j].units_parent == shape.units_name) {
+              this.drawArrow(context, shape.x + 50, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(255, 175, 175, 0.5)");
+            }
+            else if (cellml_elements[j].element_type == "variable" && cellml_elements[j].units == shape.units_name) {
+              this.drawArrow(context, shape.x + 50, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(255, 175, 175, 0.5)");
+            }
+          }
+          context.stroke();
+        }
+        else if (shape.element_type == "component") {
+          context.beginPath();
+          context.strokeStyle = "rgb(123,161,203)";
+          context.fillStyle = "rgb(123,161,203)";
+          context.lineWidth = 1;
+          for (let j = 0; j < cellml_elements.length; j++) {
+            if (cellml_elements[j].var_parent == shape.name && cellml_elements[j].element_type == "variable") {
+              this.drawArrow(context, shape.x + this.calculate_width(shape.name)/2, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(175, 245, 185, 0.5)");
+            }
+            else if (cellml_elements[j].res_parent == shape.c_id && cellml_elements[j].element_type == "reset") {
+              this.drawArrow(context, shape.x + this.calculate_width(shape.name)/2, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(175, 245, 185, 0.5)");
+            }
+            else if (cellml_elements[j].math_parent == shape.name && cellml_elements[j].element_type == "math") {
+              this.drawArrow(context, shape.x + this.calculate_width(shape.name)/2, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(175, 245, 185, 0.5)");
+            }
+            else if (cellml_elements[j].component == shape.name && cellml_elements[j].element_type == "component_ref") {
+              this.drawArrow(context, cellml_elements[j].x, cellml_elements[j].y, shape.x + this.calculate_width(shape.name)/2, shape.y + 21, "rgb(175, 245, 185, 0.5)");
+            }
+          }
+          context.fill();
+          context.stroke();
+        }
+        else if (shape.element_type == "reset") {
+          // lines between children
+          for (let j = 0; j < cellml_elements.length; j++) {
+            if (cellml_elements[j].reset_parent == shape.order && (cellml_elements[j].element_type == "test_value" || cellml_elements[j].element_type == "reset_value")) {
+              this.drawArrow(context, shape.x, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(175, 245, 185, 0.5)");
+            }
+            if (cellml_elements[j].element_type == "variable" && cellml_elements[j].name == shape.variable) {
+              this.drawArrow(context, shape.x, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(175, 245, 185, 0.5)");
+            }
+          }
+        }
+        else if (shape.element_type == "reset_value" || shape.element_type == "test_value") {
+          for (let j = 0; j < cellml_elements.length; j++) {
+            if (cellml_elements[j].element_type == "math" && cellml_elements[j].reset_parent == shape.id) {
+              this.drawArrow(context, shape.x, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(175, 245, 185, 0.5)");
+            }
+          }
+        }
+        else if (shape.element_type == "connection") {
           // draw the children lines between connection and map variables
           context.beginPath();
           context.lineWidth = 2;
           context.strokeStyle = "rgb(115,50,115)";
           for (let i = 0; i < cellml_elements.length; i++) {
             if (cellml_elements[i].element_type == "map_variables" && cellml_elements[i].connection_ref == shape.connection_parent) {
-              this.drawArrow(context, shape.x, shape.y, cellml_elements[i].x, cellml_elements[i].y, "rgb(245, 206, 177)");
+              this.drawArrow(context, shape.x, shape.y, cellml_elements[i].x, cellml_elements[i].y, "rgb(245, 206, 177, 0.5)");
             }
           }
           context.stroke();
@@ -1487,63 +2279,18 @@ export default class VisualPane extends React.Component<TPProps> {
           context.lineWidth = 3;
           context.strokeStyle = "rgb(115,50,115)";
           context.fillStyle   = "rgb(115,50,115)";
-          let component1name = "";
-          let component2name = "";
           for (let j = 0; j < cellml_elements.length; j++) {
             // Checking component 1 & 2
             if (cellml_elements[j].element_type == "component" && cellml_elements[j].name == shape.component_1) {
-                this.drawArrow(context, shape.x, shape.y, cellml_elements[j].x, cellml_elements[j].y, "rgb(191, 242, 211)");
-                component1name = cellml_elements[j].name;
+                this.drawArrow(context, shape.x, shape.y, cellml_elements[j].x, cellml_elements[j].y, "rgb(191, 242, 211, 0.5)");
             }
             else if (cellml_elements[j].element_type == "component" && cellml_elements[j].name == shape.component_2) {
-                this.drawArrow(context, shape.x, shape.y, cellml_elements[j].x, cellml_elements[j].y, "rgb(191, 242, 211)");
-                component2name = cellml_elements[j].name;
+                this.drawArrow(context, shape.x, shape.y, cellml_elements[j].x, cellml_elements[j].y, "rgb(191, 242, 211, 0.5)");
               }
           }
           context.stroke();
         }
-        if (shape.element_type=="units") {
-          // draw lines between units and unit elements
-          context.beginPath(); 
-          context.lineWidth = 5;
-          context.strokeStyle = "rgb(193, 2, 12)";
-          for (let j = 0; j < cellml_elements.length; j++) {
-            //context.moveTo(shape.x + 50, shape.y + 21); // rectangle has width 50 and height 25
-            if (cellml_elements[j].element_type == "unit" && cellml_elements[j].units_parent == shape.units_name) {
-              //context.lineTo(cellml_elements[j].x, cellml_elements[j].y);
-              this.drawArrow(context, shape.x + 50, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "pink");
-            }
-          }
-        }
-        if (shape.element_type == "component") {
-          
-          // The variable lines from component
-          context.beginPath();
-          context.strokeStyle = "rgb(123,161,203)";
-          context.fillStyle = "rgb(123,161,203)";
-          context.lineWidth = 1;
-          for (let j = 0; j < cellml_elements.length; j++) {
-            if (cellml_elements[j].var_parent == shape.name && cellml_elements[j].element_type == "variable") {
-              this.drawArrow(context, shape.x + this.calculate_width(shape.name)/2, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(123, 161, 203)");
-            }
-            else if (cellml_elements[j].res_parent == shape.name && cellml_elements[j].element_type == "reset") {
-              this.drawArrow(context, shape.x + this.calculate_width(shape.name)/2, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(120, 205, 182)");
-            }
-          }
-          context.fill();
-          context.stroke();
-        }
-        if (shape.element_type == "reset") {
-
-          // Draw the connecting arrows
-          //reset_parent: "test" + elemNode.getAttribute('order')
-          for (let j = 0; j < cellml_elements.length; j++) {
-            if (cellml_elements[j].reset_parent == shape.order && (cellml_elements[j].element_type == "test_value") || cellml_elements[j].element_type == "reset_value") {
-              this.drawArrow(context, shape.x, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(120, 205, 182)");
-            }
-          }
-        }
-        if (shape.element_type == "map_variables") {
+        else if (shape.element_type == "map_variables") {
           // drawing connecting lines between variables
           context.beginPath();
           context.lineWidth = 5;
@@ -1553,37 +2300,56 @@ export default class VisualPane extends React.Component<TPProps> {
           for (let j = 0; j < cellml_elements.length; j++) {
             // Checking component 1 & 2
             if (cellml_elements[j].element_type == "variable" && cellml_elements[j].name == shape.variable_1 ) {
-               this.drawArrow(context,shape.x, shape.y, cellml_elements[j].x, cellml_elements[j].y, "rgb(235, 211, 250)");
+                this.drawArrow(context,shape.x, shape.y, cellml_elements[j].x, cellml_elements[j].y, "rgb(235, 211, 250, 0.5)");
             }
             if (cellml_elements[j].element_type == "variable" && cellml_elements[j].name == shape.variable_2 ) {
               //  context.lineTo(cellml_elements[j].x, cellml_elements[j].y);
-              this.drawArrow(context,shape.x, shape.y, cellml_elements[j].x, cellml_elements[j].y, "rgb(235, 211, 250)");
+              this.drawArrow(context,shape.x, shape.y, cellml_elements[j].x, cellml_elements[j].y, "rgb(235, 211, 250, 0.5)");
             }
           }
           context.stroke();
           context.setLineDash([]);
         }
+        else if (shape.element_type == "import") {
+          // drawing connecting lines between variables
+          context.beginPath();
+          context.lineWidth = 5;
+          context.strokeStyle = "rgb(115,50,115)";
+          context.fillStyle   = "rgb(115,50,115)";
+          context.setLineDash([]);
+          for (let j = 0; j < cellml_elements.length; j++) {
+            // Checking component 1 & 2
+            if (cellml_elements[j].element_type == "import_units" && cellml_elements[j].imp_id == shape.import_id ) {
+                this.drawArrow(context,shape.x, shape.y, cellml_elements[j].x, cellml_elements[j].y, "rgb(235, 211, 250, 0.5)");
+            }
+            if (cellml_elements[j].element_type == "import_component" && cellml_elements[j].imp_id == shape.import_id ) {
+              //  context.lineTo(cellml_elements[j].x, cellml_elements[j].y);
+              this.drawArrow(context,shape.x, shape.y, cellml_elements[j].x, cellml_elements[j].y, "rgb(235, 211, 250, 0.5)");
+            }
+          }
+          context.stroke();
+          
+        }
       }
 
-      for (const i in cellml_elements) {
+    // =========================================================================================================
+    // =========================================================================================================
+    // =========================================================================================================
+    // =========================================================================================================
+    // =========================================================================================================
+    // Create the element boxes
+    for (const i in cellml_elements) {
         const shape = cellml_elements[i];
         // =========================================================================================================
         // =========================================================================================================
         // =========================================================================================================
-        // =========================================================================================================
-        // =========================================================================================================
-        // =========================================================================================================
         if (shape.element_type == "connection") {
+          // Get the component names
           let component1name = "";
           let component2name = "";
           for (let j = 0; j < cellml_elements.length; j++) {
-            // Checking component 1 & 2
-            if (cellml_elements[j].element_type == "component" && cellml_elements[j].name == shape.component_1) {
-                component1name = cellml_elements[j].name;
-            }
-            else if (cellml_elements[j].element_type == "component" && cellml_elements[j].name == shape.component_2) {
-                component2name = cellml_elements[j].name;
-              }
+            if (cellml_elements[j].element_type == "component" && cellml_elements[j].name == shape.component_1) { component1name = cellml_elements[j].name; }
+            if (cellml_elements[j].element_type == "component" && cellml_elements[j].name == shape.component_2) { component2name = cellml_elements[j].name; }
           }
           // draw connection diamond
           let diamond_width;
@@ -1610,24 +2376,26 @@ export default class VisualPane extends React.Component<TPProps> {
           context.stroke();
           context.font = "16px Arial";        
         }
+        // =========================================================================================================
+        // =========================================================================================================
+        // =========================================================================================================
         else if (shape.element_type=="units") {
-          // drawing the container
+           // draw the red units element container
           context.beginPath();
           context.lineWidth = 3;
-          this.roundRect(context, shape.x, shape.y, this.calculate_width(shape.units_name), 48, 5, true, true);
+          this.roundRect(context, shape.x, shape.y, this.calculate_width(shape.units_name) + 10, 48, 5, true, true);
           context.font =  "16px Arial";
-          context.strokeStyle="rgb(193, 2, 12)";
-          context.lineWidth = 3;
           const grd = context.createRadialGradient(shape.x + this.calculate_width(shape.units_name)/2, shape.y + 25, 5, shape.x + this.calculate_width(shape.units_name)/3, shape.y + 30, 100);
           grd.addColorStop(0, "rgb(254, 148, 155)");
           grd.addColorStop(1, "rgb(252, 36, 42)");
           context.fillStyle = grd;
           context.fill();       
+          highlight_stroke(context, shape, "rgb(193, 2, 12)");
           context.stroke();
           // drawing the text for the element
           context.beginPath(); 
-          context.fillStyle='rgb(110, 1, 6)';
-          context.font = "bold 16px Arial";
+          context.fillStyle ='rgb(110, 1, 6)';
+          context.font = "bold 18px Arial";
           context.strokeStyle="rgb(193, 2, 12)";
           context.fillText(shape.units_name, shape.x + 5, shape.y + 30);
           context.stroke();
@@ -1636,45 +2404,49 @@ export default class VisualPane extends React.Component<TPProps> {
         // =========================================================================================================
         // =========================================================================================================
         else if (shape.element_type == "unit") {
-          const units_value = calculate_units_base(shape);
+
           // Just getting the values to display
+          const units_value = calculate_units_base(shape);
           const prefix     = calculate_prefix(shape);
           const exponent   = calculate_exponent(shape);
           const multiplier = calculate_multiplier(shape);
+
           // create the 'unit' base - circle
           context.beginPath();
-          context.lineWidth = 3;
-          context.strokeStyle = "rgb(193, 2, 12)";
           const grd = context.createRadialGradient(shape.x - 5, shape.y - 5, 5, shape.x + 5, shape.y - 5, 30);
-          grd.addColorStop(0, "rgb(254, 148, 155)");
-          grd.addColorStop(1, "rgb(252, 36, 42)");
+          grd.addColorStop(1, "rgb(242, 87, 95)");
+          grd.addColorStop(0, "rgb(245, 137, 142)");
           context.fillStyle = grd;
-          context.arc(shape.x,shape.y,shape.radius,0,Math.PI*2);
+          context.arc(shape.x, shape.y, 35, 0, Math.PI*2);
           context.fill();
+          highlight_stroke(context, shape, "rgb(193, 2, 12)");
           context.stroke();
+
           // adding the text onto the circle
           context.beginPath();
-          context.strokeStyle = "rgb(193, 2, 12)";
-          context.fillStyle = "rgb(110, 1, 6)";
           context.font =  "bold 16px Arial";
-          if (shape.multiplier) {
-            context.fillText(prefix, shape.x - 15 + 10*(shape.multiplier.length), shape.y + 8);
-            context.fillText(units_value, shape.x + 10*(prefix.length) - 15 + 10*(shape.multiplier.length), shape.y + 8);
-            context.font =  "bold 14px Arial";
-            context.fillText(exponent, shape.x - 20 + (prefix.length)*10 + (units_value)*10 + 10*(shape.multiplier.length), shape.y - 8);
-            context.font =  "bold 16px Arial";
-          } else {
-            context.fillText(prefix, shape.x - 15, shape.y + 8);
-            context.fillText(units_value, shape.x + 11*(prefix.length) - 15, shape.y + 8);
-            context.font =  "bold 14px Arial";
-            console.log(exponent);
-            if (exponent != 1) context.fillText(exponent, shape.x + 10*(units_value.length), shape.y - 8);
-            context.font =  "bold 16px Arial";
-          }
-          
-          if (multiplier != 1) context.fillText(multiplier + "*", shape.x - (prefix.length)*11 - 15, shape.y + 8);
+          let unit_string = "";
+          if (shape.multiplier != undefined && shape.multiplier != 1 && shape.multiplier != "") unit_string += shape.multiplier + ".";
+          if (prefix != undefined && prefix != "1" && prefix != "") unit_string += prefix + ".";
+          unit_string += units_value;
+          const unit_size = unit_string.length*11/3;
+          context.strokeStyle = "rgb(110, 1, 6)";
+          if (unit_string.length > 7) {this.roundRect(context, shape.x - unit_size - 15, shape.y - 15, unit_string.length*10, 30, 5, true, true);}
+          context.fillStyle = "rgb(245, 139, 145)";
+          context.font =  "bold 16px Arial";
           context.lineWidth = 5;
           context.fill();
+          highlight_stroke(context, shape, "rgb(193, 2, 12)");
+          context.stroke();
+
+          context.beginPath();
+          context.fillStyle = "rgb(110, 1, 6)";
+          context.fillText(unit_string, shape.x - unit_size - 5, shape.y + 5);
+          context.stroke();
+
+          context.beginPath();
+          context.fillStyle = "rgb(110, 1, 6)";
+          if (exponent != "" && exponent != undefined && exponent != "1") {context.fillText(exponent, shape.x + unit_size + 5, shape.y - 5);}
           context.stroke();
         }
         // =========================================================================================================
@@ -1691,174 +2463,143 @@ export default class VisualPane extends React.Component<TPProps> {
           grd.addColorStop(1, "rgb(53, 181, 104)");
           context.fillStyle = grd;
           context.fill();
+
           // The actual text of the components name
           context.strokeStyle="rgb(4, 131, 6)";
           context.font =  "bold 16px Arial";
           context.lineWidth = 3;
           context.fillStyle='rgb(2, 80, 4)';
           context.fillText(shape.name, shape.x + 15, shape.y + 30);
+          highlight_stroke(context, shape, "rgb(4, 131, 6)");
           context.stroke();
         }
         // =========================================================================================================
         // =========================================================================================================
         // =========================================================================================================
         else if (shape.element_type == "variable") {
-          // Draw the container
+           // Draw the container
           context.beginPath();
-          context.lineWidth = 2;
-          context.arc(shape.x, shape.y, shape.radius, 0, Math.PI * 2);
+          context.lineWidth = 3;
+          context.arc(shape.x, shape.y, 35, 0, Math.PI * 2);
           const grd = context.createRadialGradient(shape.x - 5, shape.y - 5, 5, shape.x + 5, shape.y - 5, 30);
           grd.addColorStop(0, "rgb(181, 242, 204)");
           grd.addColorStop(1, "rgb(53, 181, 104)");
           context.fillStyle = grd;
           context.fill();
-          context.strokeStyle = "rgb(4, 131, 6)";
-          context.fillStyle= "black";
+          context.fillStyle= 'rgb(2, 80, 4)';
           context.lineWidth = 3;
           context.font =  "bold 18px Arial";
           context.fillText(shape.name, this.calculate_variable_center_x(shape.name, shape.x), shape.y + 8);
+          highlight_stroke(context, shape, "rgb(4, 131, 6)");
           context.stroke();
           // draw the interface attribute onto the circle (x:both, +:public, -:private)
           context.beginPath();
-          context.arc(shape.x + 25, shape.y -15, 10, 0, Math.PI * 2);
+          context.arc(shape.x + 35, shape.y -15, 15, 0, Math.PI * 2);
           context.fillStyle = "rgb(163, 234, 190)";
           context.fill();
           context.fillStyle= "black";
-          context.lineWidth = 3;
-          context.strokeStyle = "rgb(4, 131, 6)";
+          highlight_stroke(context, shape, "rgb(4, 131, 6)");
           context.font =  "bold 16px Arial";
-          context.fillText(select_interface_type(shape), shape.x + 21, shape.y - 9);
+          context.fillText(select_interface_type(shape), shape.x + 30, shape.y - 10);
           context.stroke();
-          // Add the initial value if they have one
-          if (shape.initial_value) {
-            context.beginPath();
-            this.roundRect(context, shape.x, shape.y + 15, 50, 20, 5, true, true);
-            context.fillStyle = "rgb(163, 234, 190)";
-            context.fill();
-            context.strokeStyle = "rgb(4, 131, 6)";
-            context.font = "bold 14px Arial";
-            context.fillStyle = "black";
-            context.fillText("IV: " + shape.initial_value, shape.x + 5, shape.y + 30);
-            context.stroke();
-          }
         }
         // =========================================================================================================
         // =========================================================================================================
         // =========================================================================================================
         else if (shape.element_type == "reset") {
-          // Draw the container
           context.beginPath();
-          context.lineWidth = 3;
-          context.arc(shape.x, shape.y, shape.radius, 0, Math.PI * 2);
+          context.lineWidth = 5;
+          context.arc(shape.x, shape.y, 40, 0, Math.PI * 2);
           const grd = context.createRadialGradient(shape.x - 5, shape.y - 5, 5, shape.x + 5, shape.y - 5, 30);
           grd.addColorStop(0, "rgb(181, 242, 204)");
           grd.addColorStop(1, "rgb(53, 181, 104)");
           context.fillStyle = grd;
           context.fill();
-          context.strokeStyle = "rgb(2, 48, 134)";
-          context.stroke();
-
-          // The order element
-          context.beginPath();
-          context.lineWidth = 3;
-          context.arc(shape.x + 25, shape.y, 13, 0, Math.PI * 2);
-          context.fillStyle = grd;
-          context.fill();
-          context.strokeStyle = "rgb(2, 48, 134)";
-          context.fillStyle = "black";
-          context.font = "bold 18px Arial";
-          context.fillText(shape.order, shape.x + 22, shape.y + 5);
+          highlight_stroke(context, shape, "rgb(2, 48, 134)");
           context.stroke();
 
           // The variable reference
           context.beginPath();
+          context.lineWidth = 2;
           context.strokeStyle = "rgb(2, 48, 134)";
           context.fillStyle = "rgb(174, 239, 199)";
           context.fill();
-          this.roundRect(context, shape.x - 35, shape.y - 40, this.calculate_width(shape.variable), 20, 5, true, true);
-          context.stroke();
-          context.beginPath();
-          context.font = "bold 14px Arial";
-          context.strokeStyle = "rgb(2, 80, 4)";
-          context.fillStyle = "rgb(2, 80, 4)";
-          context.fillText("Var: " + shape.variable, shape.x - 32, shape.y - 26);
+          highlight_stroke(context, shape, "rgb(2, 48, 134)");
+          this.roundRect(context, shape.x - 50, shape.y - 40, this.calculate_width(shape.variable) + 35, 20, 5, true, true);
           context.stroke();
 
-          // The test variable reference 
           context.beginPath();
+          context.font = "bold 14px Arial";
+          context.fillStyle = "rgb(2, 80, 4)";
+          context.fillText("Var: " + shape.variable, shape.x - 40, shape.y - 26);
+          context.stroke();
+
+         context.beginPath();
           context.strokeStyle = "rgb(2, 48, 134)";
           context.fillStyle = "rgb(174, 239, 199)";
           context.fill();
-           this.roundRect(context, shape.x - 35, shape.y + 20, this.calculate_width(shape.test_variable), 20, 5, true, true);
+          highlight_stroke(context, shape, "rgb(30, 70, 70)");
+          this.roundRect(context, shape.x - 50, shape.y + 20, this.calculate_width(shape.test_variable) + 35, 20, 5, true, true);
           context.stroke();
+
           context.beginPath();
           context.font = "bold 14px Arial";
-          context.strokeStyle = "rgb(2, 80, 4)";
           context.fillStyle = "rgb(2, 80, 4)";
-          context.fillText("T_Var: " + shape.test_variable, shape.x - 32, shape.y + 36);
+          context.fillText("Test_V: " + shape.test_variable, shape.x - 40, shape.y + 35);
           context.stroke();
+
 
         }
         // =========================================================================================================
         // =========================================================================================================
         // =========================================================================================================
         else if (shape.element_type == "test_value" || shape.element_type == "reset_value") {
-          // Draw the container
+          // Draw Container
           context.beginPath();
-          context.lineWidth = 4;
-          context.arc(shape.x, shape.y, shape.radius, 0, Math.PI * 2);
+          context.lineWidth = 3;
+          context.arc(shape.x, shape.y, 35, 0, Math.PI * 2);
           const grd = context.createRadialGradient(shape.x - 5, shape.y - 5, 5, shape.x + 5, shape.y - 5, 30);
           grd.addColorStop(0, "rgb(181, 242, 204)");
           grd.addColorStop(1, "rgb(53, 181, 104)");
           context.fillStyle = grd;
           context.fill();
-          context.strokeStyle = "rgb(2, 48, 134)";
+          highlight_stroke(context, shape, "rgb(30, 70, 70)");
           context.stroke();
-          // Draw Math Element - temp for now
+
+          // Add text depending on version
           context.beginPath();
-          context.font = "bold 20px Arial";
+          context.font = "bold 18px Arial";
           context.strokeStyle = "rgb(2, 80, 4)";
           context.fillStyle = "rgb(2, 80, 4)";
-          if (shape.element_type == "test_value" ) context.fillText("T Math", shape.x - 20, shape.y + 10);
-          if (shape.element_type == "reset_value") context.fillText("R Math", shape.x - 20, shape.y + 10);
-          context.stroke();
+          if (shape.element_type == "test_value" ) context.fillText("Test: ", shape.x - 30, shape.y + 8);
+          if (shape.element_type == "reset_value") context.fillText("Reset: ", shape.x - 30, shape.y + 8);
+
         }
         // =========================================================================================================
         // =========================================================================================================
         // =========================================================================================================
         else if (shape.element_type == "import") {
-          let import_children = 2;
-          // connecting the import children with lines
-          context.beginPath();
-          context.strokeStyle = "rgb(195,105,5)";
-          context.fillStyle = "rgb(195,105,5)";
-          context.lineWidth = 2;
-          for (let j = 0; j < cellml_elements.length; j++) {
-            context.moveTo(shape.x + this.calculate_width(shape.href)/2, shape.y + 21);
-            if (cellml_elements[j].element_type == "component" && cellml_elements[j].href_reference == shape.href) {
-              context.lineTo(cellml_elements[j].x + this.calculate_width(cellml_elements[j].name)/2, cellml_elements[j].y + 20);
-              import_children += 1;
-            }
-          }
+
+          context.beginPath(); 
+          context.lineWidth = 5;
+          highlight_stroke(context, shape, "rgb(63, 81, 181)");
+          this.roundRect(context, shape.x, shape.y, this.calculate_width(shape.href), 50, 5, true, true);
+          const grd = context.createRadialGradient(shape.x + this.calculate_width(shape.href)/2, shape.y + 25, 5, shape.x + this.calculate_width(shape.href)/3, shape.y + 30, 100);
+          grd.addColorStop(0, "rgb(187, 222, 232)");
+          grd.addColorStop(1, "rgb(105, 181, 203)");
+          context.fillStyle = grd;
           context.fill();
           context.stroke();
-          context.closePath();
-          
-          // drawing the import container + header
-          context.strokeStyle = "rgb(29, 66, 111)";
-          context.fillStyle = "rgb(230, 239, 249, 0.8)";
-          context.setLineDash([10,2]);
-          context.lineWidth = 2;
-          this.roundRect(context, shape.x, shape.y, this.calculate_import_width(shape.href), import_children*50, 10, true, true);
-          context.setLineDash([]);
-          this.roundRect(context, shape.x + 2.5, shape.y + 2.5, this.calculate_import_width(shape.href) - 5, import_children*50 - 5, 10, true, true);
-          this.roundRect(context, shape.x + 2.5, shape.y + 2.5, this.calculate_import_width(shape.href) - 5, 30, 5, true, true);
 
+          // The actual text of the components name
           context.beginPath();
-          context.fillStyle='rgb(65,65,65)';
-          context.font =  "bold 18px Arial";
-          context.strokeStyle="rgb(65,65,65)";
-          context.fillText(shape.href, shape.x + 15, shape.y + 25);
+          context.strokeStyle= "rgb(187, 222, 232)";
+          context.lineWidth = 3;
+          context.fillStyle= "rgb(63, 81, 181)";
+          context.font='bold 12px Arial'
+          context.fillText("Import from:", shape.x + 5, shape.y + 15);
+          context.font =  "bold 16px Arial";
+          context.fillText("/" + shape.href, shape.x + 5, shape.y + 35);
           context.stroke();
         }
         
@@ -1866,45 +2607,36 @@ export default class VisualPane extends React.Component<TPProps> {
         // =========================================================================================================
         // =========================================================================================================
         else if (shape.element_type == "map_variables") {
-          // drawing connecting lines between variables
+
+          // Draw the pentagon for the map variable element
           context.beginPath();
           context.lineWidth = 5;
-          context.strokeStyle = "rgb(115,50,115)";
-          context.fillStyle   = "rgb(115,50,115)";
-          context.setLineDash([10,10]);
-          let var1name = "";
-          let var2name = "";
-          for (let j = 0; j < cellml_elements.length; j++) {
-            //context.moveTo(shape.x, shape.y);
-            // Checking component 1 & 2
-            if (cellml_elements[j].element_type == "variable" && cellml_elements[j].name == shape.variable_1 ) {
-               // context.lineTo(cellml_elements[j].x, cellml_elements[j].y);
-               //this.drawArrow(context,shape.x, shape.y, cellml_elements[j].x, cellml_elements[j].y, "rgb(235, 211, 250)");
-                var1name = cellml_elements[j].name;
-            }
-            if (cellml_elements[j].element_type == "variable" && cellml_elements[j].name == shape.variable_2 ) {
-              //  context.lineTo(cellml_elements[j].x, cellml_elements[j].y);
-              //this.drawArrow(context,shape.x, shape.y, cellml_elements[j].x, cellml_elements[j].y, "rgb(235, 211, 250)");
-                var2name = cellml_elements[j].name;
-              }
-          }
-          context.stroke();
-          context.setLineDash([]);
-
           let shape_width;
-          (var1name.length > var2name.length) ? shape_width = this.calculate_width(var1name) : shape_width = this.calculate_width(var2name);
-          //drawDiamond(context, shape.x + diamond_width/4, shape.y - diamond_height/4, diamond_width , diamond_height);
-          drawPentagon(context, shape.x + shape_width/4, shape.y + shape_width/4, shape_width/2);
+          const var1length = this.calculate_width(shape.variable_1);
+          const var2length = this.calculate_width(shape.variable_2);
+          (var1length > var2length) ? shape_width = var1length : shape_width = var2length;
+          drawPentagon(context, shape, shape.x + shape_width/4, shape.y + shape_width/4, shape_width/2 , "rgb(185,100,185)", "rgb(230,205,230)");
 
+          // Draw the boxes for the pentagon
           context.beginPath();
-          context.fillStyle='black';
+          context.fillStyle = "rgb(223,187,232)";
+          context.font = "bold 16px Arial";
+          context.lineWidth = 2;
+          highlight_stroke(context, shape, "rgb(115,50,115)");
+          this.roundRect(context, shape.x - 25, shape.y - 10, this.calculate_width(shape.variable_1), 25, 5, true, true);
+          this.roundRect(context, shape.x - 25, shape.y + shape_width/3, this.calculate_width(shape.variable_2), 25, 5, true, true);
+          context.stroke();
+
+          // Write the names onto the element container
+          context.beginPath();
+          context.fillStyle='rgb(101, 39, 116)';
           context.font =  "bold 16px Arial";
           context.lineWidth = 5;
-
-          context.fillText(var1name, shape.x + 10, shape.y);
-          context.fillText("   x   ", shape.x + 10 , shape.y + 25);
-          context.fillText(var2name, shape.x + 10, shape.y + 50);
+          context.fillText(shape.variable_1, shape.x - 15,  shape.y + 8);
+          context.fillText("   X   ",  shape.x + shape_width/4 - 15,  shape.y + shape_width/4 + 5);
+          context.fillText(shape.variable_2, shape.x - 15,  shape.y + shape_width/3 + 20);
           context.stroke();
+
         }
         // =========================================================================================================
         // =========================================================================================================
@@ -1964,28 +2696,99 @@ export default class VisualPane extends React.Component<TPProps> {
           context.fillText(shape.component, shape.x + 5, shape.y + 28);
           context.stroke();
 
-          // Draw some connecting lines between the components and the encapsulated components
-          context.lineWidth = 2;
-          for (let cr = 0 ; cr < cellml_elements.length; cr++) {
-            if (cellml_elements[cr].element_type == "component") {
-              if (cellml_elements[cr].name == shape.component) {
-                this.draw_canvas_arrow(context, shape.x, shape.y, cellml_elements[cr].x + this.calculate_width(shape.component)/2, cellml_elements[cr].y + 45);
-              }
-            }
-          }
         }
 
         // =========================================================================================================
         // =========================================================================================================
         // =========================================================================================================
+        else if (shape.element_type == "import_component") {
+          // The actual element container
+          context.beginPath(); 
+          highlight_stroke(context, shape, "rgb(63, 81, 181)");
+          // The border is blue to help indicate it's imported
+          this.roundRect(context, shape.x, shape.y, this.calculate_width(shape.name), 50, 10, true, true);
+          context.stroke();
+          // The inner border is green to indicate it's a component
+          context.beginPath();
+          context.strokeStyle = "rgb(3, 83, 5)";
+          context.lineWidth = 2;
+          this.roundRect(context, shape.x + 3, shape.y + 3, this.calculate_width(shape.name) - 6, 44, 5, true, true);
+          const grd = context.createRadialGradient(shape.x + this.calculate_width(shape.name)/2, shape.y + 25, 5, shape.x + this.calculate_width(shape.name)/3, shape.y + 30, 100);
+          grd.addColorStop(0, "rgb(181, 242, 204)");
+          grd.addColorStop(1, "rgb(53, 181, 104)");
+          context.fillStyle = grd;
+          context.fill();
+          // The actual text of the components name
+          context.strokeStyle="rgb(4, 131, 6)";
+          context.font =  "bold 16px Arial";
+          context.lineWidth = 3;
+          context.fillStyle='rgb(2, 80, 4)';
+          context.fillText(shape.name, shape.x + 15, shape.y + 30);
+          context.font =  "bold 10px Arial";
+          context.fillText("Imported: (" + shape.component_ref + ")", shape.x + 10, shape.y + 40);
+          context.stroke();
+        }
+        // =========================================================================================================
+        // =========================================================================================================
+        // =========================================================================================================
+        else if (shape.element_type == "import_units") {
+          context.beginPath();
+          highlight_stroke(context, shape, "rgb(63, 81, 181)");
+          this.roundRect(context, shape.x, shape.y, this.calculate_width(shape.name), 50, 10, true, true);
+          context.stroke();
+
+          context.beginPath();
+          context.lineWidth = 3;
+          this.roundRect(context, shape.x + 3, shape.y + 3, this.calculate_width(shape.name) - 6, 44, 5, true, true);
+          context.font =  "16px Arial";
+          context.strokeStyle="rgb(193, 2, 12)";
+          context.lineWidth = 3;
+          const grd = context.createRadialGradient(shape.x + this.calculate_width(shape.name)/2, shape.y + 25, 5, shape.x + this.calculate_width(shape.name)/3, shape.y + 30, 100);
+          grd.addColorStop(0, "rgb(254, 148, 155)");
+          grd.addColorStop(1, "rgb(252, 36, 42)");
+          context.fillStyle = grd;
+          context.fill();       
+          context.stroke();
+          // drawing the text for the element
+          context.beginPath(); 
+          context.fillStyle='rgb(110, 1, 6)';
+          context.font = "bold 16px Arial";
+          context.strokeStyle="rgb(193, 2, 12)";
+          context.fillText(shape.name, shape.x + 15, shape.y + 30);
+          context.font =  "bold 10px Arial";
+          context.fillText("Imported: " + shape.units_ref + "", shape.x + 10, shape.y + 40);
+          context.stroke();
+        }
+        // =========================================================================================================
+        // =========================================================================================================
+        // =========================================================================================================
         else if (shape.element_type == "math") {
-          console.log("____________")
+          context.beginPath();
+          this.roundRect(context, shape.x, shape.y, 125, 50, 10, true, true);
+          const grd = context.createRadialGradient(shape.x + 125/2, shape.y + 25, 5, shape.x + 125/3, shape.y + 30, 100);
+          grd.addColorStop(0, "rgb(170, 190, 217)");
+          grd.addColorStop(1, "rgb(74, 114, 166)");
+          context.fillStyle = grd;
+          context.fill();
+          context.lineWidth = 3;
+          highlight_stroke(context, shape, "rgb(65,100,147)");
+          context.stroke();
+
+          context.beginPath();
+          context.strokeStyle = "rgb(43,65,96)";
+          context.fillStyle = "rgb(43,65,96)";
+          context.font = "bold 18px Arial"
+          context.fillText("<Math>", shape.x + 30, shape.y + 30);
+          context.stroke();
+
+
+         /* console.log("____________")
           console.log('found math: ')
           console.log(shape.mathml_format);
           console.log(shape.mathml_format.outerHTML);
           console.log(typeof shape);
           console.log("____________")
-          context.beginPath(); 
+          context.beginPath(); */
           /*context.rect(shape.x, shape.y, 100, 42);
           context.fillStyle='red';
           context.font =  "16px Arial";
@@ -2003,7 +2806,7 @@ export default class VisualPane extends React.Component<TPProps> {
           //defaultStr = shape.mathml_format.outerHTML;
           /*const temp = document.getElementById("mathjaxexample") as any;
           console.log(temp);
-          context.drawImage(temp, shape.x + 5, shape.y + 25);*/
+          context.drawImage(temp, shape.x + 5, shape.y + 25);
 
           const mathjax = document.getElementById("mathjaxexample");
 
@@ -2017,14 +2820,9 @@ export default class VisualPane extends React.Component<TPProps> {
           console.log(mathjax_svg[0]);
           const svg_elem = mathjax_svg[0] as any;
           console.log(typeof svg_elem);
-          console.log(svg_elem.outerHTML);
-
-
-
+          console.log(svg_elem.outerHTML);*/
 
           context.stroke();
-
-          
         }
 
         else if (shape.element_type == "test") {
@@ -2044,9 +2842,18 @@ export default class VisualPane extends React.Component<TPProps> {
 
 
 
-
-
-
+  // =============================================================================
+  // =============================================================================
+  // =============================================================================
+  /*    Create a rectangle with rounded borders
+  ctx:    context
+  x:      x location
+  y:      y location
+  width:  width of rectangle
+  height: height of rectangle
+  radius: how rounded the corners are
+  fill:   is filled
+  stroke: is filled*/
   roundRect(ctx : any, x : number, y: number, width:number, height:number, radius:any, fill: boolean, stroke: boolean) {
     if (typeof stroke === 'undefined') {
       stroke = true;
@@ -2080,29 +2887,49 @@ export default class VisualPane extends React.Component<TPProps> {
     if (stroke) {
       ctx.stroke();
     }
-
   }
 
 
-
-  /*<canvas id="graphCanvas" onDrop={dropElem} onDragOver={allowDrop} height="500" width="1000" onMouseDown={(event)=>handleMouseDown(event)}
-                  onMouseOut={(event)=>handleMouseOut(event)} onMouseUp={(event)=>handleMouseUp(event)}  onMouseMove={(event)=>handleMouseMove(event)}></canvas>*/
-
-  //<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-   //       <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-          
+   
 
   changeinnermath() {
     console.log('change math');
-    
     const canvas = document.getElementById("myCanvas") as HTMLCanvasElement;
     const context: CanvasRenderingContext2D = canvas.getContext("2d");
-
-    
     context.beginPath();
     //context.drawImage(img, 10, 10);
-    
-    const svg_container = document.getElementById("mathjaxexample");
+    const aaa = ` <math xmlns = "http://www.w3.org/1998/Math/MathML">
+		
+         <mrow>
+            <mi>A</mi>
+            <mo>=</mo>
+			
+            <mfenced open = "[" close="]">
+			
+               <mtable>
+                  <mtr>
+                     <mtd><mi>x</mi></mtd>
+                     <mtd><mi>y</mi></mtd>
+                  </mtr>
+					
+                  <mtr>
+                     <mtd><mi>z</mi></mtd>
+                     <mtd><mi>w</mi></mtd>
+                  </mtr>
+               </mtable>
+               
+            </mfenced>
+         </mrow>
+      </math>`;
+    const svg_container = document.getElementById("mathjaxexample") as any;
+    console.log(svg_container)
+    svg_container.dangerouslySetInnerHTML = {__html: aaa};
+
+    const a = "<div id=" + '"mathjaxexample"' + "dangerouslySetInnerHTML={{__html:" + defaul3 ;
+    svg_container.innerHTML = a;
+
+
+    /*
     const children = svg_container.childNodes;
     console.log(children);
     console.log(children[1]);
@@ -2135,61 +2962,108 @@ export default class VisualPane extends React.Component<TPProps> {
 
     console.log(image);
 
-    context.drawImage(image, 0, 0);
+    context.drawImage(image, 0, 0);*/
     context.stroke();
-
-
-
-
   }
   
+
+  // =============================================================================
+  // =============================================================================
+  // =============================================================================
+  // Function so that we can save the canvas as an image
+  saveModel() {
+    console.log('save model');
+    const canvas = document.getElementById("myCanvas") as HTMLCanvasElement;
+    const image = canvas.toDataURL();
+    // create temporary link  
+    const tmpLink = document.createElement( 'a' );  
+    tmpLink.download = 'image.png'; // set the name of the download file 
+    tmpLink.href = image;  
+    // temporarily add link to body and initiate the download  
+    document.body.appendChild(tmpLink );  
+    tmpLink.click();  
+    document.body.removeChild(tmpLink );  
+  }
+
+  // =============================================================================
+  // =============================================================================
+  // =============================================================================
+  // Resize the canvas to specific height/width
+  resizeCanvas() {
+    const width = document.getElementById("canvas_width") as HTMLInputElement;
+    const height = document.getElementById("canvas_height") as HTMLInputElement;
+    if (width.value != "" && height.value != "" && 
+        width.value.match(`^[0-9]+$`) && height.value.match(`^[0-9]+$`) ) {
+      const canvas = document.getElementById("myCanvas") as HTMLCanvasElement;
+      canvas.height = parseInt(height.value);
+      canvas.width = parseInt(width.value);
+    }
+  }
+
+  testtt() {
+    for (let i = 0; i < cellml_elements.length; i++) {
+      if (cellml_elements[i].element_type == "import" || 
+          cellml_elements[i].element_type == "import_component" ||
+          cellml_elements[i].element_type == "import_units") {
+        console.log(cellml_elements[i])
+      }
+    }
+  }
+
+  //===================================================================================================================================
+  //===================================================================================================================================
+  //===================================================================================================================================
   render(): React.ReactNode {
     return (
       <html>
         <head>
-
+          <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+          <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/mml-chtml.js"></script>          
         </head>
-    <body>
-      <div className="tree-pane">
-        <h3>Full Model</h3>
-        <canvas id="myCanvas" width="1200" height="800" onDrop={this.dropElem} onDragOver={this.allowDrop} onMouseDown={(event)=>this.handleMouseDown(event)}
-                onMouseOut={(event)=>this.handleMouseOut(event)} onMouseUp={(event)=>this.handleMouseUp(event)}
-                onMouseMove={(event) => this.handleMouseMove(event)}></canvas>
-        <div>Render Image</div> 
+        <body>
 
-        <div id="tttttttttt">
-          <button onClick={this.changeinnermath}>Change math</button>
-          <img />
+          <button className="model_view_btns" onClick={()=> this.testXMLconvert(this.props.filepath)}>Generate Model</button>
+          <button className="model_view_btns" onClick={this.saveModel}>Save Model</button>
+          
+          <div className="tree-pane">
+            <canvas id="myCanvas" width="1200" height="800" onDrop={this.dropElem} onDragOver={this.allowDrop} onMouseDown={(event)=>this.handleMouseDown(event, this.props.dom)}
+                    onMouseOut={(event)=>this.handleMouseOut(event)} onMouseUp={(event)=>this.handleMouseUp(event)}
+                    onMouseMove={(event) => this.handleMouseMove(event)}></canvas>
+            <div>Render Image</div> 
 
-          <MathJaxContext version={2} config={config}> 
-            <MathJax inline={true}>
-                <div id="mathjaxexample" dangerouslySetInnerHTML={{__html: defaultStr}}/>
-            </MathJax>
-          </MathJaxContext>
-           
-        </div>
+            {/*<div id="tttttttttt">
+              <button onClick={this.changeinnermath}>Change math</button>
+              <img />
+              
+              <MathJaxContext version={2} config={config}> 
+                <MathJax inline={true}>
+                    <div id="mathjaxexample" dangerouslySetInnerHTML={{__html: defaultStr}}/>
+                    <div id="mathjaxexample2" dangerouslySetInnerHTML={{__html: temp_math}}/>
+                </MathJax>
+              </MathJaxContext>
+            </div>*/}
 
+          <div>
+            <label htmlFor="canvas_width">X:</label>
+            <input id="canvas_width" placeholder="width"></input>
+            <label htmlFor="canvas_height">Y:</label>
+            <input id="canvas_height" placeholder="height"></input>
+            <button className="model_view_btns resize_btn" onClick={this.resizeCanvas}>Resize</button>
+          </div>
 
-        <button onClick={this.addimage}>Temp</button>
+        {/*<button onClick={this.testtt}>Testtt</button>*/}
 
-        <button onClick={this.renderModel}>Render Model</button>
-        <button onClick={this.recursiveImages}>ABC</button>
-
-
-        <button onClick={()=>this.testXMLconvert(this.props.dom)}>Test Convert</button>
-
-        <TreeView
+        {/*<TreeView
                 defaultCollapseIcon={<ExpandMoreIcon />}
                 defaultExpandIcon={<ChevronRightIcon />}
               >
 	
           {this.props.dom && this.domToTreeItem(this.props.dom)}
-        </TreeView>
-      </div>
-            </body>
-        
+        </TreeView>*/}
+          </div>
+
+        </body>  
       </html>
-      
     );
   }
 }

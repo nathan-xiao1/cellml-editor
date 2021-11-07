@@ -539,26 +539,26 @@ const CreateImgModel: React.FunctionComponent = () => {
   function calculate_prefix(shape:any) {
     let prefix = "";
     if (shape.prefix == '') prefix = '';
-    else if (shape.prefix == "yotta") prefix = "Y";
-    else if (shape.prefix == "zetta") prefix = "Z";
-    else if (shape.prefix == "exa") prefix = "E";
-    else if (shape.prefix == "peta") prefix = "P";
-    else if (shape.prefix == "tera") prefix = "T";
-    else if (shape.prefix == "giga") prefix = "G";
-    else if (shape.prefix == "mega") prefix = "M";
-    else if (shape.prefix == "kilo") prefix = "k";
-    else if (shape.prefix == "hecto") prefix = "h";
-    else if (shape.prefix == "deca") prefix = "da";
-    else if (shape.prefix == "deci") prefix = "d";
-    else if (shape.prefix == "centi") prefix = "c";
-    else if (shape.prefix == "milli") prefix = "m";
-    else if (shape.prefix == "micro") prefix = "µ";
-    else if (shape.prefix == "nano") prefix = "n";
-    else if (shape.prefix == "pico") prefix = "p";
-    else if (shape.prefix == "femto") prefix = "f";
-    else if (shape.prefix == "atto") prefix = "a";
-    else if (shape.prefix == "zepto") prefix = "z";
-    else if (shape.prefix == "yocto") prefix = "y";
+    else if (shape.prefix.toLowerCase() == "yotta") prefix = "Y";
+    else if (shape.prefix.toLowerCase() == "zetta") prefix = "Z";
+    else if (shape.prefix.toLowerCase() == "exa") prefix = "E";
+    else if (shape.prefix.toLowerCase() == "peta") prefix = "P";
+    else if (shape.prefix.toLowerCase() == "tera") prefix = "T";
+    else if (shape.prefix.toLowerCase() == "giga") prefix = "G";
+    else if (shape.prefix.toLowerCase() == "mega") prefix = "M";
+    else if (shape.prefix.toLowerCase() == "kilo") prefix = "k";
+    else if (shape.prefix.toLowerCase() == "hecto") prefix = "h";
+    else if (shape.prefix.toLowerCase() == "deca") prefix = "da";
+    else if (shape.prefix.toLowerCase() == "deci") prefix = "d";
+    else if (shape.prefix.toLowerCase() == "centi") prefix = "c";
+    else if (shape.prefix.toLowerCase() == "milli") prefix = "m";
+    else if (shape.prefix.toLowerCase() == "micro") prefix = "µ";
+    else if (shape.prefix.toLowerCase() == "nano") prefix = "n";
+    else if (shape.prefix.toLowerCase() == "pico") prefix = "p";
+    else if (shape.prefix.toLowerCase() == "femto") prefix = "f";
+    else if (shape.prefix.toLowerCase() == "atto") prefix = "a";
+    else if (shape.prefix.toLowerCase() == "zepto") prefix = "z";
+    else if (shape.prefix.toLowerCase() == "yocto") prefix = "y";
     else prefix = "";
     return prefix;
   }
@@ -810,6 +810,9 @@ const CreateImgModel: React.FunctionComponent = () => {
           if (shapes_[j].element_type == "unit" && shapes_[j].units_parent == shape.u_id) {
             drawArrow(context, shape.x + 50, shape.y + 21, shapes_[j].x, shapes_[j].y, "rgb(255, 175, 175)");
           }
+          else if (shapes_[j].element_type == "variable" && shapes_[j].units == shape.units_name) {
+            drawArrow(context, shape.x + 50, shape.y + 21, shapes_[j].x, shapes_[j].y, "rgb(255, 175, 175)");
+          }
         }
         context.stroke();
       }
@@ -828,6 +831,10 @@ const CreateImgModel: React.FunctionComponent = () => {
           else if (shapes_[j].comp_parent == shape.c_id && shapes_[j].element_type == "math") {
             drawArrow(context, shape.x + calculate_width(shape.name)/2, shape.y + 21, shapes_[j].x, shapes_[j].y, "rgb(175, 245, 185)");
           }
+          else if (shapes_[j].component == shape.name && shapes_[j].element_type == "component_ref") {
+            drawArrow(context, shapes_[j].x, shapes_[j].y, shape.x + calculate_width(shape.name)/2, shape.y + 21, "rgb(175, 245, 185)");
+          }
+
         }
         context.fill();
         context.stroke();
@@ -836,6 +843,9 @@ const CreateImgModel: React.FunctionComponent = () => {
         // lines between children
         for (let j = 0; j < shapes_.length; j++) {
           if (shapes_[j].comp_parent == shape.r_id && (shapes_[j].element_type == "test_val" || shapes_[j].element_type == "reset_val")) {
+            drawArrow(context, shape.x, shape.y + 21, shapes_[j].x, shapes_[j].y, "rgb(175, 245, 185)");
+          }
+          if (shapes_[j].element_type == "variable" && shapes_[j].name == shape.variable) {
             drawArrow(context, shape.x, shape.y + 21, shapes_[j].x, shapes_[j].y, "rgb(175, 245, 185)");
           }
         }
@@ -852,12 +862,6 @@ const CreateImgModel: React.FunctionComponent = () => {
         for (let i = 0; i < shapes_.length; i++) {
           if (shapes_[i].element_type == "component_ref" && shapes_[i].c_id == shape.compf_parent) {
             drawArrow(context, shapes_[i].x, shapes_[i].y + 21, shape.x, shape.y, "silver");
-          }
-        }
-        // Lines between the component ref and component
-        for (let i = 0; i < listofComponents.length; i++) {
-          if (listofComponents[i].name == shape.component) {
-            drawArrow(context, shape.x, shape.y, listofComponents[i].x, listofComponents[i].y + 21, "green");
           }
         }
       }
@@ -966,11 +970,13 @@ const CreateImgModel: React.FunctionComponent = () => {
         // ========================================================================================
         // ========================================================================================
         else if (shape.element_type == "unit") {
+
           // Just getting the values to display
           const units_value = calculate_units_base(shape);
           const prefix     = calculate_prefix(shape);
           const exponent   = calculate_exponent(shape);
           const multiplier = calculate_multiplier(shape);
+
           // create the 'unit' base - circle
           context.beginPath();
           const grd = context.createRadialGradient(shape.x - 5, shape.y - 5, 5, shape.x + 5, shape.y - 5, 30);
@@ -981,28 +987,32 @@ const CreateImgModel: React.FunctionComponent = () => {
           context.fill();
           highlight_stroke(context, shape, "rgb(193, 2, 12)");
           context.stroke();
+
           // adding the text onto the circle
           context.beginPath();
-          context.fillStyle = "rgb(110, 1, 6)";
           context.font =  "bold 16px Arial";
-          if (shape.multiplier) {
-            context.fillText(prefix, shape.x - 15 + 10*(shape.multiplier.length), shape.y + 8);
-            context.fillText(units_value, shape.x + 10*(prefix.length) - 15 + 10*(shape.multiplier.length), shape.y + 8);
-            context.font =  "bold 14px Arial";
-            context.fillText(exponent, shape.x - 20 + (prefix.length)*10 + (units_value)*10 + 10*(shape.multiplier.length), shape.y - 8);
-            context.font =  "bold 16px Arial";
-          } else {
-            context.fillText(prefix, shape.x - 15, shape.y + 8);
-            context.fillText(units_value, shape.x + 11*(prefix.length) - 15, shape.y + 8);
-            context.font =  "bold 14px Arial";
-            console.log(exponent);
-            if (exponent != 1) context.fillText(exponent, shape.x + 10*(units_value.length), shape.y - 8);
-            context.font =  "bold 16px Arial";
-          }
-          if (multiplier != 1) context.fillText(multiplier + "*", shape.x - (prefix.length)*11 - 15, shape.y + 8);
+          let unit_string = "";
+          if (shape.multiplier != undefined && shape.multiplier != 1 && shape.multiplier != "") unit_string += shape.multiplier + ".";
+          if (prefix != undefined && prefix != "1" && prefix != "") unit_string += prefix + ".";
+          unit_string += units_value;
+          const unit_size = unit_string.length*11/3;
+          context.strokeStyle = "rgb(110, 1, 6)";
+          if (unit_string.length > 7) {roundRect(context, shape.x - unit_size - 15, shape.y - 15, unit_string.length*10, 30, 5, true, true);}
+          context.fillStyle = "rgb(245, 139, 145)";
+          context.font =  "bold 16px Arial";
           context.lineWidth = 5;
           context.fill();
           highlight_stroke(context, shape, "rgb(193, 2, 12)");
+          context.stroke();
+
+          context.beginPath();
+          context.fillStyle = "rgb(110, 1, 6)";
+          context.fillText(unit_string, shape.x - unit_size - 5, shape.y + 5);
+          context.stroke();
+
+          context.beginPath();
+          context.fillStyle = "rgb(110, 1, 6)";
+          if (exponent != "" && exponent != undefined && exponent != "1") {context.fillText(exponent, shape.x + unit_size + 5, shape.y - 5);}
           context.stroke();
 
         }
@@ -1510,12 +1520,40 @@ const CreateImgModel: React.FunctionComponent = () => {
     }
 
     if (shape != undefined) {
+      console.log(shape);
       const dx = mx - shape.x;
       const dy = my - shape.y;
-      if(dx*dx+dy*dy<shape.radius*shape.radius){
+
+      if (shape.element_type == "units" || shape.element_type == "component" || 
+          shape.element_type == "component_ref" || shape.element_type == "import" || 
+          shape.element_type == "import_units" || shape.element_type == "import_component") {
+        if (mx > shape.x && mx < shape.x + 120 && my > shape.y && my < shape.y + 50) return(true);
+      } 
+      else if (shape.element_type == "unit") {
+        if(mx > shape.x - 25 && mx < shape.x + 25 && my > shape.y - 25 && my < shape.y + 25) return(true);
+      }
+      else if (shape.element_type == "variable" || shape.element_type == "reset") {
+        if(mx > shape.x - 30 && mx < shape.x + 30 && my > shape.y - 30 && my < shape.y + 30) return(true);
+      }
+      else if (shape.element_type == "test_val" || shape.element_type == "reset_val") {
+        if(mx > shape.x - 40 && mx < shape.x + 40 && my > shape.y - 40 && my < shape.y + 40) return(true);
+      }
+      else if (shape.element_type == "math") {
+        if (mx > shape.x && mx < shape.x + 150 && my > shape.y && my < shape.y + 50) return(true);
+      }
+      else if (shape.element_type == "encapsulation") {
+        if (mx > shape.x && mx < shape.x + 150 && my > shape.y && my < shape.y + 100) return(true);
+      }
+      else if (shape.element_type == "connection" || shape.element_type == "map_var") {
+        if (mx > shape.x && mx < shape.x + 150 && my > shape.y && my < shape.y + 80) return(true);
+      }
+      
+
+      else if(dx*dx+dy*dy<shape.radius*shape.radius){
           // yes, mouse is inside this circle
           return(true);
         }
+        
     } else if (shape.width) {
       const rLeft=shape.x;
       const rRight=shape.x+shape.width;
@@ -2091,7 +2129,7 @@ const CreateImgModel: React.FunctionComponent = () => {
 
     setClickedElement(model_name);
     setCurrentElementImg(element_img);
-
+    go_back_button();
     clear_input();
   }
 
@@ -2949,23 +2987,277 @@ const CreateImgModel: React.FunctionComponent = () => {
   // ---------------------------------------------------------------------------------
   // After the user is happy with what they have created they can generate the model
   const convert_to_text_model = () => {
-    console.log();
-
-
+    // first line of a cellml model
     const xml_version = `<?xml version="1.0" encoding="UTF-8"?>`;
     const new_line = "\n";
-    const n = "";
-
+    const tab = "\t";
+ 
     const model_name_input = document.getElementById("insert_name_box") as HTMLInputElement;
-    const model_name = model_name_input.value;
+    const model_name = model_name_input.value;    
 
     const model = `<model xmlns="http://www.cellml.org/cellml/2.0#" name="` + model_name + `">`;
     const model_end = `</model>`;
 
-    console.log(xml_version + new_line + model + new_line + model_end);
+    // ==================================================================================================
+    // ==================================================================================================
+    // ==================================================================================================
+    // IMPORT & CHILDREN (IMPORT COMPONENT | IMPORT UNITS)
+    const list_of_imports = [];
+    for (let i = 0; i < listofImports.length; i++) {
+      let has_children = 0;
+      for (let j = 0; j < shapes_.length; j++) {
+        if (listofImports[i].i_id == shapes_[j].import_parent && 
+            (shapes_[j].element_type == "import_units" || shapes_[j].element_type == "import_component")) {
+          has_children = 1;
+          console.log(shapes_[j]); 
+          console.log(listofImports[i]);
+        } 
+      }
+      if (has_children == 0) list_of_imports.push(tab + `<import xlink:href="` + listofImports[i].href + `"/>` + new_line);
+      else {
+        let import_string = tab + `<import xlink:href="` + listofImports[i].href + `">`;
+
+        for (let j = 0; j < shapes_.length; j++) {
+          if (shapes_[j].import_parent == listofImports[i].i_id && shapes_[j].element_type == "import_units") {
+            import_string += new_line + tab + tab;
+            import_string += `<units units_ref="` + shapes_[j].name + `" name="` + shapes_[j].untis_ref + `"/>`
+          }
+          else if (shapes_[j].import_parent == listofImports[i].i_id && shapes_[j].element_type == "import_component") {
+            import_string += new_line + tab + tab;
+            import_string += `<component component_ref="` + shapes_[j].comp_ref + `" name="` + shapes_[j].name + `"/>`
+          } 
+        }
+        import_string += new_line + tab + `</import>` + new_line;
+        list_of_imports.push(import_string);
+
+      }
+    }
+
+    // ==================================================================================================
+    // ==================================================================================================
+    // ==================================================================================================
+    // UNITS & CHILDREN (UNIT)
+    const list_of_units = [];
+    for (let i = 0; i < listofUnits.length; i++) {
+      let has_children = 0;
+      for (let j = 0; j < shapes_.length; j++) {
+        if (listofUnits[i].u_id == shapes_[j].units_parent && shapes_[j].element_type == "unit") { 
+          has_children = 1; 
+          console.log(shapes_[j]); 
+          console.log(listofUnits[i])
+        } 
+      }
+      // check if single line element or has children
+      if (has_children == 0) list_of_units.push(tab + `<units name="` + listofUnits[i].units_name + `"/>` + new_line);
+      else {
+        let units_string = tab + `<units name="` + listofUnits[i].units_name + `">`;
+        for (let j = 0; j < shapes_.length; j++) {
+          if (shapes_[j].units_parent == listofUnits[i].u_id && shapes_[j].element_type == "unit") {
+            units_string += new_line + tab + tab;
+            units_string += `<unit units="` + shapes_[j].units + `" `;
+            if (shapes_[j].multiplier != "") units_string += `multiplier="`+ shapes_[j].multiplier + `" `;
+            if (shapes_[j].prefix     != "") units_string += `prefix="`    + shapes_[j].prefix + `" `;
+            if (shapes_[j].exponent   != "") units_string += `exponent="`  + shapes_[j].exponent + `" `;
+            units_string += `/>`;
+          }
+        }
+        units_string += new_line + tab + `</units>` + new_line;
+        list_of_units.push(units_string);
+      }
+    }
+
+    // ==================================================================================================
+    // ==================================================================================================
+    // ==================================================================================================
+    // COMPONENT & CHILDREN (VARIABLE | MATH | RESET)
+    const list_of_components = [];
+    for (let i = 0; i < listofComponents.length; i++) {
+      let has_children = 0;
+
+      for (let j = 0; j < shapes_.length; j++) {
+        if (shapes_[j].comp_parent == listofComponents[i].c_id && (shapes_[j].element_type == "variable" || 
+            shapes_[j].element_type == "math" || shapes_[j].element_type == "reset")) {
+          has_children = 1;
+        }
+        if (shapes_[j].element_type == "reset") console.log(shapes_[j]);
+      }
+      // if there is no children then it can be a single line object
+      if (has_children == 0) list_of_components.push(tab + `<component name="` + listofComponents[i].name + `"/>` + new_line);
+      // if it has children then 
+      else {
+        let comp_string = tab + `<component name="` + listofComponents[i].name + `">`;
+        for (let j = 0; j < shapes_.length; j++) {
+          if (shapes_[j].comp_parent == listofComponents[i].c_id && shapes_[j].element_type == "variable") {
+            // create variable element string
+            comp_string += new_line;
+            comp_string += tab + tab;
+            comp_string += `<variable name="` + shapes_[j].name + `" `;
+            comp_string += `units="` + shapes_[j].units + `" `;
+            if (shapes_[j].initial_val != "") comp_string += `initial_value="` + shapes_[j].initial_val +`" `;
+            comp_string += `interface="` + shapes_[j].interface + `"`;
+            comp_string += `/>`;
+          }
+          else if (shapes_[j].element_type == "math" && shapes_[j].comp_parent == listofComponents[i].c_id) {
+            // create math element string
+            comp_string += new_line;
+            comp_string += tab + tab;
+            comp_string += `<math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:cellml="http://www.cellml.org/cellml/2.0#">`;
+            comp_string += new_line;
+            comp_string += tab;
+            comp_string += tab + `</math>`;
+          }
+          else if (shapes_[j].comp_parent == listofComponents[i].c_id && shapes_[j].element_type == "reset") {
+            // create math element string
+            comp_string += new_line + tab + tab;
+            comp_string += `<reset variable="` + shapes_[j].variable + `" `;
+            comp_string += `test_variable="` + shapes_[j].test_var + `"`;
+            if (shapes_[j].order != "") comp_string += ` order="` + shapes_[j].order + `"`;
+            comp_string += `>`;
+
+            comp_string += new_line + tab + tab + tab + `<test_value>`;
+            comp_string += new_line + tab + tab + tab + `</test_value>`;
+            comp_string += new_line + tab + tab + tab + `<reset_value>`;
+            comp_string += new_line + tab + tab + tab + `</reset_value>`;
+            
+            comp_string += new_line + tab + tab + `</reset>`;
+          }
+        }
+        comp_string += new_line + tab + `</component>` + new_line;
+        list_of_components.push(comp_string);
+      }
+    }
+
+    // ==================================================================================================
+    // ==================================================================================================
+    // ==================================================================================================
+    // CONNECTION & CHILDREN (MAP VARIABLES)
+    const list_of_connections = [];
     
+    for (let i = 0; i < listofConnections.length; i++) {
+      let has_children = 0;
+      for (let j = 0; j < shapes_.length; j++) {
+        if (shapes_[j].conn_parent == listofConnections[i].c_id && shapes_[j].element_type == "map_var") {
+          has_children = 1;
+        }
+        if (shapes_[j].element_type == "map_var") console.log(shapes_[j]);
+      }
+      if (has_children == 0) list_of_connections.push(tab + `<connection component_1="` + listofConnections[i].component1 + `" component_2="` + listofConnections[i].component2 + `"/>` + new_line);
+
+      else {
+        let connection_string = tab + `<connection component_1="` + listofConnections[i].component1 + `" component_2="` + listofConnections[i].component2 + `">`;
+
+        for (let j = 0; j < shapes_.length; j++) {
+          if (shapes_[j].conn_parent == listofConnections[i].c_id && shapes_[j].element_type == "map_var") {
+            connection_string += new_line + tab + tab;
+            connection_string += `<map_variables variable_1="` + shapes_[j].variable1 + `" variable_2="` + shapes_[j].variable2 + `"/>`;
+          }
+        }
+        connection_string += new_line + tab + `</connection>` + new_line;
+        list_of_components.push(connection_string);
+      }
+    }
+
+    // ==================================================================================================
+    // ==================================================================================================
+    // ==================================================================================================
+    // ENCAPSULATION & CHILDREN (COMPONENT REF)
+    let encap_string = "";
+    let encapsualtion_exists = 0;
+    for (let i = 0; i < shapes_.length; i++) {
+      if (shapes_[i].element_type == "encapsulation") encapsualtion_exists = 1;
+    }
+    if (encapsualtion_exists == 1) {
+      let has_children = 0;
+      for (let i = 0; i < listofComponentRefs.length; i++) {
+        if (listofComponentRefs[i].compf_parent == 0) has_children = 1;
+      }
+      if (has_children == 1) {
+        encap_string += tab + `<encapsulation>`;
+        for (let i = 0; i < listofComponentRefs.length; i++) {
+          // below are the base cases for the component ref
+          if (listofComponentRefs[i].compf_parent == "0") {
+            encap_string = check_component_ref_string(encap_string, listofComponentRefs[i], 2);
+          }
+        }
+        encap_string += new_line + tab + `</encapsulation>` + new_line;
+      }
+    }
+
+    // ==================================================================================================
+    // ==================================================================================================
+    // ==================================================================================================
+    // compiling everything together
+    let final_model = "";
+    final_model += xml_version + new_line;
+    final_model += model + new_line;
+    for (let i = 0; i < list_of_components.length; i++) {
+      final_model += list_of_components[i];
+    }
+    for (let i = 0; i < list_of_units.length; i++) {
+      final_model += list_of_units[i];
+    }
+    for (let i = 0; i < list_of_imports.length; i++) {
+      final_model += list_of_imports[i];
+    }
+    for (let i = 0; i < list_of_connections.length; i++) {
+      final_model += list_of_connections[i];
+    }
+    final_model += encap_string;
+    final_model += model_end;
+    console.log(final_model);
+
+
+    // After creating a model string with appropriate tabbing and line spacing, create a new file
+    const textToBLOB = new Blob([final_model], { type: 'text/plain' });
+    let name = "";
+    (model_name == "") ? name = "cellmlfile" : name = model_name
+    const sFileName = name + '.cellml';
+    const newLink = document.createElement("a");
+    newLink.download = sFileName;
+
+    if (window.webkitURL != null) {
+        newLink.href = window.webkitURL.createObjectURL(textToBLOB);
+    }
+    else {
+        newLink.href = window.URL.createObjectURL(textToBLOB);
+        newLink.style.display = "none";
+        document.body.appendChild(newLink);
+    }
+
+    newLink.click(); 
 
   }
+
+
+  // Recursive function to construct the component refs with structure (tabs is depth)
+  const check_component_ref_string = (encap_string: string, current_ref: any, deep: number) => {
+    let has_children = 0;
+    for (let i = 0; i < listofComponentRefs.length; i++) {
+      // if there is an elemenet      
+      if (listofComponentRefs[i].compf_parent == current_ref.c_id) {
+        has_children = 1;
+        console.log(current_ref.component + 'has children');
+      }
+    }
+
+    let tabs = ""
+    for (let t = 0; t < deep; t++) tabs += "\t";
+    if (has_children == 0) {
+      encap_string += "\n" + tabs + `<component_ref component="` + current_ref.component + `"/>`;
+      return encap_string;
+    } else {
+      encap_string += "\n" + tabs + `<component_ref component="` + current_ref.component + `">`;
+      for (let i = 0; i < listofComponentRefs.length; i++) {
+        if (listofComponentRefs[i].compf_parent == current_ref.c_id) {
+          encap_string = check_component_ref_string(encap_string, listofComponentRefs[i], deep + 1);
+        }
+      }
+      encap_string += "\n" + tabs + `</component_ref>`;
+      return encap_string;
+    }
+  }
+
+
 
 
   const on_hover_show_cellml_restrictions = (input_string: string) => {
@@ -3043,7 +3335,7 @@ const CreateImgModel: React.FunctionComponent = () => {
     console.log('test if instant deletion');
     drawAll();
   }, [shapes_]);
-    
+
   // Update the current cellml elemenet information
   const edit_element = () => {
     // If there is a valid element selected
@@ -3154,6 +3446,166 @@ const CreateImgModel: React.FunctionComponent = () => {
     drawAll();
   }  
 
+
+  const go_back_button = () => {
+    console.log(clickedElement);
+    console.log('went back');
+
+    const temp = document.getElementById("example_back_button");
+    temp.style.display = "none";
+    const children = document.getElementById('element_children_block');
+    children.style.display = "block";
+    const model = document.getElementById('model_information_section');
+    model.style.display = "block";
+    const edit_btns = document.getElementById('cellml_element_btn_container');
+    edit_btns.style.display = "block";
+    const arrow = document.getElementById('arrowsizeforexample');
+    arrow.style.display = "block";
+    arrow.style.float ="right";
+    const code0 = document.getElementById('encapsulate_example_code');
+    code0.style.display = "none";
+    const code = document.getElementById('connection_example_code');
+    code.style.display = "none";
+    const code2 = document.getElementById('units_example_code');
+    code2.style.display = "none";
+    const code3 = document.getElementById('reset_example_code');
+    code3.style.display = "none";
+    const code4 = document.getElementById('comp_example_code');
+    code4.style.display = "none";
+    const code5 = document.getElementById('import_example_code');
+    code5.style.display = "none";
+    const code6 = document.getElementById('model_example_code');
+    code6.style.display = "none";
+  }
+
+  const change_to_example_view = () => {
+    console.log('change to example view');
+    console.log(clickedElement);
+
+
+    const temp = document.getElementById("example_back_button");
+    temp.style.display = "block";
+    const children = document.getElementById('element_children_block');
+    children.style.display = "none";
+    const model = document.getElementById('model_information_section');
+    model.style.display = "none";
+    const edit_btns = document.getElementById('cellml_element_btn_container');
+    edit_btns.style.display = "none";
+    const arrow = document.getElementById('arrowsizeforexample');
+    arrow.style.display = "none";
+    
+    if (clickedElement == "Connection" || clickedElement == "Map Variables") {
+      const code0 = document.getElementById('encapsulate_example_code');
+      code0.style.display = "none";
+      const code = document.getElementById('connection_example_code');
+      code.style.display = "block";
+      const code2 = document.getElementById('units_example_code');
+      code2.style.display = "none";
+      const code3 = document.getElementById('reset_example_code');
+      code3.style.display = "none";
+      const code4 = document.getElementById('comp_example_code');
+      code4.style.display = "none";
+      const code5 = document.getElementById('import_example_code');
+      code5.style.display = "none";
+      const code6 = document.getElementById('model_example_code');
+      code6.style.display = "none";
+    } else if (clickedElement == "Units" || clickedElement == "Unit") {
+      const code0 = document.getElementById('encapsulate_example_code');
+      code0.style.display = "none";
+      const code = document.getElementById('connection_example_code');
+      code.style.display = "none";
+      const code2 = document.getElementById('units_example_code');
+      code2.style.display = "block";
+      const code3 = document.getElementById('reset_example_code');
+      code3.style.display = "none";
+      const code4 = document.getElementById('comp_example_code');
+      code4.style.display = "none";
+      const code5 = document.getElementById('import_example_code');
+      code5.style.display = "none";
+      const code6 = document.getElementById('model_example_code');
+      code6.style.display = "none";
+    } else if (clickedElement == "Component" || clickedElement == "Variable") {
+      const code0 = document.getElementById('encapsulate_example_code');
+      code0.style.display = "none";
+      const code = document.getElementById('connection_example_code');
+      code.style.display = "none";
+      const code2 = document.getElementById('units_example_code');
+      code2.style.display = "none";
+      const code3 = document.getElementById('reset_example_code');
+      code3.style.display = "none";
+      const code4 = document.getElementById('comp_example_code');
+      code4.style.display = "block";
+      const code5 = document.getElementById('import_example_code');
+      code5.style.display = "none";
+      const code6 = document.getElementById('model_example_code');
+      code6.style.display = "none";
+    } 
+    else if (clickedElement == "Reset Value" || clickedElement == "Test Value" || clickedElement == "Reset" || clickedElement == "Math") {
+      const code0 = document.getElementById('encapsulate_example_code');
+      code0.style.display = "none";
+      const code = document.getElementById('connection_example_code');
+      code.style.display = "none";
+      const code2 = document.getElementById('units_example_code');
+      code2.style.display = "none";
+      const code3 = document.getElementById('reset_example_code');
+      code3.style.display = "block";
+      const code4 = document.getElementById('comp_example_code');
+      code4.style.display = "none";
+      const code5 = document.getElementById('import_example_code');
+      code5.style.display = "none";
+      const code6 = document.getElementById('model_example_code');
+      code6.style.display = "none";
+    }
+    else if (clickedElement == "Encapsulation" || clickedElement == "Component Reference") {
+      const code0 = document.getElementById('encapsulate_example_code');
+      code0.style.display = "block";
+      const code = document.getElementById('connection_example_code');
+      code.style.display = "none";
+      const code2 = document.getElementById('units_example_code');
+      code2.style.display = "none";
+      const code3 = document.getElementById('reset_example_code');
+      code3.style.display = "none";
+      const code4 = document.getElementById('comp_example_code');
+      code4.style.display = "none";
+      const code5 = document.getElementById('import_example_code');
+      code5.style.display = "none";
+      const code6 = document.getElementById('model_example_code');
+      code6.style.display = "none";
+    } else if (clickedElement == "Import" || clickedElement == "Import Units" || clickedElement == "Import Component") {
+      const code0 = document.getElementById('encapsulate_example_code');
+      code0.style.display = "none";
+      const code = document.getElementById('connection_example_code');
+      code.style.display = "none";
+      const code2 = document.getElementById('units_example_code');
+      code2.style.display = "none";
+      const code3 = document.getElementById('reset_example_code');
+      code3.style.display = "none";
+      const code4 = document.getElementById('comp_example_code');
+      code4.style.display = "none";
+      const code5 = document.getElementById('import_example_code');
+      code5.style.display = "block";
+      const code6 = document.getElementById('model_example_code');
+      code6.style.display = "none";
+    } else if (clickedElement == "Model") {
+      const code0 = document.getElementById('encapsulate_example_code');
+      code0.style.display = "none";
+      const code = document.getElementById('connection_example_code');
+      code.style.display = "none";
+      const code2 = document.getElementById('units_example_code');
+      code2.style.display = "none";
+      const code3 = document.getElementById('reset_example_code');
+      code3.style.display = "none";
+      const code4 = document.getElementById('comp_example_code');
+      code4.style.display = "none";
+      const code5 = document.getElementById('import_example_code');
+      code5.style.display = "none";
+      const code6 = document.getElementById('model_example_code');
+      code6.style.display = "block";
+    }
+    
+  }
+
+
   // ----------------------------------------------------------------------------------------------------
   // ----------------------------------------------------------------------------------------------------
   // ----------------------------------------------------------------------------------------------------
@@ -3162,6 +3614,7 @@ const CreateImgModel: React.FunctionComponent = () => {
   // The create image section: returning the whole section
   return (
     <div className="container">
+      <link href="https://emoji-css.afeld.me/emoji.css" rel="stylesheet"></link>
       <div>
         {/* ============================ Model name section =========================== */}
         <div className="tooltip-wrap">
@@ -3193,7 +3646,7 @@ const CreateImgModel: React.FunctionComponent = () => {
                   
           <div id="element_info">
             <div id="current_cellml_element_name">{clickedElement} </div>
-          <div>
+          <div id="model_information_section">
             
             <div id="model_info" className="elem_info">
               Model Name: {modelname}
@@ -3318,12 +3771,12 @@ const CreateImgModel: React.FunctionComponent = () => {
             {/* === UNIT === */}
             <div id="unit_info" className="elem_info">
               <div> 
-                <div> Units reference:
+                <div> Units Parent ID:
                 <input id="units_ref_input" className="elem_info_input" placeholder="units id" onKeyUp={checkUnitRef}
                        onMouseOver={() => on_hover_show_cellml_restrictions("cellml_unit_ref")} 
                        onMouseOut={() => on_leave_close_cellml_restrictions("cellml_unit_ref")}></input>
                 <div id="cellml_unit_ref" className="cellml_restrictions">
-                  Is an ID number to conenct this unit with parent units element.
+                  Is an ID number to connect this unit with parent units element.
                 </div>
               </div>
               <div> Units: 
@@ -3372,7 +3825,7 @@ const CreateImgModel: React.FunctionComponent = () => {
               </div>
 
               <div> Prefix*:
-                <input id="unit_prefix_input" className="elem_info_input" placeholder="1" defaultValue="1" onKeyUp={checkUnitPrefix} list="different_si_prefix"
+                <input id="unit_prefix_input" className="elem_info_input" placeholder="" defaultValue="" onKeyUp={checkUnitPrefix} list="different_si_prefix"
                        onMouseOver={() => on_hover_show_cellml_restrictions("cellml_unit_prefix")} 
                        onMouseOut={() => on_leave_close_cellml_restrictions("cellml_unit_prefix")}></input>
                 <datalist id="different_si_prefix">
@@ -3407,7 +3860,7 @@ const CreateImgModel: React.FunctionComponent = () => {
               </div>
 
               <div> Multiplier*:
-                <input id="unit_multiplier_input" className="elem_info_input" placeholder="1" defaultValue="1" onKeyUp={checkUnitMul}
+                <input id="unit_multiplier_input" className="elem_info_input" placeholder="" defaultValue="" onKeyUp={checkUnitMul}
                        onMouseOver={() => on_hover_show_cellml_restrictions("cellml_unit_mult")} 
                        onMouseOut={() => on_leave_close_cellml_restrictions("cellml_unit_mult")}></input>
                 <div id="cellml_unit_mult" className="cellml_restrictions">
@@ -3420,7 +3873,7 @@ const CreateImgModel: React.FunctionComponent = () => {
               </div>
 
               <div> Exponent*:
-                <input id="unit_exp_input" className="elem_info_input" placeholder="1" defaultValue="1" onKeyUp={checkUnitExp}
+                <input id="unit_exp_input" className="elem_info_input" placeholder="" defaultValue="" onKeyUp={checkUnitExp}
                        onMouseOver={() => on_hover_show_cellml_restrictions("cellml_unit_exp")} 
                        onMouseOut={() => on_leave_close_cellml_restrictions("cellml_unit_exp")}></input>
                 <div id="cellml_unit_exp" className="cellml_restrictions">
@@ -3451,7 +3904,7 @@ const CreateImgModel: React.FunctionComponent = () => {
             {/* === VARIABLE === */}
             <div id="variable_info" className="elem_info">
               
-              <div> Component Reference: 
+              <div> Component Parent ID: 
                 <input id="var_comp_ref_input" className="elem_info_input" placeholder="ID of component" onKeyUp={checkVariableCompID}
                        onMouseOver={() => on_hover_show_cellml_restrictions("cellml_var_ref")} 
                        onMouseOut={() => on_leave_close_cellml_restrictions("cellml_var_ref")}></input>
@@ -3505,7 +3958,7 @@ const CreateImgModel: React.FunctionComponent = () => {
 
             {/* === RESET === */}
             <div id="reset_info" className="elem_info">
-              <div> Component Reference: 
+              <div> Component Parent ID: 
                 <input id="reset_comp_ref_input" className="elem_info_input" placeholder="component ref" onKeyUp={checkResetRef}
                        onMouseOver={() => on_hover_show_cellml_restrictions("cellml_reset_comp_ref")} 
                        onMouseOut={() => on_leave_close_cellml_restrictions("cellml_reset_comp_ref")}></input>
@@ -3571,7 +4024,7 @@ const CreateImgModel: React.FunctionComponent = () => {
                       onMouseOver={() => on_hover_show_cellml_restrictions("cellml_math_elem")} 
                       onMouseOut={() => on_leave_close_cellml_restrictions("cellml_math_elem")}>
                 More Info</button>
-              <div> Component Reference: 
+              <div> Component Parent ID: 
                 <input id="math_comp_ref_input" className="elem_info_input" placeholder="ID of component" onKeyUp={checkMathCompID}
                        onMouseOver={() => on_hover_show_cellml_restrictions("cellml_math_c_ref")} 
                        onMouseOut={() => on_leave_close_cellml_restrictions("cellml_math_c_ref")}></input>
@@ -3765,8 +4218,8 @@ const CreateImgModel: React.FunctionComponent = () => {
           </div>
             
           {/* ========================= Each element has children ======================== */}
-          <div id="children_section">
-            <div id="children"> Children </div>
+          <div id="element_children_block" className="children_section">
+            <div className="children"> Children </div>
             <div id="model_children" className="children_list">
               <ul>
                 <li>Component</li>
@@ -3801,8 +4254,8 @@ const CreateImgModel: React.FunctionComponent = () => {
             <div id="variable_children" className="children_list"></div>
             <div id="reset_children" className="children_list">
               <ul>
-                <li>Reset Value</li>
-                <li>Test Value</li>
+                <li>Reset Value (needed)</li>
+                <li>Test Value (needed)</li>
               </ul>
             </div>
             <div id="test_value_children" className="children_list">
@@ -3833,10 +4286,125 @@ const CreateImgModel: React.FunctionComponent = () => {
             </div>
             <div id="map_variables_children" className="children_list"></div>
           </div>
+
+          
+
+          <div className="children_section">
+              <button id="example_section_btn" className="example_btn_style" onClick={change_to_example_view}>Example <span id="arrowsizeforexample">➤</span></button>
+          </div>
+
+          <div id="example_code_section">
+
+            <div id="encapsulate_example_code" className="example_text_code">
+              <p className="example_text">{`<component name="grandad"/>`}</p>
+              <p className="example_text">{`<component name="aunt"/>`}</p>
+              <p className="example_text">{`<component name="father"/>`}</p>
+              <p className="example_text">{`<component name="child"/>`}</p>
+              <p className="example_text">{`<component name="orphan">`}</p>
+              <p className="example_text">{`<encapsulation>`}</p>
+              <p className="example_text tab_code">{`<component_ref component="grandad">`}</p>
+              <p className="example_text tab_code2">{`<component_ref component="aunt"/>`}</p>
+              <p className="example_text tab_code2">{`<component_ref component="father">`}</p>
+              <p className="example_text tab_code3">{`<component_ref component="child"/>`}</p>
+              <p className="example_text tab_code2">{`</component_ref>`}</p>
+              <p className="example_text tab_code">{`</component_ref>`}</p>
+              <p className="example_text">{`</encapsulation>`}</p>
+              <img src="https://i.imgur.com/oLUyeRL.png" className="encap_example_img"/>
+            </div>
+
+            <div id="connection_example_code" className="example_text_code">
+              <p className="example_text">{`<component name="house_of_capulet">`}</p>
+              <p className="example_text tab_code">{`<variable name="juliet" interface_type="public">`}</p>
+              <p className="example_text">{`</component>`}</p>
+              <p className="example_text">{`<component name="house_of_montague">`}</p>
+              <p className="example_text tab_code">{`<variable name="romeo" interface_type="public">`}</p>
+              <p className="example_text">{`</component>`}</p>
+              <p className="example_text ">{`<connection component_1="montague" component_2="capulet">`}</p>
+              <p className="example_text tab_code">{`<map_variables variable_1="romeo" variable_2="juliet">`}</p>
+              <p className="example_text ">{`</connection>`}</p>
+              <img src="https://i.imgur.com/GDr6J1r.png" className="conn_example_img"/>
+            </div>
+
+            <div id="reset_example_code" className="example_text_code">
+              <p className="example_text">{`<component name="Sisyphus">`}</p>
+              <p className="example_text tab_code">{`<variable name="time" units="second"/>`}</p>
+              <p className="example_text tab_code">{`<variable name="position" units="dimensionless"/>`}</p>
+              <p className="example_text tab_code commented_code_example">{`<!-- The first reset represents all midnight times. -->`}</p>
+              <p className="example_text tab_code">{`<reset variable="position" test_variable="time" order="2">`}</p>
+              <p className="example_text tab_code2">{`<test_value>`}</p>
+              <p className="example_text tab_code2">{` <math>...</math> `}</p>
+              <p className="example_text tab_code2">{`</test_value>`}</p>
+              <p className="example_text tab_code2">{`<test_value>`}</p>
+              <p className="example_text tab_code2">{` <math>...</math> `}</p>
+              <p className="example_text tab_code2">{`</test_value>`}</p>
+              <p className="example_text tab_code">{`</reset>`}</p>
+              <p className="example_text">{`</component>`}</p>
+              <img src="https://i.imgur.com/mE8jqlZ.png" className="reset_example_img"></img>
+            </div>
+
+            <div id="comp_example_code" className="example_text_code">
+              <p className="example_text ">{`<component name="mass_into_energy">`}</p>
+              <p className="example_text tab_code">{`<math>`}</p>
+              <p className="example_text tab_code">{` ... `}</p>
+              <p className="example_text tab_code">{`</math>`}</p>
+              <p className="example_text tab_code">{`<variable name="E" units="joule"/>`}</p>
+              <p className="example_text tab_code">{`<variable name="m" units="kilogram"/>`}</p>
+              <p className="example_text tab_code">{`<variable name="c" units="metre_per_second"/>`}</p>
+              <p className="example_text ">{`</component>`}</p>
+              <img src="https://i.imgur.com/Azp4WfF.png" className="comp_example_img"></img>
+            </div>
+
+            <div id="units_example_code" className="example_text_code">
+              <p className="example_text commented_code_example">{`<!-- Defining new base units called A: -->`}</p>
+              <p className="example_text ">{` <units name="A"/>`}</p>
+              <p className="example_text commented_code_example">{`<!-- Defining new units called B, equivalent to 1000.A^2 -->`}</p>
+              <p className="example_text ">{` <units name="B">`}</p>
+              <p className="example_text tab_code">{`<unit units="A" prefix="kilo" exponent="2"/>`}</p>
+              <p className="example_text ">{` </units>`}</p>
+              <p className="example_text commented_code_example">{`<!-- Defining new units called C, equivalent to B^3/ms or (1000)^3.A^6/ms  -->`}</p>
+              <p className="example_text">{`<units name="C">`}</p>
+              <p className="example_text tab_code">{`<unit units="B" exponent="3"/>`}</p>
+              <p className="example_text tab_code">{`<unit units="second" prefix="milli" exponent="-1"/>`}</p>
+              <p className="example_text">{`</units>`}</p>
+              <img src="https://i.imgur.com/Hh36SGl.png" className="unit_example_img"/>
+            </div>
+            <div id="import_example_code" className="example_text_code">
+              <p className="file_example_text remove_code_top">/looney_tunes.cellml</p>
+              <p className="example_text">{`<model name="looney_tunes">`}</p>
+              <p className="example_text tab_code">{`<component name="bugs_bunny"/>`}</p>
+              <p className="example_text tab_code">{`<component name="daffy_duck"/>`}</p>
+              <p className="example_text tab_code">{`<units name="potOfPaint"/>`}</p>
+              <p className="example_text">{"</model>"}</p>
+              <p className="file_example_text">/space_jam2_movie.cellml</p>
+              <p className="example_text">{`<model name="space_jam">`}</p>
+              <p className="example_text tab_code">{`<component name="lebron"/>`}</p>
+              <p className="example_text tab_code">{`<import xlink:href="looney_tunes.cellml" xmlns:xlink="http://www.w3.org/1999/xlink">`}</p>
+              <p className="example_text tab_code">{`<component name="bugs" component_ref="bugs_bunny"/>`}</p>
+              <p className="example_text tab_code">{`<units name="potOfPaint" units_ref="twoLitrePot"/>`}</p>
+              <p className="example_text tab_code">{`</import>`}</p>
+              <p className="example_text">{"</model>"}</p>
+              <img src="https://i.imgur.com/1I9knjg.png" className="import_example_img"/>
+            </div>  
+            <div id="model_example_code" className="example_text_code">
+              <p className="example_text">{`<model name="myModel">`}</p>
+              <p className="example_text tab_code">{`<component name="comp1">`}</p>
+              <p className="example_text tab_code">{` ... `}</p>
+              <p className="example_text tab_code">{`</component>`}</p>
+              <p className="example_text tab_code">{`<units name="myUnits">`}</p>
+              <p className="example_text tab_code">{` ... `}</p>
+              <p className="example_text tab_code">{`</units>`}</p>
+              <p className="example_text">{"</model>"}</p>
+              <img src="https://i.imgur.com/aaVgRK2.png" className="model_example_img"/>
+            </div>
+            
+
+          </div>
+
           <div id="cellml_element_btn_container">
             <button className="cellml_element_edit_btns" onClick={edit_element}>Update</button>
             <button className="cellml_element_edit_btns" onClick={delete_element}>Delete</button>
           </div>
+          <button id="example_back_button" className="cellml_element_edit_btns" onClick={go_back_button}>Back </button>
         </div>
       </div>
     </div>
@@ -3851,7 +4419,7 @@ const CreateImgModel: React.FunctionComponent = () => {
              src="https://i.imgur.com/knSsOjz.png" 
              onClick={()=>change_element("units_children", "Units", "units_info", "drag_units")}>
         </img>
-        <div className="bottomtext">Units</div>
+        <div className="bottomtext bottom_unit">Units</div>
       </div>
 
       <div id="unit_container"  className="flex-item">
@@ -3859,14 +4427,14 @@ const CreateImgModel: React.FunctionComponent = () => {
              src="https://i.imgur.com/CZZxCSc.png" 
              onClick={()=>change_element("unit_children", "Unit", "unit_info", "drag_unit")}>
         </img>
-        <div className="bottomtext">Unit</div>
+        <div className="bottomtext bottom_unit">Unit</div>
       </div>
 
       <div id="component_container"  className="flex-item">
         <img id="component_container_image" className="element_img" draggable="false"
              src="https://i.imgur.com/mQJ9btp.png"  
              onClick={()=>change_element("component_children", "Component", "component_info", "drag_component")}/>
-        <div className="bottomtext">Component</div>
+        <div className="bottomtext bottom_comp">Component</div>
       </div>
 
       <div id="variable_container"  className="flex-item">
@@ -3874,7 +4442,7 @@ const CreateImgModel: React.FunctionComponent = () => {
              src="https://i.imgur.com/UOaalhF.png" 
             onClick={()=>change_element("variable_children", "Variable", "variable_info", "drag_variable")}>
         </img>
-        <div className="bottomtext">Variable</div>
+        <div className="bottomtext bottom_comp">Variable</div>
       </div>
 
       <div id="reset_container" className="flex-item">
@@ -3882,7 +4450,7 @@ const CreateImgModel: React.FunctionComponent = () => {
              src="https://i.imgur.com/N8yCmOx.png"
              onClick={()=>change_element("reset_children", "Reset", "reset_info", "drag_reset")}>
         </img>
-        <div className="bottomtext">Reset</div>
+        <div className="bottomtext bottom_comp">Reset</div>
       </div>
 
       <div id="test_value_container" className="flex-item">
@@ -3890,7 +4458,7 @@ const CreateImgModel: React.FunctionComponent = () => {
              src="https://i.imgur.com/I19zwvu.png"
              onClick={()=>change_element("test_value_children", "Test Value", "test_value_info", "drag_test_value")}>
         </img>
-        <div className="bottomtext">Test Value</div>
+        <div className="bottomtext bottom_comp">Test Value</div>
       </div>
 
       <div id="reset_value_container" className="flex-item">
@@ -3898,7 +4466,7 @@ const CreateImgModel: React.FunctionComponent = () => {
              src="https://i.imgur.com/s11N2VD.png"
              onClick={()=>change_element("reset_value_children", "Reset Value", "reset_value_info", "drag_reset_value")}>
         </img>
-        <div className="bottomtext">Reset Value</div>
+        <div className="bottomtext bottom_comp">Reset Value</div>
       </div>
 
       <div id="math_container" className="flex-item">
@@ -3906,7 +4474,7 @@ const CreateImgModel: React.FunctionComponent = () => {
              src="https://i.imgur.com/UtPNPLH.png" 
              onClick={()=>change_element("math_children", "Math", "math_info", "drag_math")}>
         </img>
-        <div className="bottomtext">Math</div>
+        <div className="bottomtext bottom_comp">Math</div>
       </div>
 
       <div id="encapsulation_container" className="flex-item">
@@ -3914,7 +4482,7 @@ const CreateImgModel: React.FunctionComponent = () => {
              src="https://i.imgur.com/HiSWon1.png" 
              onClick={()=>change_element("encapsulation_children", "Encapsulation", "encapsulation_info", "drag_encapsulation")}>
         </img>
-        <div className="bottomtext">Encapsulation</div>
+        <div className="bottomtext bottom_encap">Encapsulation</div>
       </div>
 
       <div id="component_ref_container" className="flex-item">
@@ -3922,7 +4490,7 @@ const CreateImgModel: React.FunctionComponent = () => {
              src="https://i.imgur.com/5H9sHhw.png" 
              onClick={()=>change_element("component_ref_children", "Component Reference", "component_ref_info", "drag_comp_ref")}>
         </img>
-        <div className="bottomtext">Component Ref</div>
+        <div className="bottomtext bottom_encap compreftext">Component Reference</div>
       </div>
 
       <div id="connection_container" className="flex-item">
@@ -3930,7 +4498,7 @@ const CreateImgModel: React.FunctionComponent = () => {
              src="https://i.imgur.com/ptHOCqp.png" 
              onClick={()=>change_element("connection_children", "Connection", "connection_info", "drag_connection")}>
         </img>
-        <div className="bottomtext">Connection</div>
+        <div className="bottomtext bottom_connection">Connection</div>
       </div>
 
       <div id="map_variables_container" className="flex-item">
@@ -3938,7 +4506,7 @@ const CreateImgModel: React.FunctionComponent = () => {
              src="https://i.imgur.com/T13MxYS.png"
              onClick={()=>change_element("map_variables_children", "Map Variables", "map_variables_info", "drag_map_variables")}>
         </img>
-        <div className="bottomtext">Map Variables</div>
+        <div className="bottomtext bottom_connection">Map Variables</div>
       </div>
 
       <div id="import_container" className="flex-item">
@@ -3946,7 +4514,7 @@ const CreateImgModel: React.FunctionComponent = () => {
              src="https://i.imgur.com/YPNhhi2.png" 
              onClick={()=>change_element("import_children", "Import", "import_info", "drag_import")}>
         </img>
-        <div className="bottomtext">Import</div>
+        <div className="bottomtext bottom_import">Import</div>
       </div>
 
       <div id="import_units_container" className="flex-item">
@@ -3954,7 +4522,7 @@ const CreateImgModel: React.FunctionComponent = () => {
              src="https://i.imgur.com/iKJCCXI.png" 
              onClick={()=>change_element("import_units_children", "Import Units", "import_units_info", "drag_import_units")}>
         </img>
-        <div className="bottomtext">Import Units</div>
+        <div className="bottomtext bottom_import">Import Units</div>
       </div>
 
       <div id="import_component_container" className="flex-item">
@@ -3962,7 +4530,7 @@ const CreateImgModel: React.FunctionComponent = () => {
              src="https://i.imgur.com/uNnCsVZ.png" 
              onClick={()=>change_element("import_component_children", "Import Component", "import_container_info", "drag_import_component")}>
         </img>
-        <div className="bottomtext">Import Comp.</div>
+        <div className="bottomtext bottom_import">Import Comp.</div>
       </div>
 
       <div id="model_container" className="flex-item">

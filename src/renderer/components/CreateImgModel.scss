@@ -31,6 +31,7 @@
    The container for the different elements 
    that a user can drag and drop 
 */
+
 .flex-container {
   padding: 0;
   margin: 0;
@@ -56,24 +57,24 @@
 
   background: rgb(50,50,50);
  
-  width: 140px;
+  width: 150px;
   height: 130px;
   margin: 6px;
   position: relative;
   color: rgb(250,250,250);
   font-weight: bold;
-  font-size: 18px;
+  font-size: 20px;
   text-align: center;
   border: 2px solid silver;
 }
 .bottomtext {
   background-color: rgb(40,40,40);
-  
   position: absolute;
   bottom: 0;
 	width: 100%;
 	border-top: 2px solid silver;
 }
+
 
 .element_img {
   margin-top: 2px;
@@ -87,6 +88,62 @@
 
 
 
+.bottomtext::before,
+.bottomtext::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  border-color: transparent;
+  border-style: solid;
+}
+
+.bottomtext::before {
+  border-width: 0.55em;
+  border-right-color: #ccc;
+  border-top-color: #ccc;
+}
+
+.bottom_unit::after {
+  border-radius: 0.1em;
+  border-width: 0.45em;
+  border-right-color: rgb(215, 100, 110);
+  border-top-color: rgb(215, 100, 110);
+}
+.bottom_comp::after {
+  border-radius: 0.1em;
+  border-width: 0.45em;
+  border-right-color: rgb(102, 206, 143);
+  border-top-color: rgb(102, 206, 143);
+}
+
+.bottom_encap::before {
+  border-width: 0.50em;
+}
+.bottom_encap::after {
+  border-radius: 0.1em;
+  border-width: 0.40em;
+  border-right-color: rgb(140, 140, 140);
+  border-top-color: rgb(140, 140, 140);
+}
+
+.bottom_connection::after {
+  border-radius: 0.1em;
+  border-width: 0.45em;
+  border-right-color: rgb(237, 169, 129);
+  border-top-color: rgb(237, 169, 129);
+}
+
+.bottom_import::after {
+  border-radius: 0.1em;
+  border-width: 0.45em;
+  border-right-color: rgb(143, 200, 216);
+  border-top-color: rgb(143, 200, 216);
+}
+
+.compreftext {
+  font-size: 16px;
+}
 
 
 #drag_units, #drag_import_component{
@@ -358,8 +415,14 @@
   width: 90%;
 }
 
+#arrowsizeforexample {
+  font-size: 14px;
+  margin-left: 10px;
+  float: right;
+}
 
-#children_section {
+
+.children_section {
   font-size: 20px;
   font-weight: 500;
   margin-top: 10px;
@@ -376,12 +439,25 @@
   margin-top: 0px;
 }
 
-#children {
+.children {
   margin-top: 5px;
   border: 1px solid rgb(224,229,236);
   border-radius: 2px;
   background-color: rgb(35,35,35);
 }
+
+.example_btn_style {
+  width: 100%;
+  margin-top: 5px;
+  border: 1px solid rgb(224,229,236);
+  border-radius: 2px;
+  background-color: rgb(35,35,35);
+  color: rgb(224,229,236);
+  padding-top: 3px;
+  padding-bottom: 3px;
+  font-size: 18px;
+}
+
 
 #import_children, #import_units_children, #import_component_children,
 #units_children, #unit_children, #component_children, #variable_children,
@@ -498,46 +574,134 @@ img {
 
 #units_container_image, #component_container_image, #component_ref_container_image
 {
-  width: 125px;
-  height: 75px;
+  width: 120px;
+  height: 65px;
 }
 #unit_container_image {
-  height: 85px;
-  width: 85px;
+  height: 75px;
+  width: 75px;
 }
 #variable_container_image {
-  height: 85px;
-  width: 95px;
+  height: 75px;
+  width: 82px;
 }
 #reset_container_image {
-  height: 90px;
-  width: 120px;
+  height: 75px;
+  width: 102px;
 }
 #test_value_container_image, #reset_value_container_image {
-  height: 65px;
-  width: 135px;
+  height: 60px;
+  width: 145px;
 }
 #math_container_image {
-  height: 60px;
-  width: 115px;
+  height: 52px;
+  width: 110px;
 }
 #encapsulation_container_image {
   height: 85px;
-  width: 85px;
+  width: 95px;
 }
 #import_container_image {
-  width: 125px;
-  height: 60px;
+  width: 135px;
+  height: 55px;
 }
 #import_units_container_image {
   height: 60px;
-  width: 125px;
+  width: 135px;
 }
 #import_component_container_image {
-  height: 70px;
+  height: 65px;
   width: 125px;
 }
 #model_container_image {
-  height: 70px;
+  height: 65px;
   width: 105px;
+}
+#connection_container_image {
+  height: 85px;
+  width: 100px;
+}
+#map_variables_container_image {
+  height: 85px;
+  width: 85px;
+}
+
+
+
+
+#example_back_button {
+  display: none;
+}
+
+#example_code_section {
+  margin-left: 8px;
+  margin-right: 8px;
+  margin-top: 0px;
+  background-color: rgb(40,40,40);
+  font-size: 12px;
+  font-family: "Courier New";
+  text-align: left;
+}
+.example_text {
+  margin: 0em;
+}
+.tab_code {
+  margin-left: 12px;
+}
+.tab_code2 {
+  margin-left: 24px;
+}
+.tab_code3 {
+  margin-left: 36px;
+}
+.file_example_text {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  background-color: rgb(30,30,30);
+  margin-bottom: 0px;
+  margin-top: 3px;
+}
+
+.commented_code_example {
+  color:rgb(97, 172, 128);
+}
+
+#model_example_code, #import_example_code, #units_example_code, #comp_example_code,
+#reset_example_code, #connection_example_code, #encapsulate_example_code {
+  display: none;
+}
+
+.unit_example_img {
+  width: 220px;
+  height: 100px;
+}
+.comp_example_img {
+  width: 235px;
+  height: 100px;
+}
+.reset_example_img {
+  width: 230px;
+  height: 100px;
+}
+.encap_example_img {
+  width: 230px;
+  height: 110px;
+}
+.conn_example_img {
+  width: 235px;
+  height: 120px;
+}
+.model_example_img {
+  width: 200px;
+  height: 80px;
+}
+.import_example_img {
+  width: 230px;
+  height: 80px;
+}
+.remove_code_top {
+  margin-top: 0px;
+  padding-top: 0px;
+  
 }
