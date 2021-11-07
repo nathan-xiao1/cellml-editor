@@ -269,7 +269,7 @@ class EquationViewer extends React.Component<EVProp, EVState> {
                         {/* Used to load textarea for formula editor */}
                         <div id='equationMain'/>
                         
-                        {/* Buttons */}
+                        {/* Buttons TODO: change to more suitable css*/}
                         <div className='buttonContainer'>
                             <Button variant="contained" onClick={this.handleReplaceButton}>Confirm Changes</Button>
                             {/* Delete button only appears when selecting an existing math element */}
@@ -283,6 +283,7 @@ class EquationViewer extends React.Component<EVProp, EVState> {
                         {/* TODO: add notice that math element is not editable */}
                         <ViewOnly mathmlstr={this.state.viewStr ? this.state.viewStr : ''}/>
                         {/* Delete button only appears when selecting an existing math element */}
+                        
                         <div className='buttonContainer'> 
                             {this.props.str ? <Button variant="outlined" onClick={this.handleDeleteButton}>Delete Math Element</Button> : null}
                         </div>
