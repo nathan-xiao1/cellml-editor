@@ -5,7 +5,7 @@ import convert from 'xml-js';
 const om2mmjs = (obj, parent) => {
 
     // Depth first search algo
-    if (obj.elements) {
+    if (obj.elements && !obj.processed) {
     
         // Swap elements if one of them is degree
         const index = obj.elements.findIndex((e) => {
@@ -27,7 +27,22 @@ const om2mmjs = (obj, parent) => {
         const i = obj.elements.findIndex((e) => {
             return e.name === 'OMS' && e.attributes.name === 'power' && e.attributes.cd === 'arith1';
         });
-        if (i > -1 && i+2 < obj.elements.length && 
+        // If <exp/>
+        if (i > -1 && i+2 < obj.elements.length && obj.elements[i+1].name == 'OMS' && obj.elements[i+1].attributes
+            && obj.elements[i+1].attributes['cd'] && obj.elements[i+1].attributes['cd'] === 'nums1'
+            && obj.elements[i+1].attributes['name'] && obj.elements[i+1].attributes['name'] === 'e') {
+
+            const exp = {
+                'type'  : 'element',
+                'name'  : 'exp',
+                'processed' : true
+            }
+
+            obj.elements.splice(i, 2, exp);
+        }
+
+        // Power element is dimensionless
+        else if (i > -1 && i+2 < obj.elements.length && 
             (obj.elements[i+2].name === 'OMF' || obj.elements[i+2].name === 'OMI')) {
             if (!obj.elements[i+2].attributes) obj.elements[i+2].attributes = {};
             obj.elements[i+2].attributes['power_degree'] = true;
@@ -43,7 +58,7 @@ const om2mmjs = (obj, parent) => {
         obj.elements.forEach((o) => {om2mmjs(o, obj)});
     }
 
-    if (obj.type === "element") {
+    if (obj.type === "element" && !obj.processed) {
         if (!obj.attributes) {
             obj.attributes = {};
         }

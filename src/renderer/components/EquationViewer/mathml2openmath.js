@@ -1,9 +1,10 @@
+import elementMap from 'src/commons/CellMLSchema';
 import convert from 'xml-js';
 
 export const mm2omjs = (obj, parent) => {
 
-    // Depth first search algo
-    if (obj.elements) {
+    // Algo applies structural changes first
+    if (obj.elements && obj.elements.length > 0 && !obj.processed) {
         // console.log("found obj's elements")
         // if (obj.name==='OMS') {
         //     let elements = obj.elements;
@@ -14,7 +15,7 @@ export const mm2omjs = (obj, parent) => {
         // } else {
         
         // Swap elements if one of them is degree
-        const index = obj.elements.findIndex((e) => e.name === 'degree');
+        const index = obj.elements.findIndex((e) => e.name === 'degree' && !e.processed);
         if (index > -1) {
             const tmp = obj.elements[index+1];
             obj.elements[index+1] = obj.elements[index];
@@ -24,7 +25,7 @@ export const mm2omjs = (obj, parent) => {
         // }
     }
 
-    if (obj.type === "element") {
+    if (obj.type === "element" && !obj.processed) {
         // console.log("found element");
         // if (obj.name === "math" && obj.attributes.xmlns === "http://www.w3.org/1998/Math/MathML") {
         //     // console.log("converting math to OMOBJ");
@@ -236,7 +237,7 @@ export const mm2omjs = (obj, parent) => {
                 }
                 break;
             default:
-                throw new Error('Did not recognise tagname');
+                throw new Error('Did not recognise tagname: ' + obj.name);
                 // break;
         }
         
@@ -252,12 +253,64 @@ export const mm2omjs = (obj, parent) => {
     return obj;
 }
 
+const preprocess = (obj) => {
+    if (obj.elements && !obj.processed) {
+        obj.elements.forEach((o) => {preprocess(o)});
+
+         //<parent>
+        //  <apply>
+        //      <exp/>
+        //      <child></child>
+        //  </apply>
+        //</parent>
+        const i = obj.elements.findIndex((e) =>
+            e.name === 'apply' && e.elements && e.elements.length > 1 && e.elements[0].name === 'exp');
+        if (i > -1) {
+            const apply = obj.elements[i];
+            const childML = apply.elements[1];
+            const power = {
+                'type'  : 'element',
+                'name'  : 'OMS',
+                'attributes'    : {
+                    'cd'    : 'arith1',
+                    'name'  : 'power'
+                },
+                'processed' : true
+            }
+
+            const exponent = {
+                'type'  : 'element',
+                'name'  : 'OMS',
+                'attributes'    : {
+                    'cd'    : 'nums1',
+                    'name'  : 'e'
+                },
+                'processed' : true
+            }
+
+            // obj.elements = obj.elements.slice(0, i) + [power, exponent, childML] + obj.elements.slice(i+1);
+            // let elements = obj.elements.slice(0, i);
+            // elements = elements.concat([power, exponent, childML]);
+            // elements.concat(obj.elements.slice(i+1));
+            
+            const apply2 = {
+                'type'  : 'element',
+                'name'  : 'apply',
+                'elements' : [power, exponent, childML]
+            }
+            obj.elements[i] = apply2;
+        }
+    }
+    return obj;
+    
+}
 
 const mathml2openmath = (openMathStr) => {
-    let js = convert.xml2js(openMathStr, {compact: false});
+    let js = convert.xml2js(openMathStr, {compact: false, addParent: true});
     // console.log(JSON.stringify(js, null, 2));
     // return '';
-    let converted_js = mm2omjs(js, null);
+    let preprocessed_js = preprocess(js);
+    let converted_js = mm2omjs(preprocessed_js, null);
     let options = {compact: false, ignoreComment: true, spaces: 2};
     // console.log(js);
     // console.log(JSON.stringify(converted_js, null, 2));

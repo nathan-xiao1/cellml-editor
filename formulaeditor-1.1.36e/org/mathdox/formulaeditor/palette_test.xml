@@ -13,14 +13,19 @@
           <OMS cd='editor1' name='input_box'/>
           <OMS cd='editor1' name='input_box'/>
         </OMA>
-      </OMA>
-      <OMA>
-        <OMS cd='editor1' name='palette_row'/>
         <OMS cd='relation1' name='eq'/>
          <OMA>
           <OMS cd='arith1' name='root'/>
           <OMS cd='editor1' name='input_box'/>
           <OMI>2</OMI>
+        </OMA>
+      </OMA>
+      <OMA>
+        <OMS cd='editor1' name='palette_row'/>
+        <OMA>
+          <OMS cd='arith1' name='power'/>
+          <OMS cd='nums1' name='e'/>
+          <OMS cd='editor1' name='input_box'/>
         </OMA>
         <OMA>
           <OMS cd='arith1' name='root'/>

@@ -128,14 +128,18 @@ class EquationViewer extends React.Component<EVProp, EVState> {
         node.style.backgroundColor='white';
         let textstr = '';
 
+        let mmlstr = '';
         try {
-            const mmlstr = this.props.mathTagIncluded ? this.props.str : 
+            mmlstr = this.props.mathTagIncluded ? this.props.str : 
                 '<math xmlns="http://www.w3.org/1998/Math/MathML">' + this.props.str + '</math>';
             textstr = mathml2openmath(mmlstr);
             this.setState({ 'viewOnly' : false });
-        } catch {
+        } catch (e) {
+            console.log('Failed to load into formula editor, unsupported object');
+            console.log(e);
+            console.log(mmlstr);
             textstr = '';
-            const mmlstr = this.props.mathTagIncluded ? this.props.str : 
+            mmlstr = this.props.mathTagIncluded ? this.props.str : 
                 '<math xmlns="http://www.w3.org/1998/Math/MathML">' + this.props.str + '</math>';
             this.setState({ 'viewOnly' : true, 'viewStr' : mmlstr });
             // return;
@@ -260,6 +264,7 @@ class EquationViewer extends React.Component<EVProp, EVState> {
             return (
                 <>
                     <div className={this.state.viewOnly ? 'hide' : 'show'}>
+                    {/* <div> */}
                         {/* Used to load textarea for formula editor */}
                         <div id='equationMain'/>
                         
@@ -272,7 +277,11 @@ class EquationViewer extends React.Component<EVProp, EVState> {
                         <div id='loadScript'></div>
                     </div>
                     <div className={this.state.viewOnly ? 'show' : 'hide'}>
+                    {/* <div> */}
+                        {/* TODO: add notice that math element is not editable */}
                         <ViewOnly mathmlstr={this.state.viewStr ? this.state.viewStr : ''}/>
+                        {/* Delete button only appears when selecting an existing math element */}
+                        {this.props.str ? <button onClick={this.handleDeleteButton}>Delete Math Element</button> : null}
                     </div>
                 </>
             );
