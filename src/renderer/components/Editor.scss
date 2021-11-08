@@ -9,10 +9,19 @@
   overflow: hidden !important;
 }
 
+.aaaaa {
+  overflow: scroll !important;
+}
+
 .pane-middle-header {
   height: 35px;
   min-height: 30px;
   max-height: 30px;
+  overflow: scroll;
+}
+
+.pane-middle-top, .reflex-container {
+  overflow: scroll;
 }
 
 .splitter {
@@ -24,4 +33,35 @@
     background-color: #009165 !important;
     transition: all 1s ease-in;
   }
+}
+
+#create_new_model_img {
+  width: 100px;
+  position: absolute;
+  right: 7px;
+  top: 5px;
+  font-size: 10px;
+  font-weight: bold;
+  padding-top: 5px;
+  padding-bottom: 5px; 
+  color: rgb(200,200,200);
+  background-color: rgb(42,42,42);
+  border-radius: 5px;
+  border-width: 1px;
+  border-color: rgb(200,200,200);
+
+  &:hover {
+    border: 0px !important;
+    background-color: rgb(180, 180, 180);
+    border-color: rgb(45, 45, 45);
+    color:rgb(45, 45, 45);
+    transition: all 0.1s ease-in;
+  }
+}
+
+.pane-middle-bottom {
+  height: 100px;
+}
+#user_model_creator {
+  display: none;
 }

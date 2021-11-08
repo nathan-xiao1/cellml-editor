@@ -21,6 +21,11 @@ import ImportPane from "./Panes/ImportPane/ImportPane";
 import Prompt from "./Prompt/Prompt";
 import Mousetrap from "mousetrap";
 
+import VisualPane from "./Panes/VisualPane";
+import CreateImgModel from "./CreateImgModel";
+
+let graphics_or_text = 0;
+
 const emptyState: IFileState = {
   dom: undefined,
   saved: true,
@@ -347,6 +352,40 @@ export default class Editor extends React.Component<unknown, EditorState> {
     this.textEditorRef?.current?.redo();
   }
 
+  changemodel(): void {
+    console.log('change model');
+    console.log(graphics_or_text);
+    // change mode to allow the user to generate their own model 
+    (graphics_or_text === 0) ? graphics_or_text = 1: graphics_or_text = 0;
+    console.log(graphics_or_text);
+
+    // if changed to text --> deafult text view
+    if (graphics_or_text === 0) {
+      document.getElementById("user_model_creator").style.display = 'none';
+      document.getElementById("create_new_model_img").textContent = "CREATE MODEL";
+
+      const pmh = document.getElementsByClassName('pane-middle-header') as HTMLCollectionOf<HTMLElement>;
+      pmh[0].style.display = 'block';
+      const pmt = document.getElementsByClassName('pane-middle-top') as HTMLCollectionOf<HTMLElement>;
+      pmt[0].style.display = 'block';
+      const pmb = document.getElementsByClassName('pane-middle-bottom') as HTMLCollectionOf<HTMLElement>;
+      pmb[0].style.display = 'block';
+    } 
+    // if in graphics view then display create page panel
+    else {
+      document.getElementById("user_model_creator").style.display = 'block';
+      document.getElementById("create_new_model_img").textContent = "TEXT VIEW";
+
+      const pmh = document.getElementsByClassName('pane-middle-header') as HTMLCollectionOf<HTMLElement>;
+      pmh[0].style.display = 'none';
+      const pmt = document.getElementsByClassName('pane-middle-top') as HTMLCollectionOf<HTMLElement>;
+      pmt[0].style.display = 'none';
+      const pmb = document.getElementsByClassName('pane-middle-bottom') as HTMLCollectionOf<HTMLElement>;
+      pmb[0].style.display = 'none';
+    }
+  }
+
+
   render(): React.ReactNode {
     const activeFilepath: string = this.getActiveFilepath();
     return (
@@ -434,6 +473,12 @@ export default class Editor extends React.Component<unknown, EditorState> {
                     toggleViewMode={this.toggleEditorView.bind(this)}
                   />
                 </ReflexElement>
+
+                <button id="create_new_model_img" onClick={this.changemodel}>CREATE MODEL</button>
+                <div id="user_model_creator">
+                  <CreateImgModel></CreateImgModel>
+                </div>
+
                 <ReflexElement className="pane-middle-top primary-bg-dark">
                   <TextEditor
                     ref={this.textEditorRef}
@@ -474,6 +519,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
               </ReflexContainer>
             </ReflexElement>
             <ReflexSplitter className="primary-splitter splitter" />
+
             <ReflexElement className="pane-right" minSize={150} flex={0.15}>
               <ReflexContainer orientation="horizontal">
                 <ReflexElement className="pane-right-top" minSize={25}>
@@ -490,6 +536,17 @@ export default class Editor extends React.Component<unknown, EditorState> {
                     attributeEditHandler={this.attributeEditHandler.bind(this)}
                   />
                 </ReflexElement>
+
+                <ReflexElement className="aaaaa" minSize={300} flex={0.50}>
+                  <Pane title="Model Viewer" collapsible={false}>
+                    <VisualPane
+                      dom={this.getActiveFile().dom}
+                      filepath={activeFilepath}
+                      onClickHandler={this.domTreeClickHandler.bind(this)}
+                    /></Pane>
+                    
+                  </ReflexElement>
+
               </ReflexContainer>
             </ReflexElement>
           </ReflexContainer>
