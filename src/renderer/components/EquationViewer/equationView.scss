@@ -1,0 +1,23 @@
+.equation_editor_confirm_btn {
+  margin-top: 10px;
+  margin-bottom: 5px;
+  margin-left: 10px;
+  width: 110px;
+  font-size: 26px;
+  font-weight: bold;
+  padding-top: 10px;
+  padding-bottom: 10px; 
+  color: rgb(200,200,200);
+  background-color: rgb(42,42,42);
+  border-radius: 5px;
+  border-width: 5px;
+  border-color: rgb(200,200,200);
+
+ /* &:hover {
+    border: 0px !important;
+    background-color: rgb(180, 180, 180);
+    border-color: rgb(45, 45, 45) !important;
+    color:rgb(45, 45, 45);
+    transition: all 0.1s ease-in;
+  }*/
+}

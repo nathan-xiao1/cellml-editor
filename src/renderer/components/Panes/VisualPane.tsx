@@ -179,7 +179,6 @@ export default class VisualPane extends React.Component<TPProps> {
       }
 
       
-
       // BUNCH OF FUNCTIONS SINCE HAD ERRORS OUTSIDE OF A READ - may fix in future
       // Set up all the units and unit children
       function check_unit_elements(elemNode: any, x_pos: number, y_pos: number) {
@@ -212,6 +211,7 @@ export default class VisualPane extends React.Component<TPProps> {
       function check_component_elements(elemNode: any, x_pos: number, y_pos: number) {
         const variable_list = elemNode.querySelectorAll("variable");
         const math_list     = elemNode.querySelectorAll("math");
+
         const reset_list    = elemNode.querySelectorAll("reset");
         const comp_x_pos = 200;
         const comp_y_pos = 10 + cellml_elements.length*50;
@@ -224,12 +224,11 @@ export default class VisualPane extends React.Component<TPProps> {
           cellml_elements.push({x:comp_x_pos, y:comp_y_pos + i*60, radius:30, color:'green', element_type:'variable', name:v_name, units:v_units, interface:v_interface, initial_value:v_initial, var_parent: elemNode.getAttribute('name')})
         }
         for (let i = 0; i < math_list.length; i++) {
-          console.log("***********");
-          console.log("MathML");
-          console.log(math_list[i]);
-          console.log(typeof math_list[i]);
-          console.log("***********");
-          cellml_elements.push( {x:comp_x_pos + 80, y:comp_y_pos + i*60, radius:35, color:'pink', element_type:'math', mathml_format: math_list[i], math_parent: elemNode.getAttribute('name')})
+          let math_id = 0;
+          for (let j = 0; j < cellml_elements.length; j++) {
+            if (cellml_elements[j].element_type == "math") math_id ++;
+          }
+          cellml_elements.push( {x:comp_x_pos + 80, y:comp_y_pos + i*60, radius:35, color:'pink', element_type:'math', mathml_format: math_list[i], math_parent: elemNode.getAttribute('name'), math_id: math_id})
         }
         for (let i = 0; i < reset_list.length; i++) {
           console.log(i);
@@ -244,35 +243,43 @@ export default class VisualPane extends React.Component<TPProps> {
 
       // every reset element requires 2 children elements: [Test Value, Reset Value]
       function check_reset_and_test_elements(elemNode: any, x_pos: number, y_pos: number) {
-
-        console.log("**************");
-        console.log(elemNode);
-        console.log(elemNode.querySelectorAll("test_value"));
-        console.log(elemNode.querySelectorAll("reset_value"));
-        console.log("**************");
-
         const test_value_list = elemNode.querySelectorAll("test_value");
         const reset_value_list = elemNode.querySelectorAll("reset_value");
+        const math_list_t =  test_value_list[0].querySelectorAll("math");
+        const math_list_r =  reset_value_list[0].querySelectorAll("math");
         const value_x_pos = 180;
         const value_y_pos = 10 + cellml_elements.length*50;
-
-        let num_tv = 0; let num_rv = 0;
-        for (let i = 0; i < cellml_elements.length; i++) {
-          if (cellml_elements[i].element_type == 'test_value') num_tv ++;
-          if (cellml_elements[i].element_type == 'reset_value') num_rv ++;
+        
+        let reset_math = 0;
+        let test_math = 0;
+        for (let i = 0; i <cellml_elements.length; i++) {
+          if (cellml_elements[i].element_type == "math" && cellml_elements[i].mathml_format.outerHTML == math_list_t[0].outerHTML) {
+            test_math = cellml_elements[i].math_id;
+          }
+          if (cellml_elements[i].element_type == "math" && cellml_elements[i].mathml_format.outerHTML == math_list_r[0].outerHTML) {
+            reset_math = cellml_elements[i].math_id;
+          }
         }
-
+        
         let total = 0;
         for (let i =0; i<test_value_list.length; i++) {
+          let num_tv = 0; let num_rv = 0; const math_id = 0;
+          for (let j = 0; j < cellml_elements.length; j++) {
+            if (cellml_elements[j].element_type == 'test_value') num_tv ++;
+            if (cellml_elements[j].element_type == 'reset_value') num_rv ++;
+          }
           // since order is unique
-          cellml_elements.push( {x:value_x_pos, y:value_y_pos + total*60, radius:30, color:'purple', element_type:'test_value', reset_parent: elemNode.getAttribute('order'), id: "test" + num_tv})
-          cellml_elements.push( {x:value_x_pos + 80, y:value_y_pos + total*60, radius:30, color:'pink', element_type:'math', mathml_format: test_value_list[i], reset_parent: "test" + num_tv})
+          cellml_elements.push( {x:value_x_pos, y:value_y_pos + total*60, radius:30, color:'purple', element_type:'test_value', reset_parent: elemNode.getAttribute('order'), id: "test" + num_tv, math_id: test_math})
           total ++;
           num_tv++;
         }
         for (let j = 0; j < reset_value_list.length; j++) {
-          cellml_elements.push( {x:value_x_pos, y:value_y_pos + total*60, radius:30, color:'purple', element_type:'reset_value', reset_parent: elemNode.getAttribute('order'), id: "reset" + num_rv})
-          cellml_elements.push( {x:value_x_pos + 80, y:value_y_pos + total*60, radius:30, color:'pink', element_type:'math', mathml_format: test_value_list[j], reset_parent: "reset" + num_rv})
+          let num_tv = 0; let num_rv = 0; const math_id = 0;
+          for (let j = 0; j < cellml_elements.length; j++) {
+            if (cellml_elements[j].element_type == 'test_value') num_tv ++;
+            if (cellml_elements[j].element_type == 'reset_value') num_rv ++;
+          }
+          cellml_elements.push( {x:value_x_pos, y:value_y_pos + total*60, radius:30, color:'purple', element_type:'reset_value', reset_parent: elemNode.getAttribute('order'), id: "reset" + num_rv, math_id: reset_math})
           total++;
           num_rv++;
         }
@@ -311,8 +318,6 @@ export default class VisualPane extends React.Component<TPProps> {
         const imp_com_list = elemNode.querySelectorAll("component");
         const imp_x = 90;
         const imp_y = 10 + cellml_elements.length*50;
-
-        
 
         for (let i = 0; i < imp_com_list.length; i++) {
           console.log(imp_com_list[i].getAttribute("component_ref"));
@@ -603,7 +608,16 @@ export default class VisualPane extends React.Component<TPProps> {
               drawArrow(context, shape.x + calculate_width(shape.name)/2, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(175, 245, 185, 0.5)");
             }
             else if (cellml_elements[j].math_parent == shape.name && cellml_elements[j].element_type == "math") {
-              drawArrow(context, shape.x + calculate_width(shape.name)/2, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(175, 245, 185, 0.5)");
+              let exists = 0;
+              for (let k = 0; k < cellml_elements.length;k++) {
+                if ((cellml_elements[k].element_type == "reset_value" || cellml_elements[k].element_type == "test_value") && 
+                     cellml_elements[k].math_id == cellml_elements[j].math_id ) {
+                       exists = 1;
+                     }
+              }
+              if (exists == 0) {
+                drawArrow(context, shape.x + calculate_width(shape.name)/2, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(175, 245, 185, 0.5)");
+              }
             }
             else if (cellml_elements[j].component == shape.name && cellml_elements[j].element_type == "component_ref") {
               drawArrow(context, cellml_elements[j].x, cellml_elements[j].y, shape.x + calculate_width(shape.name)/2, shape.y + 21, "rgb(175, 245, 185, 0.5)");
@@ -625,7 +639,7 @@ export default class VisualPane extends React.Component<TPProps> {
         }
         else if (shape.element_type == "reset_value" || shape.element_type == "test_value") {
           for (let j = 0; j < cellml_elements.length; j++) {
-            if (cellml_elements[j].element_type == "math" && cellml_elements[j].reset_parent == shape.id) {
+            if (cellml_elements[j].element_type == "math" && cellml_elements[j].math_id == shape.math_id) {
               drawArrow(context, shape.x, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(175, 245, 185, 0.5)");
             }
           }
@@ -1078,43 +1092,6 @@ export default class VisualPane extends React.Component<TPProps> {
     });
   }
 
-
-
-
-
-  
-  /*check_unit_element(elemNode: any) {
-    console.log(elemNode);
-        console.log(elemNode.getAttribute('name'));
-  }*/
-
-  domToTreeItem(dom: IDOM): React.ReactNode {
-    if (!dom) return null;
-
-    console.log('Test:')
-    console.log(dom);
-
-    return (
-      <TreeItem
-        key={dom.id}
-        nodeId={dom.id.toString()}
-        label={dom.name}
-        onLabelClick={(event) => {
-          event.preventDefault();
-          this.props.onClickHandler(dom.lineNumber);
-          console.log(dom);
-        }}
-        onClick={(event) => {
-          this.generateModel("canvas"+dom.id, dom);
-        }}
-      > 
-        <canvas id={"canvas"+dom.id} className="sub-canvas"></canvas>
-        {dom.children.length > 0 ? dom.children.map((element) => this.domToTreeItem(element)) : null}
-      </TreeItem>
-    );
-  }
-
-
   // This function is called when viewing the parts in the model
   generateModel = (canvas_name:string, dom:IDOM) => {
     console.log("opened");
@@ -1500,21 +1477,16 @@ export default class VisualPane extends React.Component<TPProps> {
 
         if (dom != undefined) {
           //change to dom number
-
-
           const found_line = this.find_the_line_number(dom);
-
-         // console.log("line number is: " + dom.lineNumber);
           this.props.onClickHandler(found_line);
           //console.log(dom);
         }
-        
-
         return;
       }
     }
   }
 
+  // Clicking an element will find the appropriate position
   find_the_line_number(dom: IDOM) {
     const children = dom.children;
     const element = cellml_elements[selectedShapeIndex];
@@ -1616,17 +1588,35 @@ export default class VisualPane extends React.Component<TPProps> {
       }
     }
     else if (element.element_type == "math") {
+      console.log('math:')
+      console.log(element);
+
+      let num_math_lines = 0;
+      let line_num = 0;
       for (let i = 0; i < children.length; i++) { 
         if (children[i].name == "component") {
+          
           for (let j = 0; j < children[i].children.length; j++) {
             if (children[i].children[j].name == "math") {
-              console.log(children[i].children[j]);
-              return children[i].children[j].lineNumber;
+              if (num_math_lines == element.math_id) {line_num = children[i].children[j].lineNumber}
+              num_math_lines ++;
+            }
+            if (children[i].children[j].name == "reset") {
+              for (let k = 0; k < children[i].children[j].children.length; k++) {
+                if (num_math_lines == element.math_id) {line_num = children[i].children[j].children[k].lineNumber}
+                num_math_lines ++;
+              }
             }
           }
         }
       }
+      if (line_num == 0) {
+        return 2;
+      } else {
+        return line_num;
+      }
     }
+
     else if (element.element_type == "reset") {
       for (let i = 0; i < children.length; i++) {
         if (children[i].name == "component") {
@@ -2223,7 +2213,16 @@ export default class VisualPane extends React.Component<TPProps> {
               this.drawArrow(context, shape.x + this.calculate_width(shape.name)/2, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(175, 245, 185, 0.5)");
             }
             else if (cellml_elements[j].math_parent == shape.name && cellml_elements[j].element_type == "math") {
-              this.drawArrow(context, shape.x + this.calculate_width(shape.name)/2, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(175, 245, 185, 0.5)");
+              let exists = 0;
+              for (let k = 0; k < cellml_elements.length;k++) {
+                if ((cellml_elements[k].element_type == "reset_value" || cellml_elements[k].element_type == "test_value") && 
+                     cellml_elements[k].math_id == cellml_elements[j].math_id ) {
+                       exists = 1;
+                     }
+              }
+              if (exists == 0) {
+                this.drawArrow(context, shape.x + this.calculate_width(shape.name)/2, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(175, 245, 185, 0.5)");
+              }
             }
             else if (cellml_elements[j].component == shape.name && cellml_elements[j].element_type == "component_ref") {
               this.drawArrow(context, cellml_elements[j].x, cellml_elements[j].y, shape.x + this.calculate_width(shape.name)/2, shape.y + 21, "rgb(175, 245, 185, 0.5)");
@@ -2245,7 +2244,7 @@ export default class VisualPane extends React.Component<TPProps> {
         }
         else if (shape.element_type == "reset_value" || shape.element_type == "test_value") {
           for (let j = 0; j < cellml_elements.length; j++) {
-            if (cellml_elements[j].element_type == "math" && cellml_elements[j].reset_parent == shape.id) {
+            if (cellml_elements[j].element_type == "math" && cellml_elements[j].math_id == shape.math_id) {
               this.drawArrow(context, shape.x, shape.y + 21, cellml_elements[j].x, cellml_elements[j].y, "rgb(175, 245, 185, 0.5)");
             }
           }
