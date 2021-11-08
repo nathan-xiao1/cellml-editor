@@ -1,6 +1,7 @@
 import { IEditorSystem, IFile, IFileState } from "Types";
 import CellMLParser from "../parser/Parser";
 import CellMLFile from "./CellMLFile";
+import GraphicalFile from "./GraphicalFile";
 import PdfFile from "./PdfFile";
 import { templates } from "./Templates";
 
@@ -75,6 +76,16 @@ export default class EditorSystem implements IEditorSystem {
   public openFilePdf(id: string): IFile {
     if (!this.openedFiles.has(id)) {
       const file = new PdfFile(id);
+      this.openedFiles.set(id, file);
+      return file;
+    }
+    return null;
+  }
+
+  public newFileGraphical(): IFile {
+    const id = "Graphical Editor";
+    if (!this.openedFiles.has(id)) {
+      const file = new GraphicalFile(id);
       this.openedFiles.set(id, file);
       return file;
     }

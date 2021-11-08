@@ -23,13 +23,14 @@ export interface IFile {
   isReadonly(): boolean;
 }
 
-export type FileType = "CellML" | "PDF";
+export type FileType = "CellML" | "PDF" | "Graphical";
 
 export type ViewMode = "text" | "graphical";
 
 export interface IEditorSystem {
   init(): void;
   newFile(content?: string): IFile;
+  newFileGraphical(): IFile;
   newFileReadonly(id: string, filename: string, content: string): void;
   newFileFromTemplate(template: string): IFile;
   openFile(filepath: string): IFile;

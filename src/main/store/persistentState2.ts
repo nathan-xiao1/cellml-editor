@@ -38,6 +38,8 @@ export function loadState(
         }
       }
       if (persisFileExists) fs.rmSync(pFile.persistentFilepath);
+    } else if (pFile.fileType == "Graphical") {
+      editorSystem.newFileGraphical();
     } else if (pFile.fileType == "PDF") {
       editorSystem.openFilePdf("Help & Documentation");
     }
@@ -68,6 +70,14 @@ export function saveState(
           encoding: "utf-8",
         });
       }
+    } else if (file.getType() == "Graphical") {
+      persistentFiles.push({
+        originalFilepath: "_graphical",
+        persistentFilepath: null,
+        isNew: false,
+        isSaved: true,
+        fileType: file.getType(),
+      });
     } else if (file.getType() == "PDF") {
       persistentFiles.push({
         originalFilepath: "_pdf",

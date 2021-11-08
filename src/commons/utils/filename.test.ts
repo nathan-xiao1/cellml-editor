@@ -18,9 +18,13 @@ describe("Filepath Parsing Test", () => {
 
     filepath = "/model.cellml";
     expect(filePathToName(filepath)).toBe("model.cellml");
+
+
+    filepath = "~/model.cellml";
+    expect(filePathToName(filepath)).toBe("model.cellml");
   });
 
-  test("Windows filepath", () => {
+  test("MacOS filepath", () => {
     const filepath = "/Users/user1/Desktop/pic.png";
     expect(filePathToName(filepath)).toBe("pic.png");
   });

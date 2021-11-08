@@ -465,8 +465,11 @@ class ImportComponent extends ModelElement {
 // ------------------------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------------------------
+interface CIMProps {
+  hidden: boolean;
+}
 // Create Image Model is the element that 
-const CreateImgModel: React.FunctionComponent = () => {
+const CreateImgModel: React.FunctionComponent<CIMProps> = (props: CIMProps) => {
 
   // The current element clicked on: starts on model
   const [clickedElement, setClickedElement] = useState('Model');
@@ -3613,7 +3616,8 @@ const CreateImgModel: React.FunctionComponent = () => {
   // ----------------------------------------------------------------------------------------------------
   // The create image section: returning the whole section
   return (
-    <div className="container">
+    <div
+    className={`container ${props.hidden ? "hidden" : ""}`}>
       <link href="https://emoji-css.afeld.me/emoji.css" rel="stylesheet"></link>
       <div>
         {/* ============================ Model name section =========================== */}

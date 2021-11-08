@@ -19,7 +19,6 @@ export function getCursorElement(text: string): string {
   const matches = text.match(regex);
   if (!matches || matches.length == 0) return null;
   const match = matches[matches.length - 1].match(/<(\/?[^/>\s]+[^>]*)>/);
-  console.log(match);
   const tagName = match[1].split(" ")[0];
   if (tagName.endsWith("/")) return tagName.substring(0, tagName.length - 1);
   if (tagName.startsWith("/")) return tagName.substring(1);

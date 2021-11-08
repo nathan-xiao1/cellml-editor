@@ -134,6 +134,18 @@ ipcMain.on(IPCChannel.SAVE_FILE, (event, filepath) => {
   }
 });
 
+ipcMain.on(IPCChannel.NEW_FILE_GRAPHICAL, (event) => {
+  const file = editorSystem.newFileGraphical();
+  if (file) {
+    event.sender.send(
+      IPCChannel.RENDERER_UPDATE_OPENED_FILE,
+      editorSystem.getOpenedFilesState()
+    );
+  } else {
+    event.sender.send(IPCChannel.RENDERER_SET_ACTIVE_FILE, "Graphical Editor");
+  }
+});
+
 /*
   Synchronous response to get an opened file's content
 */

@@ -13,6 +13,7 @@ import shape from "@material-ui/core/styles/shape";
 interface TPProps {
   dom?: IDOM;
   filepath? : string;
+  hidden: boolean;
   onClickHandler: (lineNum: number) => void;
 }
 
@@ -3000,6 +3001,7 @@ export default class VisualPane extends React.Component<TPProps> {
   //===================================================================================================================================
   //===================================================================================================================================
   render(): React.ReactNode {
+    if (!this.props.hidden) return null;
     return (
       <html>
         <head>
