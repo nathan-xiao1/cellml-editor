@@ -17,8 +17,11 @@ import { IDOM, IFileState, ViewMode } from "Types";
 import TreePane from "./Panes/TreePane/TreePane";
 import ElementPane from "./Panes/ElementPane/ElementPane";
 import AttributePane from "./Panes/AttributePane/AttributePane";
+import EquationViewer from "./EquationViewer/EquationViewer";
 import ImportPane from "./Panes/ImportPane/ImportPane";
 import Prompt from "./Prompt/Prompt";
+import monaco, { editor } from 'monaco-editor';
+import indentString from 'indent-string';
 import Mousetrap from "mousetrap";
 
 import VisualPane from "./Panes/VisualPane";
@@ -41,8 +44,12 @@ interface EditorState {
   activeFileIndex: number;
   activeFileCursorXPath: string;
   activeFileCursorIDOM: IDOM;
+  activeMathString?: string;
+  mathStartIndex: number,
+  mathEndIndex: number,
   promptShow: boolean;
   promptState: PromptState;
+  mathTagIncluded: boolean;
 }
 
 interface PromptState {
@@ -65,8 +72,12 @@ export default class Editor extends React.Component<unknown, EditorState> {
       activeFileIndex: -1,
       activeFileCursorXPath: undefined,
       activeFileCursorIDOM: undefined,
+      activeMathString: "",
+      mathStartIndex: undefined,
+      mathEndIndex: undefined,
       promptShow: false,
       promptState: undefined,
+      mathTagIncluded: undefined,
     };
 
     // Set listener to update openedFile state
@@ -236,6 +247,20 @@ export default class Editor extends React.Component<unknown, EditorState> {
     }));
   }
 
+  monacoCursorPositionChangedMath(mathstr: string, startIndex: number, endIndex: number, mathTagIncluded: boolean) : void {
+    // const cleanedAttributes = mathstr.replace(/cellml:[^</>)]*/mg, '');
+    
+    if (mathstr != this.state.activeMathString) {
+      this.setState(() => ({
+        activeMathString: mathstr,
+        mathStartIndex: startIndex,
+        mathEndIndex: endIndex,
+        mathTagIncluded: mathTagIncluded,
+      }));
+    }
+
+  }
+
   /*
     Toggle between the Monaco text editor and the graphical editor view
   */
@@ -243,6 +268,40 @@ export default class Editor extends React.Component<unknown, EditorState> {
     this.setState(() => ({
       currentMode: mode,
     }));
+  }
+  
+  handleReplaceRange(string: string, startOffset: number, endOffset: number) : void {
+    try {
+      const model = this.monaco?.editor.getModel(this.monaco.Uri.parse(this.getActiveFilepath()));
+      const start = model.getPositionAt(startOffset);
+      const end = model.getPositionAt(endOffset);
+      // const selection = new monaco.Selection(start.lineNumber, start.column, end.lineNumber, end.column);
+      
+      // Calculating and adding offset
+      const line = model.getLineContent(start.lineNumber);
+      const count = line.search(/\S/);
+      const text = indentString(string, count).trim();
+      // if (text.charAt(-1) !== '\n') text += '\n';
+      
+      // Creating edit operation
+      const editOp : monaco.editor.IIdentifiedSingleEditOperation = {
+        range: {
+          startColumn: start.column,
+          startLineNumber: start.lineNumber,
+          endColumn: end.column,
+          endLineNumber: end.lineNumber
+        },
+        text: text,
+        forceMoveMarkers: true
+      }
+      
+      model.pushEditOperations([], [editOp], () => []);
+      // let text = model.getValue();
+      // text = text.substring(0, startOffset) + string + text.substring(endOffset);
+      // model.setValue(text);
+    } catch (e) {
+      console.log('Replace failed: ', e);
+    }
   }
 
   addChildNodeHandler(child: string): void {
@@ -497,6 +556,9 @@ export default class Editor extends React.Component<unknown, EditorState> {
                     onCursorPositionChangedCallback={this.monacoCursorPositionChangedCallback.bind(
                       this
                     )}
+                    onCursorPositionChangedMath={this.monacoCursorPositionChangedMath.bind(
+                      this
+                    )}
                   />
                   <PdfViewer
                     hidden={
@@ -523,7 +585,19 @@ export default class Editor extends React.Component<unknown, EditorState> {
             <ReflexElement className="pane-right" minSize={150} flex={0.15}>
               <ReflexContainer orientation="horizontal">
                 <ReflexElement className="pane-right-top" minSize={25}>
-                  <Pane title="Math View" collapsible={false}></Pane>
+                  <Pane title="Math View" collapsible={false}>
+                    { (this.state.activeMathString && this.state.activeMathString !== '') ?
+                      <EquationViewer
+                        // dom={this.state.activeFileDOM}
+                        str={this.state.activeMathString}
+                        // node={this.state.activeFileCursorIDOM}
+                        xpath={this.state.activeFileCursorXPath}
+                        start={this.state.mathStartIndex}
+                        end={this.state.mathEndIndex}
+                        replaceHandler={this.handleReplaceRange.bind(this)}
+                        mathTagIncluded={this.state.mathTagIncluded}
+                      /> : null}
+                  </Pane>
                 </ReflexElement>
                 <ReflexSplitter className="primary-splitter splitter" />
                 <ReflexElement

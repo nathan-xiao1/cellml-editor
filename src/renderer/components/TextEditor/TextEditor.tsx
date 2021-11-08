@@ -11,10 +11,14 @@ import CellMLHoverProvider from "./definitions/HoverProvider";
 import CellMLFormattingProvider from "./definitions/FormattingProvider";
 import { getCursorElement, getXPath } from "src/commons/utils/xpath";
 import { IProblemItem } from "Types";
+import IPCChannel from "IPCChannels";
+import findApplyMatch, { findApplyMatches } from "../EquationViewer/regexApply";
 
 import "./MonacoLoader";
 import { ipcRenderer } from "electron";
-import IPCChannel from "IPCChannels";
+import { mathElements } from "src/commons/CellMLSchema";
+import { ALPN_ENABLED } from "constants";
+import { match } from "assert";
 
 const CellMLID = "CellML2";
 
@@ -28,6 +32,7 @@ interface TEProps {
   onMountCallback?: () => void;
   onChangeCallback?: (content: string) => void;
   onCursorPositionChangedCallback?: (path: string) => void;
+  onCursorPositionChangedMath?: (mathstr: string, startIndex: number, endIndex: number, mathTagIncluded: boolean) => void;
 }
 
 interface TEState {
@@ -38,9 +43,11 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
   private monacoInstance: Monaco;
   private editorInstance: monaco.editor.IStandaloneCodeEditor;
   private contextProvider: ContextProvider;
+  // public currentMathElement: string;
   constructor(props: TEProps) {
     super(props);
     this.contextProvider = new ContextProvider();
+    // this.currentMathElement = "";
   }
 
   // prettier-ignore
@@ -62,6 +69,8 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
     editorInstance: monaco.editor.IStandaloneCodeEditor
   ): void {
     this.editorInstance = editorInstance;
+    // set up handler to check cursor position
+
     this.props.onMountCallback();
 
     // Register callback for cursor position change event
@@ -80,6 +89,65 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
           ? getXPath(textUntilPosition, cursorElement)
           : null;
         this.props.onCursorPositionChangedCallback(xpath);
+        
+        const offset = model.getOffsetAt(event.position);
+
+        const str = model.getValue();
+        const startre = /<\s*math.*>/gm;
+        const endre = /<\s*\/math\s*>/gm;
+
+        // Finding matches for starting math tag
+        const startMatches = [...str.matchAll(startre)];
+        let start = null;
+        for (const match of startMatches) {
+          if (match.index < offset) {
+            start = match.index;
+          }
+        }
+        
+        // Matches for starting end tag, send if start < cursorOffset < end
+        const endMatches = [...str.matchAll(endre)];
+        let end;
+        if (start) {
+          let i = endMatches.length - 1;
+          while (i >= 0) {
+            const match = endMatches[i];
+            const endIndex = match.index + match[0].length;
+            if (endIndex > offset) {
+              end = endIndex;
+            }
+            i--;
+          }
+        }
+
+        // If math component found within offset
+        if (start && end) {
+          
+          // Find appropriate apply
+          // const r = findApplyMatch(str.slice(start, end), offset - start);
+          // if (r.foundMatch && r.multipleApplies) {
+          //   const endOff = r.endOff + start;
+          //   const startOff = r.startOff + start;
+          //   console.log('Apply Match: ', str.slice(startOff, endOff));
+          // }
+          let mathTagIncluded = true;
+          const r = findApplyMatches(str.slice(start, end));
+          if (r.length > 1) {
+            for (const res of r) {
+              if (res.startOff <= offset - start && offset - start <= res.endOff) {
+                // console.log('Apply Match: ', res, str.slice(start + res.startOff, start + res.endOff));
+                end = start + res.endOff;
+                start = start + res.startOff;
+                mathTagIncluded = false;
+              }
+            }
+          }
+
+          this.props.onCursorPositionChangedMath(str.slice(start, end), start, end, mathTagIncluded);
+        } else {
+          this.props.onCursorPositionChangedMath('', undefined, undefined, true);
+        }
+        
       }
     );
 

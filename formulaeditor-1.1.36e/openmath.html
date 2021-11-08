@@ -1,0 +1,255 @@
+<html>
+
+  <head>
+
+    <title>MathDox formula editor: OpenMath conversion</title>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+    <script type='text/javascript'>
+      if (org) {
+        alert("org already defined, could not set options");
+      } else {
+        var org = { mathdox: { formulaeditor: { options: {
+          debug: true,
+	  optionExplicitBrackets: true,
+	  paletteURL : "org/mathdox/formulaeditor/palette_full.xml",
+	  paletteStyle : "border : 2px solid #99F; vertical-align : middle; cursor : text; padding : 20px; background-color:white; cursor: pointer;",
+	  indentXML : true,
+	  useBar : true
+	}}}};
+      }
+
+      updateGAP = function() {
+	var textarea = document.getElementById("gap1");
+
+        var callback = function(str) {
+	  textarea.value = str;
+	}
+
+	org.mathdox.formulaeditor.Services.openmath2gap(
+	  org.mathdox.formulaeditor.FormulaEditor.getEditorByTextArea("formula1").getOpenMath(), callback);
+
+      };
+      updateMathML = function() {
+	var mathml = new org.mathdox.formulaeditor.FormulaEditor().indentXML(
+	  org.mathdox.formulaeditor.FormulaEditor.getEditorByTextArea(
+	    "formula1").getMathML());
+
+	var textarea = document.getElementById("mathml1");
+
+	textarea.value = mathml;
+
+	var mathmlDiv = document.getElementById("mathml2");
+
+	mathmlDiv.innerHTML = mathml;
+      };
+      loadMathML = function() {
+	var textarea = document.getElementById("mathml1");
+        org.mathdox.formulaeditor.FormulaEditor.getEditorByTextArea(
+          "formula1").loadMathML(textarea.value);
+        org.mathdox.formulaeditor.FormulaEditor.getEditorByTextArea(
+          "formula1").redraw();
+      };
+      docopy = function() {
+	var presCopy = org.mathdox.formulaeditor.FormulaEditor.getEditorByTextArea(
+			"formula1").presentation.copy();
+
+	var editor2 = org.mathdox.formulaeditor.FormulaEditor.getEditorByTextArea("formula2");
+	editor2.presentation = presCopy;
+	presCopy.updateChildren();
+	editor2.save();
+	editor2.redraw();
+      };
+      updateOption = function(name) {
+	var form = document.getElementById("OptionForm");
+        var value= form[name].value;
+
+        if (value == "false") {
+          value = false;
+        } else if (value == '"false"') {
+          value = "false";
+        } else if (value == "true") {
+          value = true;
+        } else if (value == '"true"') {
+          value = "true";
+        }
+
+	var option = new org.mathdox.formulaeditor.Options();
+	option.setOption(name, value);
+      };
+      var formOptions= {
+        decimalMark: [ ".", "," ],
+        optionArith1PowerInversePrefix : [ "false", "true" ],
+        optionArith1PowerPrefix : [ "false", "true" ],
+        optionArith1UnaryMinusBrackets : [ "false", "true" ],
+	styleArith1Times: [ "dot", "cross", "star"],
+        styleLinalg2Vector : [ "column", "row" ],
+	styleTransc1Log : [ "function", "prefix", "postfix"]
+      };
+
+      var optionsAdded = false;
+
+      showOptions = function() {
+	if (optionsAdded === true) {
+          return;
+	}
+        optionsAdded = true;
+
+        var form = document.getElementById("OptionForm");
+        var option;
+        var table = document.createElement("table");
+
+        for (option in formOptions) {
+          var row = document.createElement("tr");
+	  var label = document.createElement("td");
+          label.innerHTML = option;
+	  row.appendChild(label);
+
+          var i;
+	  var buttons = document.createElement("td");
+          for (i=0; i<formOptions[option].length; i++) {
+            var radio = document.createElement("input");
+            radio.setAttribute("type", "radio");
+            radio.setAttribute("name", option);
+            var value = formOptions[option][i];
+            radio.setAttribute("value", value);
+            if (i==0) {
+              radio.setAttribute("checked", true);
+            }
+            radio.setAttribute("onchange", "updateOption('" + option +"')");
+            buttons.appendChild(radio);
+
+            var radiospan = document.createElement("span");
+            radiospan.innerHTML = value;
+            buttons.appendChild(radiospan);
+          }
+
+          row.appendChild(buttons);
+	  table.appendChild(row);
+        }
+
+        form.appendChild(table);
+      };
+    </script>
+    <script type='text/javascript' src='org/mathdox/formulaeditor/main.js'>
+    </script>
+
+    <style type='text/css'>
+
+      #main {
+        background-color:#FFF;
+        width:50em;
+        font-family:sans-serif;
+      }
+
+      .code {
+        padding-left:2em;
+        font-family:monospace;
+      }
+
+    </style>
+
+  </head>
+
+  <body>
+
+    <div id='main'>
+
+      <h3>MathDox formula editor</h3>
+
+      <p>
+	This page shows the <a href='index.html'>mathdox formulaeditor</a> with
+	a visible textarea (usually hidden), that will show the OpenMath (and
+	presentation MathML) output for the current expression. Not all
+	supported symbols are shown in the palette (transc1 is completely
+	supported). Furthermore it is possible to add additional OpenMath
+	symbols in prefix notation: <code>private.fun(private.cons)</code>
+      </p>
+
+      <h4>OpenMath conversion</h4>
+
+      <form id="OptionForm">
+        <button type="button" onclick="showOptions()">Show options</button>
+      </form>
+
+      <textarea id='formula1' class='mathdoxformula mathdoxpalette mathdoxvisibletextarea' rows='10' cols='80' style='padding-left:20px'>
+
+&lt;OMOBJ xmlns='http://www.openmath.org/OpenMath' version='2.0' cdbase='http://www.openmath.org/cd'&gt;
+  &lt;OMA&gt;
+    &lt;OMS cd='arith1' name='minus'/&gt;
+    &lt;OMA brackets='1'&gt;
+      &lt;OMS cd='arith1' name='plus'/&gt;
+      &lt;OMV name='x'/&gt;
+      &lt;OMI&gt;1&lt;/OMI&gt;
+    &lt;/OMA&gt;
+    &lt;OMI&gt;2&lt;/OMI&gt;
+  &lt;/OMA&gt;
+&lt;/OMOBJ&gt;
+      </textarea>
+      <textarea id='formula2' class='mathdoxformula mathdoxpalette mathdoxvisibletextarea' rows='10' cols='80'>
+&lt;OMOBJ xmlns='http://www.openmath.org/OpenMath' version='2.0' cdbase='http://www.openmath.org/cd'&gt;
+  &lt;OMA style='system'&gt;
+    &lt;OMS cd='logic1' name='and'/&gt;
+    &lt;OMA&gt;
+      &lt;OMS cd='relation1' name='eq'/&gt;
+      &lt;OMA&gt;
+        &lt;OMS cd='arith1' name='plus'/&gt;
+        &lt;OMA&gt;
+          &lt;OMS cd='arith1' name='times'/&gt;
+	  &lt;OMS cd='editor1' name='input_box'/&gt;
+          &lt;OMV name='x'/&gt;
+        &lt;/OMA&gt;
+        &lt;OMA&gt;
+          &lt;OMS cd='arith1' name='times'/&gt;
+	  &lt;OMS cd='editor1' name='input_box'/&gt;
+          &lt;OMV name='y'/&gt;
+        &lt;/OMA&gt;
+      &lt;/OMA&gt;
+      &lt;OMI&gt;0&lt;/OMI&gt;
+    &lt;/OMA&gt;
+    &lt;OMA&gt;
+      &lt;OMS cd='relation1' name='eq'/&gt;
+      &lt;OMA&gt;
+        &lt;OMS cd='arith1' name='plus'/&gt;
+        &lt;OMA&gt;
+          &lt;OMS cd='arith1' name='times'/&gt;
+	  &lt;OMS cd='editor1' name='input_box'/&gt;
+          &lt;OMV name='x'/&gt;
+        &lt;/OMA&gt;
+        &lt;OMA&gt;
+          &lt;OMS cd='arith1' name='times'/&gt;
+	  &lt;OMS cd='editor1' name='input_box'/&gt;
+          &lt;OMV name='y'/&gt;
+        &lt;/OMA&gt;
+      &lt;/OMA&gt;
+      &lt;OMI&gt;0&lt;/OMI&gt;
+    &lt;/OMA&gt;
+  &lt;/OMA&gt;
+&lt;/OMOBJ&gt;
+      </textarea>
+      <button type="button" name="MathML" value='MathML' onclick='updateMathML()'>
+	Update MathML
+      </button>
+      <div id='mathml2'>
+      </div>
+      <button type="button" name="MathML2" value='MathML' onclick='docopy()'>
+	Copy presentation 
+      </button>
+      <button type="button" name="MathML3" value='MathML' onclick='loadMathML()'>
+	Load MathML
+      </button>
+      <textarea id='mathml1' style='margin-right: 2em' rows='10' cols='80'>
+      </textarea>
+
+      <button type="button" name="GAP" value='GAP' onclick='updateGAP()'>
+	Update GAP
+      </button>
+      <textarea id='gap1' style='margin-right: 2em' rows='10' cols='80'>
+      </textarea>
+
+    </div>
+
+  </body>
+
+</html>

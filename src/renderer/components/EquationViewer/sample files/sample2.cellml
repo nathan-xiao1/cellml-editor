@@ -1,0 +1,87 @@
+<?xml version='1.0'?>
+<model name="my_model" xmlns="http://www.cellml.org/cellml/2.0#" xmlns:cellml="http://www.cellml.org/cellml/2.0#">
+    <units name="millisecond">
+        <unit prefix="milli" units="second"/>
+    </units>
+    <units name="per_millisecond">
+        <unit exponent="-1" prefix="milli" units="second"/>
+    </units>
+    <units name="millivolt">
+        <unit prefix="milli" units="volt"/>
+    </units>
+    <units name="per_millivolt_millisecond">
+        <unit exponent="-1" units="millivolt"/>
+        <unit exponent="-1" prefix="milli" units="second"/>
+    </units>
+    <units name="milliS_per_cm2">
+        <unit prefix="milli" units="siemens"/>
+        <unit exponent="-2" prefix="centi" units="metre"/>
+    </units>
+    <units name="microF_per_cm2">
+        <unit prefix="micro" units="farad"/>
+        <unit exponent="-2" prefix="centi" units="metre"/>
+    </units>
+    <units name="microA_per_cm2">
+        <unit prefix="micro" units="ampere"/>
+        <unit exponent="-2" prefix="centi" units="metre"/>
+    </units>
+    <component name="root"/>
+    <component name="leakage_current">
+        <variable name="i" units="microA_per_cm2"/>
+        <variable initial_value="0.3" name="g" units="milliS_per_cm2"/>
+        <variable name="L" units="millivolt"/>
+        <variable name="time" units="millisecond"/>
+        <variable name="V" units="millivolt"/>
+        <variable name="R" units="millivolt"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>L</ci>
+                <apply>
+                    <plus/>
+                    <ci>R</ci>
+                    <cn>10.613</cn>
+                </apply>
+            </apply>
+        </math>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>i</ci>
+                <apply>
+                    <times/>
+                    <ci>g</ci>
+                    <apply>
+                        <minus/>
+                        <ci>V</ci>
+                        <ci>L</ci>
+                    </apply>
+                </apply>
+            </apply>
+        </math>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>L</ci>
+                <apply>
+                    <plus/>
+                    <ci>R</ci>
+                    <cn>10.613</cn>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>i</ci>
+                <apply>
+                    <times/>
+                    <ci>g</ci>
+                    <apply>
+                        <minus/>
+                        <ci>V</ci>
+                        <ci>L</ci>
+                    </apply>
+                </apply>
+            </apply>
+        </math>
+    </component>
+</model>

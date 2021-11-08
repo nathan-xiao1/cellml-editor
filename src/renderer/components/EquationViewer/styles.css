@@ -1,0 +1,48 @@
+.iframe {
+  width: 1000px;
+  height: 500px;
+}
+
+.mathdoxformula {
+  background-color: white !important;
+  display: block
+}
+
+.formulaeditorpalette {
+  display: block
+}
+
+.show {
+  display: block;
+}
+
+.hide {
+  display: none;
+}
+
+.mathjax {
+  width: auto;
+}
+
+.buttonTable {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.buttonTable button {
+  width: 100%;
+}
+
+.buttonContainer {
+  display: flex;
+  flex-flow: column;
+  justify-content: space-around;
+  align-items: baseline;
+  width: 15vw;
+}
+
+.buttonContainer button {
+  width: 100%;
+  margin: 5px;
+}
