@@ -4104,11 +4104,46 @@ const CreateImgModel: React.FunctionComponent<CIMProps> = (props: CIMProps) => {
               </div>
 
               <div> Units:
-                <input id="var_units_input" className="elem_info_input" placeholder="units" onKeyUp={checkVariableUnits}
+                <input id="var_units_input" className="elem_info_input" list="different_si_units" placeholder="units" onKeyUp={checkVariableUnits}
                        onMouseOver={() => on_hover_show_cellml_restrictions("cellml_var_units")} 
                        onMouseOut={() => on_leave_close_cellml_restrictions("cellml_var_units")}></input>
+                <datalist id="different_si_units">
+                  <option>ampere</option>
+                  <option>becquerel</option>
+                  <option>candela</option>
+                  <option>dimensionless</option>
+                  <option>farad</option>
+                  <option>gram</option>
+                  <option>gray</option>
+                  <option>henry</option>
+                  <option>hertz</option>
+                  <option>joule</option>
+                  <option>katal</option>
+                  <option>kelvin</option>
+                  <option>kilogram</option>
+                  <option>litre</option>
+                  <option>lumen</option>
+                  <option>lux</option>
+                  <option>metre</option>
+                  <option>mole</option>
+                  <option>newton</option>
+                  <option>ohm</option>
+                  <option>pascal</option>
+                  <option>radian</option>
+                  <option>second</option>
+                  <option>siemens</option>
+                  <option>sievert</option>
+                  <option>steradian</option>
+                  <option>tesla</option>
+                  <option>volt</option>
+                  <option>watt</option>
+                  <option>weber</option>
+                </datalist>
                 <div id="cellml_var_units" className="cellml_restrictions">
-                    Must be a valid units element reference
+                    <ul>
+                      <li>Must be a valid units element reference</li>
+                      <li>If you don't desire a unit then use 'dimensionless'</li>
+                    </ul>
                 </div>
               </div>
 
@@ -4175,7 +4210,7 @@ const CreateImgModel: React.FunctionComponent<CIMProps> = (props: CIMProps) => {
 
             {/* === RESET - TEST VALUE === */}
             <div id="test_value_info" className="elem_info">
-              <div> Reset Parent: 
+              <div> Reset Parent ID: 
                 <input id="tv_comp_ref" className="elem_info_input" placeholder="reset parent" onKeyUp={() => checkResetParent("tv_comp_ref")}
                        onMouseOver={() => on_hover_show_cellml_restrictions("cellml_reset_test_v")} 
                        onMouseOut={() => on_leave_close_cellml_restrictions("cellml_reset_test_v")}></input>
@@ -4186,7 +4221,7 @@ const CreateImgModel: React.FunctionComponent<CIMProps> = (props: CIMProps) => {
             </div>
             {/* === RESET - RESET VALUE === */}
             <div id="reset_value_info" className="elem_info">
-              <div> Reset Parent: 
+              <div> Reset Parent ID: 
                 <input id="rv_comp_ref" className="elem_info_input" placeholder="reset parent" onKeyUp={() => checkResetParent("rv_comp_ref")}
                        onMouseOver={() => on_hover_show_cellml_restrictions("cellml_reset_value")} 
                        onMouseOut={() => on_leave_close_cellml_restrictions("cellml_reset_value")}></input>
@@ -4261,6 +4296,7 @@ const CreateImgModel: React.FunctionComponent<CIMProps> = (props: CIMProps) => {
                 <div id="cellml_connection_1" className="cellml_restrictions">
                   <ul>
                     <li>Must be a valid component reference</li>
+                    <li>Must be the components name (not ID) </li>
                     <li>Component 1 can't be equal to component 2</li>
                   </ul>
                 </div>
@@ -4272,6 +4308,7 @@ const CreateImgModel: React.FunctionComponent<CIMProps> = (props: CIMProps) => {
                 <div id="cellml_connection_2" className="cellml_restrictions">
                   <ul>
                     <li>Must be a valid component reference</li>
+                    <li>Must be the components name (not ID) </li>
                     <li>Component 1 can't be equal to component 2</li>
                   </ul>
                 </div>
@@ -4295,6 +4332,7 @@ const CreateImgModel: React.FunctionComponent<CIMProps> = (props: CIMProps) => {
                 <div id="cellml_var_1" className="cellml_restrictions">
                   <ul>
                     <li>Must be a valid variable reference</li>
+                    <li>Must be the varaible's name (not ID) </li>
                     <li>Variable 1 can't be equal to variable 2</li>
                     <li>Only one map_variables item between any two variables</li>
                   </ul>
@@ -4307,6 +4345,7 @@ const CreateImgModel: React.FunctionComponent<CIMProps> = (props: CIMProps) => {
                 <div id="cellml_var_2_restrictions" className="cellml_restrictions">
                   <ul>
                     <li>Must be a valid variable reference</li>
+                    <li>Must be the variable's name (not ID) </li>
                     <li>Variable 1 can't be equal to variable 2</li>
                     <li>Only one map_variables item between any two variables</li>
                   </ul>

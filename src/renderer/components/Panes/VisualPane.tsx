@@ -677,7 +677,7 @@ export default class VisualPane extends React.Component<TPProps> {
           context.lineWidth = 5;
           context.strokeStyle = "rgb(115,50,115)";
           context.fillStyle   = "rgb(115,50,115)";
-          context.setLineDash([10,10]);
+          context.setLineDash([]);
           for (let j = 0; j < cellml_elements.length; j++) {
             // Checking component 1 & 2
             if (cellml_elements[j].element_type == "variable" && cellml_elements[j].name == shape.variable_1 ) {
@@ -2282,7 +2282,7 @@ export default class VisualPane extends React.Component<TPProps> {
           context.lineWidth = 5;
           context.strokeStyle = "rgb(115,50,115)";
           context.fillStyle   = "rgb(115,50,115)";
-          context.setLineDash([10,10]);
+          context.setLineDash([]);
           for (let j = 0; j < cellml_elements.length; j++) {
             // Checking component 1 & 2
             if (cellml_elements[j].element_type == "variable" && cellml_elements[j].name == shape.variable_1 ) {
