@@ -538,7 +538,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                   <CreateImgModel></CreateImgModel>
                 </div>
 
-                <ReflexElement className="pane-middle-top primary-bg-dark">
+                <ReflexElement className="pane-middle-top primary-bg-dark" minSize={75} flex={0.80}>
                   <TextEditor
                     ref={this.textEditorRef}
                     hidden={
@@ -572,7 +572,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                 <ReflexElement
                   className="pane-middle-bottom"
                   minSize={25}
-                  flex={0.25}
+                  flex={0.50}
                 >
                   <Pane title="Problem">
                     <ProblemPane problems={this.getActiveFile().problems} />
