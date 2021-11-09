@@ -274,6 +274,10 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
     this.editorInstance.setPosition(position);
   }
 
+  formatDocument(): void {
+    this.editorInstance.getAction("editor.action.formatDocument").run();
+  }
+
   componentDidUpdate(prevProps: TEProps): void {
     if (prevProps.problems != this.props.problems) {
       this.highlightErrors(this.props.problems);

@@ -263,7 +263,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
     mathTagIncluded: boolean
   ): void {
     // const cleanedAttributes = mathstr.replace(/cellml:[^</>)]*/mg, '');
-    
+
     if (mathstr != this.state.activeMathString) {
       this.setState(() => ({
         activeMathString: mathstr,
@@ -438,6 +438,10 @@ export default class Editor extends React.Component<unknown, EditorState> {
     this.textEditorRef?.current?.redo();
   }
 
+  formatDocument(): void {
+    this.textEditorRef?.current?.formatDocument();
+  }
+
   changemodel(): void {
     console.log("change model");
     console.log(graphics_or_text);
@@ -490,6 +494,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
       <React.Fragment>
         <TitleMenuBar
           getActiveFilepath={this.getActiveFilepath.bind(this)}
+          formatDocument={this.formatDocument.bind(this)}
           saveBtnEnabled={
             this.getActiveFile().fileType == "CellML" &&
             this.state.currentMode == "text"

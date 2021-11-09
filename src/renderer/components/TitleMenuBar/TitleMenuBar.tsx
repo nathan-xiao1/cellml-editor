@@ -12,6 +12,7 @@ import "./TitleMenuBar.scss";
 interface TMBProps {
   saveBtnEnabled: boolean;
   getActiveFilepath: () => string;
+  formatDocument: () => void;
   openPrompt: () => void;
 }
 
@@ -173,6 +174,12 @@ export default class TitleMenuBar extends React.Component<TMBProps, TMBState> {
                     label: "Zoom Out",
                     click: this.zoomOut,
                     accelerator: "CmdOrCtrl+-",
+                  },
+                  { type: "separator" },
+                  {
+                    label: "Format Model",
+                    click: this.props.formatDocument,
+                    accelerator: "Alt+Shift+R",
                   },
                 ],
               },
