@@ -23,6 +23,10 @@ export default class PdfViewer extends React.Component<PVProps, PVState> {
       source: "static/cellml_editor_documentation.pdf",
     },
     {
+      title: "Editor Tutorial",
+      source: "static/cellml_editor_tutorial.pdf",
+    },
+    {
       title: "CellML 2.0 Specification",
       source: "static/cellml_2_0_normative_specification.pdf",
     },
@@ -53,7 +57,11 @@ export default class PdfViewer extends React.Component<PVProps, PVState> {
       <div
         className={`pdf-viewer-container ${this.props.hidden ? "hidden" : ""}`}
       >
-        <PdfMultiViewer ref={this.childRef} pdfs={this.pdfFiles} autoZoom={false} />
+        <PdfMultiViewer
+          ref={this.childRef}
+          pdfs={this.pdfFiles}
+          autoZoom={false}
+        />
       </div>
     );
   }
