@@ -76,6 +76,7 @@ export default class TextEditor extends React.Component<TEProps, TEState> {
     // Register callback for cursor position change event
     this.editorInstance.onDidChangeCursorPosition(
       (event: editor.ICursorPositionChangedEvent) => {
+        if (this.props.readonly) return;
         const model = this.editorInstance.getModel();
         const textUntilPosition = model.getValueInRange({
           startLineNumber: 1,

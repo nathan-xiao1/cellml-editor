@@ -263,7 +263,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
     mathTagIncluded: boolean
   ): void {
     // const cleanedAttributes = mathstr.replace(/cellml:[^</>)]*/mg, '');
-
+    
     if (mathstr != this.state.activeMathString) {
       this.setState(() => ({
         activeMathString: mathstr,
@@ -534,6 +534,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                 >
                   <Pane title="Import Component" collapsible={false}>
                     <ImportPane
+                      readonly={this.getActiveFile().readonly}
                       openLibraryComponent={this.openLibraryComponent.bind(
                         this
                       )}

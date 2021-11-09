@@ -10,6 +10,7 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import "./ImportPane.scss";
 
 interface IPProps {
+  readonly: boolean;
   filepath: string;
   xpath: string;
   openLibraryComponent: (componentId: string) => void;
@@ -109,16 +110,18 @@ export default class ImportPane extends React.Component<IPProps, IPState> {
                         }}
                       />
                     </div>
-                    <div title="Import Component">
-                    <AddIcon
-                      className="import-component-btn"
-                      style={{ fontSize: 14, cursor: "pointer" }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        this.importComponent(component);
-                      }}
-                    />
-                    </div>
+                    {!this.props.readonly && (
+                      <div title="Import Component">
+                        <AddIcon
+                          className="import-component-btn"
+                          style={{ fontSize: 14, cursor: "pointer" }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            this.importComponent(component);
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </li>
