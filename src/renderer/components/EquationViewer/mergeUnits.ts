@@ -2,65 +2,65 @@ import convert, {ElementCompact} from 'xml-js';
 import format from 'xml-formatter';
 import { diffLines } from 'diff';
 
-// const new1 = `
-// <math xmlns="http://www.w3.org/1998/Math/MathML">
-//     <apply>
-//         <eq/>
-//         <ci>L</ci>
-//         <apply>
-//             <plus/>
-//             <ci>R</ci>
-//             <cn cellml:units="per_millisecond">10.613</cn>
-//         </apply>
-//     </apply>
-// </math>
-// `;
+const new1 = `
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+        <eq/>
+        <ci>L</ci>
+        <apply>
+            <plus/>
+            <ci>R</ci>
+            <cn>10.613</cn>
+        </apply>
+    </apply>
+</math>
+`;
 
-// const old1 = `
-// <math xmlns="http://www.w3.org/1998/Math/MathML">
-//     <apply>
-//         <eq/>
-//         <ci>L</ci>
-//         <apply>
-//             <plus/>
-//             <ci>R</ci>
-//             <cn>10.614</cn>
-//         </apply>
-//     </apply>
-// </math>
-// `;
+const old1 = `
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+        <eq/>
+        <ci>L</ci>
+        <apply>
+            <plus/>
+            <ci>R</ci>
+            <cn cellml:units="per_millisecond">10.614</cn>
+        </apply>
+    </apply>
+</math>
+`;
 
-// const new2 = `
-// <math xmlns="http://www.w3.org/1998/Math/MathML">
-// <apply>
-//     <eq/>
-//     <cn>10.613</cn>
-//     <apply>
-//         <plus/>
-//         <ci>R</ci>
-//         <apply>
-//             <plus/>
-//             <ci>M</ci>
-//             <cn>10.613</cn>
-//         </apply>
-//     </apply>
-// </apply>
-// </math>
-// `;
+const new2 = `
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+<apply>
+    <eq/>
+    <cn>10.613</cn>
+    <apply>
+        <plus/>
+        <ci>R</ci>
+        <apply>
+            <plus/>
+            <ci>M</ci>
+            <cn>10.613</cn>
+        </apply>
+    </apply>
+</apply>
+</math>
+`;
 
-// const old2 = `
-// <math xmlns="http://www.w3.org/1998/Math/MathML">
-//     <apply>
-//         <eq/>
-//         <cn cellml:units="per_millisecond">10.613</cn>
-//         <apply>
-//             <plus/>
-//             <ci>R</ci>
-//             <cn cellml:units="per_millisecond">10.613</cn>
-//         </apply>
-//     </apply>
-// </math>
-// `;
+const old2 = `
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+        <eq/>
+        <cn cellml:units="per_millisecond">10.613</cn>
+        <apply>
+            <plus/>
+            <ci>R</ci>
+            <cn cellml:units="per_millisecond">10.613</cn>
+        </apply>
+    </apply>
+</math>
+`;
 
 const mergeCn = (newmml: string, oldmml: string) : string => {
     const newxml = format(newmml, { indentation: '', collapseContent: true });
@@ -91,8 +91,8 @@ const mergeUnitsChange = (newmml: string, oldmml: string) : string => {
         const newMatches = [...patchedmml.matchAll(regex)];
         if (newMatches.length < i) return format(patchedmml, { indentation: '    ', collapseContent: true });
         const newMatch = newMatches[i];
-        const index = newMatch.index;
-        if (index !== undefined) {
+        if (newMatch.index !== undefined) {
+            const index = newMatch.index;
             patchedmml = patchedmml.slice(0, index) + oldMatches[0][0] + patchedmml.slice(newMatch[0].length + index);
         }
         i++;

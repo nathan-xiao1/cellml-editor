@@ -27,7 +27,11 @@ module.exports = [
       {
         from: path.resolve(__dirname, "src", "static"),
         to: path.resolve(__dirname, ".webpack/renderer", ROOT_PATH, "static"),
-      }
+      },
+      {
+        from: path.resolve(__dirname, "formulaeditor-1.1.36e"),
+        to: path.resolve(__dirname, ".webpack/renderer", ROOT_PATH),
+      },
     ].filter(Boolean),
   }),
 ];
