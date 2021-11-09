@@ -121,6 +121,10 @@ export default class TitleMenuBar extends React.Component<TMBProps, TMBState> {
                         label: "Empty Model",
                         click: () => this.newFileFromTemplate("emptyModel"),
                       },
+                      {
+                        label: "Sample Model",
+                        click: () => this.newFileFromTemplate("sampleModel"),
+                      },
                     ],
                   },
                   { type: "separator" },

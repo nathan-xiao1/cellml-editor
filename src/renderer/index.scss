@@ -3,7 +3,8 @@
 body {
   color: var(--primary-text);
   background-color: var(--primary-color);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
   margin: auto;
 }
 
@@ -29,6 +30,14 @@ body {
   background: #4f4f4f;
 }
 
+::-webkit-scrollbar-corner {
+  background: rgba(0, 0, 0, 0);
+}
+
 .hidden {
   display: none !important;
+}
+
+.no-overflow {
+  overflow: hidden !important;
 }

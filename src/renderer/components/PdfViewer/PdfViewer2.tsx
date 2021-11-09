@@ -1,11 +1,9 @@
 import React from "react";
-import { PdfMultiViewer, PdfjsLib } from "react-pdfjs-multi";
+import { PdfMultiViewer } from "react-pdfjs-multi";
 import { IFileState } from "Types";
 
 import "react-pdfjs-multi/dist/react-pdfjs-multi.css";
 import "./PdfViewer2.scss";
-
-PdfjsLib.GlobalWorkerOptions.workerSrc = "pdf.worker.min.js";
 
 interface PVProps {
   hidden: boolean;

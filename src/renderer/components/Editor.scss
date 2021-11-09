@@ -57,6 +57,9 @@
 
 .pane-middle-top {
   overflow: auto !important;
+  &.no-overflow {
+    overflow: hidden !important;
+  }
 }
 
 .pane-middle-bottom {

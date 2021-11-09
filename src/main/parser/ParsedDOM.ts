@@ -65,8 +65,12 @@ export default class ParsedDOM implements IParsedDOM {
       );
       if (schema) {
         for (const attr of schema.attributes) {
+          if (attr.name == "xmlns") continue;
           childElement.attr(attr.name, "");
         }
+      }
+      if (childName == "math") {
+        childElement.defineNamespace("http://www.w3.org/1998/Math/MathML");
       }
       libXMLNode.addChild(childElement);
     }

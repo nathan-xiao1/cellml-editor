@@ -552,4 +552,9 @@ for (const element of elements) {
   elementMap.set(element.label, element);
 }
 
+export const elementSet = new Set<string>();
+[elements, mathElements, units, prefix].forEach((elements) =>
+  elements.forEach((element) => elementSet.add(element.label))
+);
+
 export default elementMap;

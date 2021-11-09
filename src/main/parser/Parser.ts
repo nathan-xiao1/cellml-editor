@@ -1,5 +1,7 @@
 import LibCellMLParser from "./LibCellMLParser";
-import CellMLSchema from "src/commons/CellMLSchema";
+import CellMLSchema, {
+  elementSet as CellMLElementSet,
+} from "src/commons/CellMLSchema";
 import libxmljs from "libxmljs2";
 import {
   IDOM,
@@ -144,6 +146,17 @@ export default class Parser implements IParser {
           hidden: true,
         });
       }
+    } else if (!CellMLElementSet.has(root.name())) {
+      const errorMsg = `Unexpect element: ` + root.name();
+      problems.push({
+        description: errorMsg,
+        severity: "error",
+        startColumn: 0,
+        endColumn: 0,
+        startLineNumber: root.line(),
+        endLineNumber: root.line(),
+        hidden: true,
+      });
     }
 
     return {

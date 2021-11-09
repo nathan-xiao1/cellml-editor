@@ -284,7 +284,8 @@ export default class Editor extends React.Component<unknown, EditorState> {
       }),
       () => {
         const activeFilepath = this.getActiveFilepath();
-        if (activeFilepath) ipcRenderer.send(IPCChannel.SAVE_FILE, this.getActiveFilepath());
+        if (activeFilepath)
+          ipcRenderer.send(IPCChannel.SAVE_FILE, this.getActiveFilepath());
         this.visualPaneRef?.current?.testXMLconvert(this.getActiveFilepath());
       }
     );
@@ -573,7 +574,14 @@ export default class Editor extends React.Component<unknown, EditorState> {
                   />
                 </ReflexElement>
 
-                <ReflexElement className="pane-middle-top primary-bg-dark">
+                <ReflexElement
+                  className={`pane-middle-top primary-bg-dark ${
+                    this.state.currentMode == "text" ||
+                    this.getActiveFile().fileType == "cellml"
+                      ? "no-overflow"
+                      : ""
+                  }`}
+                >
                   <TextEditor
                     ref={this.textEditorRef}
                     hidden={

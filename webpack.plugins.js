@@ -25,6 +25,10 @@ module.exports = [
         to: path.resolve(__dirname, ".webpack/renderer", ROOT_PATH),
       },
       {
+        from: path.resolve(__dirname, "node_modules/pdfjs-dist/build/pdf.worker.js"),
+        to: path.resolve(__dirname, ".webpack/renderer", ROOT_PATH),
+      },
+      {
         from: path.resolve(__dirname, "src", "static"),
         to: path.resolve(__dirname, ".webpack/renderer", ROOT_PATH, "static"),
       },

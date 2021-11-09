@@ -61,10 +61,10 @@ const createWindow = (): void => {
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 
   // Remove default menu
-  // mainWindow.setMenu(null);
+  mainWindow.setMenu(null);
 };
 
 // This method will be called when Electron has finished
