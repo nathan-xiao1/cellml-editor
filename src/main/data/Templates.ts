@@ -1,7 +1,7 @@
 export const templates = new Map<string, string>([
   [
     "emptyModel",
-    '<model xmlns="http://www.cellml.org/cellml/2.0#" name="">\n\t\n</model>',
+    '<?xml version="1.0" encoding="UTF-8"?>\n<model xmlns="http://www.cellml.org/cellml/2.0#" name="">\n\t\n</model>',
   ],
   [
     "sampleModel",

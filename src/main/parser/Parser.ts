@@ -138,7 +138,7 @@ export default class Parser implements IParser {
         const errorMsg = `Missing attributes: ` + missingAttrs.join(", ");
         problems.push({
           description: errorMsg,
-          severity: "error",
+          severity: "warning",
           startColumn: 0,
           endColumn: 0,
           startLineNumber: root.line(),
