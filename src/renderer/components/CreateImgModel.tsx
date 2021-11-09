@@ -2990,7 +2990,8 @@ const CreateImgModel: React.FunctionComponent<CIMProps> = (props: CIMProps) => {
       if (shapes_[i].element_type == "component_ref" && shapes_[i].c_id == parent) exists = 1;
     }
 
-    if (exists === 1) {
+    if (parent == "0") {document.getElementById("comp_ref_parent_id").style.borderColor = "#45d651"; setValidCompRefParentIDDrop(true)}
+    else if (exists === 1) {
       document.getElementById("comp_ref_parent_id").style.borderColor = "#45d651"; setValidCompRefParentIDDrop(true);
     } else {
       document.getElementById("comp_ref_parent_id").style.borderColor = "#d64545"; setValidCompRefParentIDDrop(false);
