@@ -234,16 +234,18 @@ class EquationViewer extends React.Component<EVProp, EVState> {
             // console.log(om);
             // console.log('mathTagIncluded ', this.props.mathTagIncluded);
             try {
-                const mm = openmath2mathml(om);
-                let newmathstr = mergeCn(mm, this.state.mathstr);
-                this.setState({ mathstr: newmathstr});
+                let mm = openmath2mathml(om);
                 // If given without math element, return without math element
                 if (!this.props.mathTagIncluded) {
-                    // Remove first and last lines (math elements)
-                    newmathstr = newmathstr.split('\n').slice(1, -1).join('\n').trim() + '\n';
-                    // Hacky way to remove extraneous indents caused by remove math elements
-                    newmathstr = newmathstr.replaceAll('\n    ', '\n');
+                    mm = mm.split('\n').slice(1, -1).join('\n').trim() + '\n';
+                    mm = mm.replaceAll('\n    ', '\n'); // Hacky way to remove extraneous indents caused by remove math elements
                 }
+                
+                let newmathstr = mergeCn(mm, this.state.mathstr);
+                console.log('Old mathml: \n', this.state.mathstr);
+                console.log('Mathml from OM: \n', mm);
+                this.setState({ mathstr: newmathstr});
+                
                 console.log('MathML to replace: \n', newmathstr);
                 this.props.replaceHandler(newmathstr, this.props.start, this.props.end);
             } catch (e) {
