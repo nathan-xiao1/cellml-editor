@@ -8,6 +8,7 @@ import mergeCn from './mergeUnits';
 import ViewOnly from './ViewOnly-ts';
 import { Button } from '@mui/material';
 import './styles.css';
+import './equationView.scss';
 // import redent from 'redent';
 // import stripIndent from 'stip-indent';
 
@@ -273,9 +274,9 @@ class EquationViewer extends React.Component<EVProp, EVState> {
                         
                         {/* Buttons TODO: change to more suitable css*/}
                         <div className='buttonContainer'>
-                            <Button variant="contained" onClick={this.handleReplaceButton}>Confirm Changes</Button>
+                            <Button className="equation_editor_confirm_btn" variant="contained" onClick={this.handleReplaceButton}>Confirm Changes</Button>
                             {/* Delete button only appears when selecting an existing math element */}
-                            {this.props.str ? <Button variant="outlined" onClick={this.handleDeleteButton}>Delete Math Element</Button> : null}
+                            {this.props.str ? <Button className="equation_editor_confirm_btn" variant="outlined" onClick={this.handleDeleteButton}>Delete Math Element</Button> : null}
                         </div>
                         {/* Used to load scripts for formula editor */}
                         <div id='loadScript'></div>

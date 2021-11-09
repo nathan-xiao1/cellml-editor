@@ -10,8 +10,7 @@ import { MenuBar } from "react-electron-window-menu";
 import "./TitleMenuBar.scss";
 
 interface TMBProps {
-  redoHandler: () => void;
-  undoHandler: () => void;
+  saveBtnEnabled: boolean;
   getActiveFilepath: () => string;
   openPrompt: () => void;
 }
@@ -54,6 +53,10 @@ export default class TitleMenuBar extends React.Component<TMBProps, TMBState> {
 
   newFile(): void {
     ipcRenderer.send(IPCChannel.NEW_FILE);
+  }
+
+  openGraphicalEditor(): void {
+    ipcRenderer.send(IPCChannel.NEW_FILE_GRAPHICAL);
   }
 
   newFileFromTemplate(id: string): void {
@@ -122,6 +125,11 @@ export default class TitleMenuBar extends React.Component<TMBProps, TMBState> {
                   },
                   { type: "separator" },
                   {
+                    label: "Open Graphical Editor",
+                    click: this.openGraphicalEditor.bind(this),
+                  },
+                  { type: "separator" },
+                  {
                     label: "Open File",
                     click: this.openFile,
                     accelerator: "CmdOrCtrl+O",
@@ -137,6 +145,7 @@ export default class TitleMenuBar extends React.Component<TMBProps, TMBState> {
                     label: "Save File",
                     click: this.saveFile.bind(this),
                     accelerator: "CmdOrCtrl+S",
+                    enabled: this.props.saveBtnEnabled,
                   },
                   { type: "separator" },
                   {

@@ -71,11 +71,11 @@ export default function Header(props: HeaderProp): JSX.Element {
           />
         ))}
       </div>
-      {/*{props.showToggle && (
+      {props.showToggle && (
         <div className="header-control-container">
           <EditorToggle toggleViewMode={props.toggleViewMode} />
         </div>
-      )}*/}
+      )}
     </div>
   );
 }

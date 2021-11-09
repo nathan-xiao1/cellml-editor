@@ -1,5 +1,5 @@
 /* eslint @typescript-eslint/no-var-requires: "off" */
-import React, { Context, useEffect, useState } from "react";
+import React, { Context, useEffect, useState, useRef } from "react";
 import { ReflexContainer, ReflexSplitter, ReflexElement } from "react-reflex";
 import "react-reflex/styles.css";
 import "./CreateImgModel.scss"
@@ -465,8 +465,12 @@ class ImportComponent extends ModelElement {
 // ------------------------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------------------------
+interface CIMProps {
+  hidden: boolean;
+}
+
 // Create Image Model is the element that 
-const CreateImgModel: React.FunctionComponent = () => {
+const CreateImgModel: React.FunctionComponent<CIMProps> = (props: CIMProps) => {
 
   // The current element clicked on: starts on model
   const [clickedElement, setClickedElement] = useState('Model');
@@ -510,8 +514,55 @@ const CreateImgModel: React.FunctionComponent = () => {
   const [listofImports, setListofImports] = useState([]);
 
   const [listofComponentRefs, setListofComponentRefs] = useState([]);
+
+
+  // --------------------------------------------------------------
+  // --------------------------------------------------------------
+  // --------------------------------------------------------------
+
+  const [validDrop, setValidDrop] = useState(true);
+
+  const [validUnitIDDrop, setValidUnitIDDrop] = useState(true);
+  const [validUnitUnitsDrop, setValidUnitUnitsDrop] = useState(true);
+  const [validUnitPrefixDrop, setValidUnitPrefixDrop] = useState(true);
+  const [validUnitMultDrop, setValidUnitMultDrop] = useState(true);
+  const [validUnitExpDrop, setValidUnitExpDrop] = useState(true);
+
+  const [validCompName, setValidCompName] = useState(true);
+
+  const [validVarIDDrop, setValidVarIDDrop] = useState(true);
+  const [validVarNameDrop, setValidVarNameDrop] = useState(true);
+  const [validVarUnitsDrop, setValidVarUnitsDrop] = useState(true);
+  const [validVarInterfaceDrop, setValidVarInterfaceDrop] = useState(true);
+  const [validVarInitValueDrop, setValidVarInitValueDrop] = useState(true);
+
+  const [validResetIDDrop, setValidResetIDDrop] = useState(true);
+  const [validResetVarDrop, setValidResetVarDrop] = useState(true);
+  const [validResetTestDrop, setValidResetTestDrop] = useState(true);
+  const [validResetOrderDrop, setValidResetOrderDrop] = useState(true);
+
+  const [validTestValueIDDrop, setValidTestValueIDDrop] = useState(true);
+  const [validResetValueIDDrop, setValidResetValueIDDrop] = useState(true);
+  const [validMathIDDrop, setValidMathIDDrop] = useState(true);
+
+  const [validCompRefParentIDDrop, setValidCompRefParentIDDrop] = useState(true);
+  const [validCompRefCompDrop, setValidCompRefCompDrop] = useState(true);
+
+  const [validConnectionComp1Drop, setValidConnectionComp1Drop] = useState(true);
+  const [validConnectionComp2Drop, setValidConnectionComp2Drop] = useState(true);
   
-  const [listofCommands, setListofCommands] = useState([]);
+  const [validMapVariable1Drop, setValidMapVariable1Drop] = useState(true);
+  const [validMapVariable2Drop, setValidMapVariable2Drop] = useState(true);
+
+  const [validHrefDrop, setValidHrefDrop] = useState(true);
+
+  const [validImportUnitsImpIDDrop, setValidImportUnitsImpIDDrop] = useState(true);
+  const [validImportUnitsNameDrop, setValidImportUnitsNameDrop] = useState(true);
+  const [validImportUnitsRefDrop, setValidImportUnitsRefDrop] = useState(true);
+
+  const [validImportCompImpIDDrop, setValidImportCompImpIDDrop] = useState(true);
+  const [validImportCompNameDrop, setValidImportCompNameDrop] = useState(true);
+  const [validImportCompRefDrop, setValidImportCompRefDrop] = useState(true);
 
   // ---------------------------------------------------------------
   // ----------------------- MOVE ELEMENTS -------------------------
@@ -1765,6 +1816,7 @@ const CreateImgModel: React.FunctionComponent = () => {
     event: takes in an event (mouse release)
   */
   const dropElem = (event: React.DragEvent<HTMLCanvasElement>) => {
+
     event.preventDefault();
     event.stopPropagation();
 
@@ -1776,30 +1828,36 @@ const CreateImgModel: React.FunctionComponent = () => {
     const editor_mouseX = event.clientX - editor_offsetX;
     const editor_mouseY = event.clientY - editor_offsetY;
 
+
+    
+
     // Dropping the element will add it to the list of elements
     // ==============================================================================================
     if (clickedElement === "Units") {
       // Get the units value - an input from the user
       const un = document.getElementById("units_name_input") as HTMLInputElement;
       const units_name = un.value;
-      // Calculating the units ID (smallest possible number not in the list)
-      const sorted_units_list = listofUnits.sort(function(a,b) { return parseFloat(a.u_id) - parseFloat(b.u_id) });
-      // in a sorted list the last element will we the last
-      const highest_value = sorted_units_list[sorted_units_list.length - 1];
-      const added_units_list = listofUnits;
-      let units_id;
-      if (sorted_units_list.length === 0) {
-        units_id = 1;
-        added_units_list.push({x: editor_mouseX, y: editor_mouseY, radius: 10, color: 'red', element_type: 'units', units_name: units_name, u_id: units_id});
-      } else {
-        units_id = highest_value.u_id + 1;
-        added_units_list.push({x: editor_mouseX, y: editor_mouseY, radius: 10, color: 'red', element_type: 'units', units_name: units_name, u_id: units_id});
+
+      if (validDrop) {
+        // Calculating the units ID (smallest possible number not in the list)
+        const sorted_units_list = listofUnits.sort(function(a,b) { return parseFloat(a.u_id) - parseFloat(b.u_id) });
+        // in a sorted list the last element will we the last
+        const highest_value = sorted_units_list[sorted_units_list.length - 1];
+        const added_units_list = listofUnits;
+        let units_id;
+        if (sorted_units_list.length === 0) {
+          units_id = 1;
+          added_units_list.push({x: editor_mouseX, y: editor_mouseY, radius: 10, color: 'red', element_type: 'units', units_name: units_name, u_id: units_id});
+        } else {
+          units_id = highest_value.u_id + 1;
+          added_units_list.push({x: editor_mouseX, y: editor_mouseY, radius: 10, color: 'red', element_type: 'units', units_name: units_name, u_id: units_id});
+        }
+        setListofUnits(added_units_list);
+        // Add the dropped unit to the list of elements
+        const shapes_2 = shapes_;
+        shapes_2.push( {x: editor_mouseX, y: editor_mouseY, radius: 10, color: 'red', element_type: 'units', units_name: units_name, u_id: units_id});
+        setShapes(shapes_2);
       }
-      setListofUnits(added_units_list);
-      // Add the dropped unit to the list of elements
-      const shapes_2 = shapes_;
-      shapes_2.push( {x: editor_mouseX, y: editor_mouseY, radius: 10, color: 'red', element_type: 'units', units_name: units_name, u_id: units_id});
-      setShapes(shapes_2);
       // Update the UI
       checkUnitsName();
     } 
@@ -1818,13 +1876,17 @@ const CreateImgModel: React.FunctionComponent = () => {
       const multiplier = document.getElementById("unit_multiplier_input") as HTMLInputElement;
       const multiplier_value = multiplier.value;
 
-      const ref = document.getElementById("units_ref_input") as HTMLInputElement;
-      const ref_value = ref.value;
-      // add to the list of all elements
-      const shapes_2 = shapes_;
-      shapes_2.push({x: editor_mouseX, y: editor_mouseY, radius: 10, color:'red', element_type: 'unit', units: units_value, 
-                     prefix: prefix_value, multiplier: multiplier_value, exponent: exponent_value, units_parent: ref_value});
-      setShapes(shapes_2);
+      check_unit_input_values();
+      if (validUnitIDDrop && validUnitUnitsDrop && validUnitMultDrop && validUnitExpDrop && validUnitPrefixDrop) {
+        const ref = document.getElementById("units_ref_input") as HTMLInputElement;
+        const ref_value = ref.value;
+        // add to the list of all elements
+        const shapes_2 = shapes_;
+        shapes_2.push({x: editor_mouseX, y: editor_mouseY, radius: 10, color:'red', element_type: 'unit', units: units_value, 
+                      prefix: prefix_value, multiplier: multiplier_value, exponent: exponent_value, units_parent: ref_value});
+        setShapes(shapes_2);
+      }
+      check_unit_input_values();
     }
     // ==============================================================================================
     else if (clickedElement === "Component") {
@@ -1844,28 +1906,37 @@ const CreateImgModel: React.FunctionComponent = () => {
         console.log('dropped: ' + comp_id);
       }
       // Updating the list of overall elements & list of components
-      templistofcomp.push({x:editor_mouseX, y:editor_mouseY, radius: 10, color:'green', element_type:'component', name: comp_name, c_id: comp_id});
-      setListofComponents(templistofcomp);
-      shapes_2.push( {x:editor_mouseX, y:editor_mouseY, radius: 10, color:'green', element_type:'component', name: comp_name, c_id: comp_id});
-      setShapes(shapes_2);
+      checkComponentName();
+      if (validCompName) {
+        templistofcomp.push({x:editor_mouseX, y:editor_mouseY, radius: 10, color:'green', element_type:'component', name: comp_name, c_id: comp_id});
+        setListofComponents(templistofcomp);
+        shapes_2.push( {x:editor_mouseX, y:editor_mouseY, radius: 10, color:'green', element_type:'component', name: comp_name, c_id: comp_id});
+        setShapes(shapes_2);
+      }
       // Update UI
       checkComponentName();
     } 
     // ==============================================================================================
     else if (clickedElement === "Variable") {
+      check_variable_input_values();
       const n     = document.getElementById("var_name_input") as HTMLInputElement;
       const u     = document.getElementById("var_units_input") as HTMLInputElement;
       const it    = document.getElementById("var_interface_input") as HTMLSelectElement;
       const init  = document.getElementById("var_init_input") as HTMLInputElement;
       const c_ref = document.getElementById("var_comp_ref_input") as HTMLInputElement;
 
-      const shapes_2 = shapes_;
-      shapes_2.push( {x: editor_mouseX, y: editor_mouseY, radius: 10, color: 'green', element_type:'variable', 
-                      name: n.value, units: u.value, interface: it.value, initial_val: init.value, comp_parent: c_ref.value})
-      setShapes(shapes_2);
+      if (validVarIDDrop && validVarNameDrop && validVarUnitsDrop && validVarInterfaceDrop && validVarInitValueDrop) {
+        const shapes_2 = shapes_;
+        shapes_2.push( {x: editor_mouseX, y: editor_mouseY, radius: 10, color: 'green', element_type:'variable', 
+                        name: n.value, units: u.value, interface: it.value, initial_val: init.value, comp_parent: c_ref.value})
+        setShapes(shapes_2);
+      }
+      check_variable_input_values();
     }
     // ==============================================================================================
     else if (clickedElement === "Reset") {
+
+      check_reset_input_values();
       const variable = document.getElementById("reset_var_input") as HTMLInputElement;
       const test_var = document.getElementById("reset_test_input") as HTMLInputElement;
       const v_order  = document.getElementById("reset_order_input") as HTMLInputElement;
@@ -1876,42 +1947,64 @@ const CreateImgModel: React.FunctionComponent = () => {
       const added_reset_list = listofReset;
       let reset_id;
       (temp_reset_list.length === 0) ? reset_id = 1 : reset_id = highest_value.r_id + 1
-      // push to reset list
-      added_reset_list.push({x:editor_mouseX, y:editor_mouseY, radius: 10, color:'green', element_type:'reset', 
-                      variable: variable.value, test_var: test_var.value, order: v_order.value, comp_parent: c_ref.value, r_id: reset_id})
-      setListofReset(added_reset_list);
-      // push to all list
-      const shapes_2 = shapes_;
-      shapes_2.push( {x:editor_mouseX, y:editor_mouseY, radius: 10, color:'green', element_type:'reset', 
-                      variable: variable.value, test_var: test_var.value, order: v_order.value, comp_parent: c_ref.value, r_id: reset_id})
-      setShapes(shapes_2);
+      if (validResetIDDrop && validResetOrderDrop && validResetTestDrop && validResetVarDrop) {
+        // push to reset list
+        added_reset_list.push({x:editor_mouseX, y:editor_mouseY, radius: 10, color:'green', element_type:'reset', 
+                        variable: variable.value, test_var: test_var.value, order: v_order.value, comp_parent: c_ref.value, r_id: reset_id})
+        setListofReset(added_reset_list);
+        // push to all list
+        const shapes_2 = shapes_;
+        shapes_2.push( {x:editor_mouseX, y:editor_mouseY, radius: 10, color:'green', element_type:'reset', 
+                        variable: variable.value, test_var: test_var.value, order: v_order.value, comp_parent: c_ref.value, r_id: reset_id})
+        setShapes(shapes_2);
+      }    
+      check_reset_input_values();
     } 
     // ==============================================================================================
     else if (clickedElement === "Test Value") {
+      
+      checkResetParent("tv_comp_ref");
       const c_ref = document.getElementById("tv_comp_ref") as HTMLInputElement;
-      const shapes_2 = shapes_;
-      shapes_2.push( {x:editor_mouseX, y:editor_mouseY, radius: 10, color:'green', element_type:'test_val', comp_parent: c_ref.value, math_var:''})
-      setShapes(shapes_2);
+      if (validTestValueIDDrop) {
+        const shapes_2 = shapes_;
+        shapes_2.push( {x:editor_mouseX, y:editor_mouseY, radius: 10, color:'green', element_type:'test_val', comp_parent: c_ref.value, math_var:''})
+        setShapes(shapes_2);
+      }
+      checkResetParent("tv_comp_ref");
     } 
     else if (clickedElement === "Reset Value") {
+      checkResetParent("rv_comp_ref");
       const c_ref = document.getElementById("rv_comp_ref") as HTMLInputElement;
-      const shapes_2 = shapes_;
-      shapes_2.push( {x:editor_mouseX, y:editor_mouseY, radius:10, color:'green', element_type:'reset_val', comp_parent: c_ref.value, math_var:''})
-      setShapes(shapes_2);
+      if (validResetValueIDDrop) {
+        const shapes_2 = shapes_;
+        shapes_2.push( {x:editor_mouseX, y:editor_mouseY, radius:10, color:'green', element_type:'reset_val', comp_parent: c_ref.value, math_var:''})
+        setShapes(shapes_2);
+      }
+      checkResetParent("rv_comp_ref");
     } 
     // ==============================================================================================
     else if (clickedElement === "Math") {
+      checkMathCompID();
       const m_ref = document.getElementById("math_comp_ref_input") as HTMLInputElement;
-      const shapes_2 = shapes_;
-      shapes_2.push( {x:editor_mouseX, y:editor_mouseY, radius:10, color:'blue', element_type:'math', comp_parent: m_ref.value})
-      setShapes(shapes_2);
+      if (validMathIDDrop) {
+        const shapes_2 = shapes_;
+        shapes_2.push( {x:editor_mouseX, y:editor_mouseY, radius:10, color:'blue', element_type:'math', comp_parent: m_ref.value})
+        setShapes(shapes_2);
+      }
+      checkMathCompID();
     } 
     // ==============================================================================================
     else if (clickedElement === "Encapsulation") {
-      // only 1 encapsulation is allowed
-      const shapes_2 = shapes_;
-      shapes_2.push( {x: editor_mouseX, y: editor_mouseY, radius: 20, color: 'silver', element_type: 'encapsulation'})
-      setShapes(shapes_2);
+      let exists = 0;
+      for (let i = 0; i < shapes_.length; i++) {
+        if (shapes_[i].element_type == "encapsulation") exists = 1;
+      }
+      if (exists == 0) {
+        // only 1 encapsulation is allowed
+        const shapes_2 = shapes_;
+        shapes_2.push( {x: editor_mouseX, y: editor_mouseY, radius: 20, color: 'silver', element_type: 'encapsulation'})
+        setShapes(shapes_2);
+      }
     } 
     // ==============================================================================================
     else if (clickedElement === "Component Reference") {
@@ -1924,13 +2017,20 @@ const CreateImgModel: React.FunctionComponent = () => {
       const templistofComponentRefs = listofComponentRefs.sort(function(a,b) { return parseFloat(a.c_id) - parseFloat(b.c_id) });
       const highest_value = templistofComponentRefs[templistofComponentRefs.length - 1];
       const added_compr_list = listofComponentRefs;
-      let comp_id;
-      (templistofComponentRefs.length === 0) ? comp_id  = 1 : comp_id = highest_value.c_id + 1
-      added_compr_list.push({x: editor_mouseX, y: editor_mouseY, radius:10, color: 'green', element_type:'component_ref', component: comp_value, c_id: comp_id, compf_parent: parent_id_value })
 
-      const shapes_2 = shapes_;
-      shapes_2.push( {x: editor_mouseX, y: editor_mouseY, radius:10, color: 'green', element_type:'component_ref', component: comp_value, c_id: comp_id, compf_parent: parent_id_value})
-      setShapes(shapes_2);
+      checkCompRefComp(); 
+      checkCompRefID();
+      if (validCompRefCompDrop && validCompRefParentIDDrop) {
+        let comp_id;
+        (templistofComponentRefs.length === 0) ? comp_id  = 1 : comp_id = highest_value.c_id + 1
+        added_compr_list.push({x: editor_mouseX, y: editor_mouseY, radius:10, color: 'green', element_type:'component_ref', component: comp_value, c_id: comp_id, compf_parent: parent_id_value })
+
+        const shapes_2 = shapes_;
+        shapes_2.push( {x: editor_mouseX, y: editor_mouseY, radius:10, color: 'green', element_type:'component_ref', component: comp_value, c_id: comp_id, compf_parent: parent_id_value})
+        setShapes(shapes_2);
+      }
+      checkCompRefComp(); 
+      checkCompRefID();
     } 
     // ==============================================================================================
     else if (clickedElement === "Connection") {
@@ -1943,26 +2043,35 @@ const CreateImgModel: React.FunctionComponent = () => {
       const added_conn_list = listofConnections;
       let conn_id;
       (sorted_connection.length === 0) ? conn_id = 1 : conn_id = highest_value.c_id + 1;
-      // Push to the connection list
-      added_conn_list.push({x: editor_mouseX, y: editor_mouseY, radius: 10, color:'orange', element_type: 'connection', 
-                      component1:comp1.value, component2:comp2.value, c_id: conn_id});
-      setListofConnections(added_conn_list);
-      // Push to all
-      const shapes_2 = shapes_;
-      shapes_2.push( {x: editor_mouseX, y: editor_mouseY, radius: 10, color:'orange', element_type: 'connection', 
-                      component1:comp1.value, component2:comp2.value, c_id: conn_id})
-      setShapes(shapes_2);
+      checkConnectionComp();
+      if (validConnectionComp1Drop && validConnectionComp2Drop) {
+        // Push to the connection list
+        added_conn_list.push({x: editor_mouseX, y: editor_mouseY, radius: 10, color:'orange', element_type: 'connection', 
+                        component1:comp1.value, component2:comp2.value, c_id: conn_id});
+        setListofConnections(added_conn_list);
+        // Push to all
+        const shapes_2 = shapes_;
+        shapes_2.push( {x: editor_mouseX, y: editor_mouseY, radius: 10, color:'orange', element_type: 'connection', 
+                        component1:comp1.value, component2:comp2.value, c_id: conn_id})
+        setShapes(shapes_2);
+      }
+      checkConnectionComp();
     } 
     // ==============================================================================================
     else if (clickedElement === "Map Variables") {
       const c_ref = document.getElementById("map_connect_input") as HTMLInputElement;
       const map_v1 = document.getElementById("map_var_1_input") as HTMLInputElement;
       const map_v2 = document.getElementById("map_var_2_input") as HTMLInputElement;
-
-      const shapes_2 = shapes_;
-      shapes_2.push( {x:editor_mouseX, y:editor_mouseY, radius:35, color:'purple', element_type:'map_var', 
-                      variable1: map_v1.value, variable2: map_v2.value, conn_parent: c_ref.value});
-      setShapes(shapes_2);
+      checkMapVariableRefID();
+      checkMapVariablesVar();
+      if (validMapVariable1Drop && validMapVariable2Drop) {
+        const shapes_2 = shapes_;
+        shapes_2.push( {x:editor_mouseX, y:editor_mouseY, radius:35, color:'purple', element_type:'map_var', 
+                        variable1: map_v1.value, variable2: map_v2.value, conn_parent: c_ref.value});
+        setShapes(shapes_2);
+      }
+      checkMapVariableRefID();
+      checkMapVariablesVar();
     } 
     // ==============================================================================================
     else if (clickedElement === "Import") {
@@ -1975,43 +2084,98 @@ const CreateImgModel: React.FunctionComponent = () => {
 
       const added_imp_list = listofImports;
       let imp_id;
-      (sorted_imports.length === 0) ? imp_id = 1 : imp_id = highest_value.i_id + 1;
-      added_imp_list.push( {x:editor_mouseX, y:editor_mouseY, radius:10, color:'blue', element_type:'import', href:href_value, i_id: imp_id});
-      setListofImports(added_imp_list);
-      console.log('highest: ')
-      console.log(highest_value);
+      checkImportHREF();
+      if (validHrefDrop) {
+        (sorted_imports.length === 0) ? imp_id = 1 : imp_id = highest_value.i_id + 1;
+        added_imp_list.push( {x:editor_mouseX, y:editor_mouseY, radius:10, color:'blue', element_type:'import', href:href_value, i_id: imp_id});
+        setListofImports(added_imp_list);
 
-      const shapes_2 = shapes_;
-      shapes_2.push( {x:editor_mouseX, y:editor_mouseY, radius:10, color:'blue', element_type:'import', href:href_value, i_id: imp_id});
-      setShapes(shapes_2);
+        const shapes_2 = shapes_;
+        shapes_2.push( {x:editor_mouseX, y:editor_mouseY, radius:10, color:'blue', element_type:'import', href:href_value, i_id: imp_id});
+        setShapes(shapes_2);
+      }
+      checkImportHREF();
     } 
     // ==============================================================================================
     else if (clickedElement === "Import Units") {
-
+      check_import_units_values();
       const ref = document.getElementById("import_parent_reference_u") as HTMLInputElement;
       const i_name = document.getElementById("import_units_name_input") as HTMLInputElement;
       const i_ref = document.getElementById("import_units_ref_input") as HTMLInputElement;
 
-      const shapes_2 = shapes_;
-      shapes_2.push( {x:editor_mouseX, y:editor_mouseY, radius:10, color:'red', element_type:'import_units', name:i_name.value, units_ref:i_ref.value, import_parent: ref.value });
-      setShapes(shapes_2);
+      if (validImportUnitsImpIDDrop && validImportUnitsNameDrop && validImportUnitsRefDrop) {
+        const shapes_2 = shapes_;
+        shapes_2.push( {x:editor_mouseX, y:editor_mouseY, radius:10, color:'red', element_type:'import_units', name:i_name.value, units_ref:i_ref.value, import_parent: ref.value });
+        setShapes(shapes_2);
+      }
+      check_import_units_values();
     } 
+    // ==============================================================================================
     else if (clickedElement === "Import Component") {
-
+      check_import_comp_values();
       const ref = document.getElementById("import_parent_reference_c") as HTMLInputElement;
       const i_name = document.getElementById("import_comp_name_input") as HTMLInputElement;
       const i_ref = document.getElementById("import_comp_ref_input") as HTMLInputElement;
-
-      const shapes_2 = shapes_;
-      shapes_2.push( {x:editor_mouseX, y:editor_mouseY, radius:10, color:'green', element_type:'import_component', name:i_name.value, comp_ref:i_ref.value, import_parent: ref.value})
-      setShapes(shapes_2);
+      if (validImportCompImpIDDrop && validImportCompNameDrop && validImportCompRefDrop) {
+        const shapes_2 = shapes_;
+        shapes_2.push( {x:editor_mouseX, y:editor_mouseY, radius:10, color:'green', element_type:'import_component', name:i_name.value, comp_ref:i_ref.value, import_parent: ref.value})
+        setShapes(shapes_2);
+      }
+      check_import_comp_values();
     } 
+    
     drawAll();
   };
 
 
 
-
+  const check_unit_input_values = () => {
+    checkUnitName();
+    checkUnitRef();
+    checkUnitExp();
+    checkUnitMul();
+    checkUnitPrefix();
+  }
+  const check_variable_input_values = () => {
+    checkVariableCompID();
+    checkVariableInitValue();
+    checkVariableName();
+    checkVariableUnits();
+  }
+  const check_reset_input_values = () => {
+    checkResetOrder();
+    checkResetRef();
+    checkResetTest();
+    checkResetVar();
+  }
+  const check_import_comp_values = () => {
+    checkImportUnitsImportRef("import_parent_reference_c")
+    checkImportCompName();
+    checkImportCompRef();
+  }
+  const check_import_units_values = () => {
+    checkImportUnitsImportRef("import_parent_reference_u")
+    checkImportUnitsName();
+    checkImportUnitsRef();
+  }
+  const check_every_field = () => {
+    checkUnitsName();
+    check_unit_input_values();
+    checkComponentName();
+    check_variable_input_values();
+    check_reset_input_values();
+    checkResetParent("tv_comp_ref");
+    checkResetParent("rv_comp_ref");
+    checkMathCompID();
+    checkCompRefComp(); 
+    checkCompRefID();
+    checkConnectionComp();
+    checkMapVariableRefID();
+    checkMapVariablesVar();
+    checkImportHREF();
+    check_import_units_values();
+    check_import_comp_values();
+  }
 
   const get_pos_elem = (event: React.MouseEvent<HTMLDivElement>) => {
     console.log(posX + "-" + posY);
@@ -2071,6 +2235,7 @@ const CreateImgModel: React.FunctionComponent = () => {
   const change_element = (element_name: string, model_name: string, 
                           element_info: string, element_img: string) => {
     console.log('changed element');
+    check_every_field();
 
     document.getElementById("model_children").style.display = 'none';
     document.getElementById("import_children").style.display = 'none';
@@ -2206,7 +2371,7 @@ const CreateImgModel: React.FunctionComponent = () => {
   // ------------------------------- CHECK UNITS -------------------------------------
   // ---------------------------------------------------------------------------------
   // Error Checking the names
-  const checkUnitsName = () => {
+  function checkUnitsName() {
     const units_name = document.getElementById("units_name_input") as HTMLInputElement;
     const name = units_name.value;
     // loop and look if name is already taken
@@ -2215,9 +2380,9 @@ const CreateImgModel: React.FunctionComponent = () => {
       if (listofUnits[i].units_name === name) units_name_exists = 1;
     }
     // check if the string inserted is valid
-    if (units_name_exists == 1) {document.getElementById("units_name_input").style.borderColor = "#d64545";}
-    else if (name.match('^[a-zA-Z]+[a-zA-Z0-9_]*$')) {document.getElementById("units_name_input").style.borderColor = "#45d651";}
-    else {document.getElementById("units_name_input").style.borderColor = "#d64545";}
+    if (units_name_exists == 1) {document.getElementById("units_name_input").style.borderColor = "#d64545"; setValidDrop(false)}
+    else if (name.match('^[a-zA-Z]+[a-zA-Z0-9_]*$')) {document.getElementById("units_name_input").style.borderColor = "#45d651"; setValidDrop(true)}
+    else {document.getElementById("units_name_input").style.borderColor = "#d64545"; setValidDrop(false)}
   }
 
   // ---------------------------------------------------------------------------------
@@ -2236,9 +2401,9 @@ const CreateImgModel: React.FunctionComponent = () => {
     for (let i = 0; i<listofUnits.length; i++) {
       if (listofUnits[i].units_name === unit) units_exists = 1;
     }
-    if (si_unit_exists === 1) {document.getElementById("unit_ref_input").style.borderColor = "#45d651";}
-    else if (units_exists === 1) {document.getElementById("unit_ref_input").style.borderColor = "#45d651";} 
-    else { document.getElementById("unit_ref_input").style.borderColor = "#d64545";}
+    if (si_unit_exists === 1) {document.getElementById("unit_ref_input").style.borderColor = "#45d651"; setValidUnitUnitsDrop(true)}
+    else if (units_exists === 1) {document.getElementById("unit_ref_input").style.borderColor = "#45d651"; setValidUnitUnitsDrop(true)} 
+    else { document.getElementById("unit_ref_input").style.borderColor = "#d64545"; setValidUnitUnitsDrop(false)}
   }
 
   const checkUnitRef = () => {
@@ -2248,26 +2413,26 @@ const CreateImgModel: React.FunctionComponent = () => {
     for (let i = 0; i < listofUnits.length; i++) {
       if (listofUnits[i].u_id == id) exists = 1;
     }
-    if (exists == 1) {document.getElementById("units_ref_input").style.borderColor = "#45d651";}
-    else {document.getElementById("units_ref_input").style.borderColor = "#d64545";}
+    if (exists == 1) {document.getElementById("units_ref_input").style.borderColor = "#45d651"; setValidUnitIDDrop(true)}
+    else {document.getElementById("units_ref_input").style.borderColor = "#d64545"; setValidUnitIDDrop(false)}
   }
 
   const checkUnitMul = () => {
     const mul = document.getElementById("unit_multiplier_input") as HTMLInputElement;
     const value = mul.value;
     // exponent should be an integer or empty as it's optional
-    if (value === "") {document.getElementById("unit_multiplier_input").style.borderColor = "#45d651";} 
-    else if (value.match(/^[+-]?(\d*\.)?\d+$/) != null) {document.getElementById("unit_multiplier_input").style.borderColor = "#45d651";} 
-    else {document.getElementById("unit_multiplier_input").style.borderColor = "#d64545";}
+    if (value === "") {document.getElementById("unit_multiplier_input").style.borderColor = "#45d651"; setValidUnitMultDrop(true)} 
+    else if (value.match(/^[+-]?(\d*\.)?\d+$/) != null) {document.getElementById("unit_multiplier_input").style.borderColor = "#45d651"; setValidUnitMultDrop(true)} 
+    else {document.getElementById("unit_multiplier_input").style.borderColor = "#d64545"; setValidUnitMultDrop(false)}
   }
 
   const checkUnitExp = () => {
     const exp = document.getElementById("unit_exp_input") as HTMLInputElement;
     const value = exp.value;
     // exponent should be an integer or empty as it's optional
-    if (value === "") {document.getElementById("unit_exp_input").style.borderColor = "#45d651";} 
-    else if (value.match(/^[+-]?(\d*\.)?\d+$/) != null) {	document.getElementById("unit_exp_input").style.borderColor = "#45d651"; } 
-    else { document.getElementById("unit_exp_input").style.borderColor = "#d64545"; }
+    if (value === "") {document.getElementById("unit_exp_input").style.borderColor = "#45d651"; setValidUnitExpDrop(true)} 
+    else if (value.match(/^[+-]?(\d*\.)?\d+$/) != null) {	document.getElementById("unit_exp_input").style.borderColor = "#45d651"; setValidUnitExpDrop(true)} 
+    else { document.getElementById("unit_exp_input").style.borderColor = "#d64545"; setValidUnitExpDrop(false)}
   }
 
   const checkUnitPrefix = () => {
@@ -2279,10 +2444,10 @@ const CreateImgModel: React.FunctionComponent = () => {
       if (list_of_inbuilt_prefix[i] === value) si_prefix_exists = 1;
     }
     // exponent should be an integer or empty as it's optional
-    if (value === "") {document.getElementById("unit_prefix_input").style.borderColor = "#45d651";} 
-    if (si_prefix_exists === 1) {document.getElementById("unit_prefix_input").style.borderColor = "#45d651";} 
-    else if (value.match(/^[+-]?(\d*\.)?\d+$/) != null) { document.getElementById("unit_prefix_input").style.borderColor = "#45d651"; } 
-    else { document.getElementById("unit_prefix_input").style.borderColor = "#d64545"; }
+    if (value === "") {document.getElementById("unit_prefix_input").style.borderColor = "#45d651"; setValidUnitPrefixDrop(true)} 
+    else if (si_prefix_exists === 1) {document.getElementById("unit_prefix_input").style.borderColor = "#45d651"; setValidUnitPrefixDrop(true)} 
+    else if (value.match(/^[+-]?(\d*\.)?\d+$/) != null) { document.getElementById("unit_prefix_input").style.borderColor = "#45d651"; setValidUnitPrefixDrop(true)} 
+    else { document.getElementById("unit_prefix_input").style.borderColor = "#d64545"; setValidUnitPrefixDrop(false)}
   }
 
   
@@ -2661,9 +2826,10 @@ const CreateImgModel: React.FunctionComponent = () => {
     for (let i =0; i<listofComponents.length; i++) {
       if (listofComponents[i].name === name) existing = 1;
     }
-    if (existing === 1) {	document.getElementById("comp_name_input").style.borderColor = "#d64545"; } 
-    else if (name.match('^[a-zA-Z]+[a-zA-Z0-9_]*$')) { document.getElementById("comp_name_input").style.borderColor = "#45d651";} 
-    else { document.getElementById("comp_name_input").style.borderColor = "#d64545";}
+
+    if (existing === 1) {	document.getElementById("comp_name_input").style.borderColor = "#d64545"; setValidCompName(false);} 
+    else if (name.match('^[a-zA-Z]+[a-zA-Z0-9_]*$')) { document.getElementById("comp_name_input").style.borderColor = "#45d651"; setValidCompName(true);} 
+    else { document.getElementById("comp_name_input").style.borderColor = "#d64545"; setValidCompName(false);}
   }
 
   // ---------------------------------------------------------------------------------
@@ -2677,8 +2843,8 @@ const CreateImgModel: React.FunctionComponent = () => {
       if(listofComponents[i].c_id == id) id_exists = 1;
     }
     // Only if the component id exists in the model
-    if (id_exists == 1) { document.getElementById("var_comp_ref_input").style.borderColor = "#45d651"; }
-    else { document.getElementById("var_comp_ref_input").style.borderColor = "#d64545"; }
+    if (id_exists == 1) { document.getElementById("var_comp_ref_input").style.borderColor = "#45d651"; setValidVarIDDrop(true)}
+    else { document.getElementById("var_comp_ref_input").style.borderColor = "#d64545"; setValidVarIDDrop(false)}
   }
   
   const checkVariableName = () => {
@@ -2688,9 +2854,9 @@ const CreateImgModel: React.FunctionComponent = () => {
     for (let i = 0; i < shapes_.length; i++) {
       if (shapes_[i].name === name && shapes_[i].element_type == "variable") existing = 1;
     }
-    if (existing === 1) { document.getElementById("var_name_input").style.borderColor = "#d64545"; } 
-    else if (name.match('^[a-zA-Z]+[a-zA-Z0-9_]*$')) { document.getElementById("var_name_input").style.borderColor = "#45d651"; } 
-    else { document.getElementById("var_name_input").style.borderColor = "#d64545"; }
+    if (existing === 1) { document.getElementById("var_name_input").style.borderColor = "#d64545"; setValidVarNameDrop(false)} 
+    else if (name.match('^[a-zA-Z]+[a-zA-Z0-9_]*$')) { document.getElementById("var_name_input").style.borderColor = "#45d651"; setValidVarNameDrop(true)} 
+    else { document.getElementById("var_name_input").style.borderColor = "#d64545"; setValidVarNameDrop(false)}
   }
 
   const checkVariableUnits = () => {
@@ -2705,8 +2871,8 @@ const CreateImgModel: React.FunctionComponent = () => {
     for (let i=0; i<list_of_inbuilt_units.length; i++) {
       if (list_of_inbuilt_units[i] === units) exists = 1;
     }
-    if (exists === 1) { document.getElementById("var_units_input").style.borderColor = "#45d651"; } 
-    else { document.getElementById("var_units_input").style.borderColor = "#d64545"; }
+    if (exists === 1) { document.getElementById("var_units_input").style.borderColor = "#45d651"; setValidVarUnitsDrop(true)} 
+    else { document.getElementById("var_units_input").style.borderColor = "#d64545"; setValidVarUnitsDrop(false)}
   }
 
   const checkVariableInitValue = () => {
@@ -2717,25 +2883,25 @@ const CreateImgModel: React.FunctionComponent = () => {
         if(shapes_[i].name == init && shapes_[i].element_type == "variable") exists = 1;
     }
     // can be a real number string, or a variable reference & optional so may be empty
-    if (exists === 1) { document.getElementById("var_init_input").style.borderColor = "#45d651"; }
-    else if (init == "") { document.getElementById("var_init_input").style.borderColor = "#45d651"; }
-    else if (init.match(/^[+-]?(\d*\.)?\d+$/) != null) { document.getElementById("var_init_input").style.borderColor = "#45d651"; } 
-    else { document.getElementById("var_init_input").style.borderColor = "#d64545"; }
+    if (exists === 1) { document.getElementById("var_init_input").style.borderColor = "#45d651"; setValidVarInitValueDrop(true)}
+    else if (init == "") { document.getElementById("var_init_input").style.borderColor = "#45d651"; setValidVarInitValueDrop(true)}
+    else if (init.match(/^[+-]?(\d*\.)?\d+$/) != null) { document.getElementById("var_init_input").style.borderColor = "#45d651"; setValidVarInitValueDrop(true)} 
+    else { document.getElementById("var_init_input").style.borderColor = "#d64545"; setValidVarInitValueDrop(false)}
   }
 
   // ---------------------------------------------------------------------------------
   // ------------------------------- CHECK MATH --------------------------------------
   // ---------------------------------------------------------------------------------
   const checkMathCompID = () => {
-    const c_ref = document.getElementById("var_comp_ref_input") as HTMLInputElement;
+    const c_ref = document.getElementById("math_comp_ref_input") as HTMLInputElement;
     const c_id = c_ref.value;
     let id_exists = 0;
     for (let i = 0; i < listofComponents.length; i++) {
       if(listofComponents[i].c_id == c_id) id_exists = 1;
     }
     // Only if the component id exists in the model
-    if (id_exists == 1) { document.getElementById("math_comp_ref_input").style.borderColor = "#45d651"; }
-    else { document.getElementById("math_comp_ref_input").style.borderColor = "#d64545"; }
+    if (id_exists == 1) { document.getElementById("math_comp_ref_input").style.borderColor = "#45d651"; setValidMathIDDrop(true)}
+    else { document.getElementById("math_comp_ref_input").style.borderColor = "#d64545"; setValidMathIDDrop(false)}
   }
   // ---------------------------------------------------------------------------------
   // ------------------------------- CHECK RESET -------------------------------------
@@ -2748,8 +2914,8 @@ const CreateImgModel: React.FunctionComponent = () => {
       if(listofComponents[i].c_id == id) id_exists = 1;
     }
     // Only if the component id exists in the model
-    if (id_exists == 1) { document.getElementById("reset_comp_ref_input").style.borderColor = "#45d651"; }
-    else { document.getElementById("reset_comp_ref_input").style.borderColor = "#d64545"; }
+    if (id_exists == 1) { document.getElementById("reset_comp_ref_input").style.borderColor = "#45d651"; setValidResetIDDrop(true)}
+    else { document.getElementById("reset_comp_ref_input").style.borderColor = "#d64545"; setValidResetIDDrop(false)}
   }
 
   const checkResetVar = () => {
@@ -2759,8 +2925,8 @@ const CreateImgModel: React.FunctionComponent = () => {
     for (let i =0; i < shapes_.length; i++) {
       if (shapes_[i].name === variable && shapes_[i].element_type == "variable") exists = 1;
     }
-    if (exists === 1) {	document.getElementById("reset_var_input").style.borderColor = "#45d651"; } 
-    else { document.getElementById("reset_var_input").style.borderColor = "#d64545"; }
+    if (exists === 1) {	document.getElementById("reset_var_input").style.borderColor = "#45d651"; setValidResetVarDrop(true)} 
+    else { document.getElementById("reset_var_input").style.borderColor = "#d64545"; setValidResetVarDrop(false)}
   }
 
   const checkResetTest = () => {
@@ -2770,8 +2936,8 @@ const CreateImgModel: React.FunctionComponent = () => {
     for (let i =0; i < shapes_.length; i++) {
       if (shapes_[i].name === variable && shapes_[i].element_type == "variable") exists = 1;
     }
-    if (exists === 1) {	document.getElementById("reset_test_input").style.borderColor = "#45d651"; } 
-    else { document.getElementById("reset_test_input").style.borderColor = "#d64545"; }
+    if (exists === 1) {	document.getElementById("reset_test_input").style.borderColor = "#45d651"; setValidResetTestDrop(true)} 
+    else { document.getElementById("reset_test_input").style.borderColor = "#d64545"; setValidResetTestDrop(false)}
   }
 
   const checkResetOrder = () => {
@@ -2782,8 +2948,8 @@ const CreateImgModel: React.FunctionComponent = () => {
       if (listofReset[i].order == order) exists = 1; 
     }
     if (exists == 1) { document.getElementById("reset_order_input").style.borderColor = "#d64545"; } 
-    else if (ord_reset.value.match(/^[+-]?(\d*\.)?\d+$/) != null) { document.getElementById("reset_order_input").style.borderColor = "#45d651"; } 
-    else { document.getElementById("reset_order_input").style.borderColor = "#d64545"; }
+    else if (ord_reset.value.match(/^[+-]?(\d*\.)?\d+$/) != null) { document.getElementById("reset_order_input").style.borderColor = "#45d651"; setValidResetOrderDrop(true)} 
+    else { document.getElementById("reset_order_input").style.borderColor = "#d64545"; setValidResetOrderDrop(false)}
   }
 
   const checkResetParent = (input_string: string) => {
@@ -2794,8 +2960,8 @@ const CreateImgModel: React.FunctionComponent = () => {
     for (let i = 0; i < listofReset.length; i++) {
       if (listofReset[i].r_id == parent) exists = 1;
     }
-    if (exists == 1) {document.getElementById(input_string).style.borderColor = "#45d651";}
-    else {document.getElementById(input_string).style.borderColor = "#d64545";}
+    if (exists == 1) {document.getElementById(input_string).style.borderColor = "#45d651"; setValidTestValueIDDrop(true); setValidResetValueIDDrop(true)}
+    else {document.getElementById(input_string).style.borderColor = "#d64545"; setValidTestValueIDDrop(false); setValidResetValueIDDrop(false)}
 
   }
   // ---------------------------------------------------------------------------------
@@ -2808,9 +2974,9 @@ const CreateImgModel: React.FunctionComponent = () => {
       if (listofComponents[i].name === component.value) exists = 1;
     }
     if (exists ===1) {
-      document.getElementById("comp_ref_comp_input").style.borderColor = "#45d651";
+      document.getElementById("comp_ref_comp_input").style.borderColor = "#45d651"; setValidCompRefCompDrop(true);
     } else {
-      document.getElementById("comp_ref_comp_input").style.borderColor = "#d64545";
+      document.getElementById("comp_ref_comp_input").style.borderColor = "#d64545"; setValidCompRefCompDrop(false);
     }
   }
 
@@ -2825,9 +2991,9 @@ const CreateImgModel: React.FunctionComponent = () => {
     }
 
     if (exists === 1) {
-      document.getElementById("comp_ref_parent_id").style.borderColor = "#45d651";
+      document.getElementById("comp_ref_parent_id").style.borderColor = "#45d651"; setValidCompRefParentIDDrop(true);
     } else {
-      document.getElementById("comp_ref_parent_id").style.borderColor = "#d64545";
+      document.getElementById("comp_ref_parent_id").style.borderColor = "#d64545"; setValidCompRefParentIDDrop(false);
     }
   }
 
@@ -2844,14 +3010,22 @@ const CreateImgModel: React.FunctionComponent = () => {
       if (listofComponents[i].name === con1.value) c1_exists = 1;
       if (listofComponents[i].name === con2.value) c2_exists = 1;
     }
-    if (c1_exists === 1) document.getElementById("connect_1_input").style.borderColor = "#45d651";
-    if (c2_exists === 1) document.getElementById("connect_2_input").style.borderColor = "#45d651";
+    if (c1_exists === 1) {
+      document.getElementById("connect_1_input").style.borderColor = "#45d651";
+      setValidConnectionComp1Drop(true);
+    }
+    if (c2_exists === 1) {
+      document.getElementById("connect_2_input").style.borderColor = "#45d651";
+      setValidConnectionComp2Drop(true);
+    }
     if (con1.value === con2.value) {
       document.getElementById("connect_1_input").style.borderColor = "#d64545";
       document.getElementById("connect_2_input").style.borderColor = "#d64545";
+      setValidConnectionComp1Drop(false);
+      setValidConnectionComp2Drop(false);
     } 
-    if (c1_exists === 0) document.getElementById("connect_1_input").style.borderColor = "#d64545";
-    if (c2_exists === 0) document.getElementById("connect_2_input").style.borderColor = "#d64545";
+    if (c1_exists === 0) {document.getElementById("connect_1_input").style.borderColor = "#d64545"; setValidConnectionComp1Drop(false)}
+    if (c2_exists === 0) {document.getElementById("connect_2_input").style.borderColor = "#d64545"; setValidConnectionComp2Drop(false);}
   }
 
   // ---------------------------------------------------------------------------------
@@ -2866,14 +3040,16 @@ const CreateImgModel: React.FunctionComponent = () => {
       if (shapes_[i].name === var1.value) v1_exists = 1;
       if (shapes_[i].name === var2.value) v2_exists = 1;
     }
-    if (v1_exists === 1) document.getElementById("map_var_1_input").style.borderColor = "#45d651";
-    if (v2_exists === 1) document.getElementById("map_var_2_input").style.borderColor = "#45d651";
+    if (v1_exists === 1) {document.getElementById("map_var_1_input").style.borderColor = "#45d651"; setValidMapVariable1Drop(true)}
+    if (v2_exists === 1) {document.getElementById("map_var_2_input").style.borderColor = "#45d651"; setValidMapVariable2Drop(true)}
     if (var1.value === var2.value) {
       document.getElementById("map_var_1_input").style.borderColor = "#d64545";
       document.getElementById("map_var_2_input").style.borderColor = "#d64545";
+      setValidMapVariable1Drop(false);
+      setValidMapVariable2Drop(false);
     } 
-    if (v1_exists === 0) document.getElementById("map_var_1_input").style.borderColor = "#d64545";
-    if (v2_exists === 0) document.getElementById("map_var_2_input").style.borderColor = "#d64545";
+    if (v1_exists === 0) {document.getElementById("map_var_1_input").style.borderColor = "#d64545"; setValidMapVariable1Drop(false);}
+    if (v2_exists === 0) {document.getElementById("map_var_2_input").style.borderColor = "#d64545"; setValidMapVariable1Drop(false);}
   }
 
   const checkMapVariableRefID = () => {
@@ -2883,8 +3059,9 @@ const CreateImgModel: React.FunctionComponent = () => {
     for (let i = 0; i < listofConnections.length; i++) {
       if (listofConnections[i].c_id == id) exists = 1;
     }
-    if (exists == 1) document.getElementById("map_connect_input").style.borderColor = "#45d651";
-    else document.getElementById("map_connect_input").style.borderColor = "#d64545";
+    if (id == "") {document.getElementById("map_connect_input").style.borderColor = "#d64545";setValidMathIDDrop(false)}
+    if (exists == 1) {document.getElementById("map_connect_input").style.borderColor = "#45d651"; setValidMathIDDrop(true)}
+    else {document.getElementById("map_connect_input").style.borderColor = "#d64545";setValidMathIDDrop(false)}
   }
 
   // ---------------------------------------------------------------------------------
@@ -2894,9 +3071,9 @@ const CreateImgModel: React.FunctionComponent = () => {
     const href = document.getElementById("import_ref_input") as HTMLInputElement;
     // anything non empty is acceptable 
     if (href.value !== "") {
-      document.getElementById("import_ref_input").style.borderColor = "#45d651";
+      document.getElementById("import_ref_input").style.borderColor = "#45d651"; setValidHrefDrop(true);
     } else {
-      document.getElementById("import_ref_input").style.borderColor = "#d64545";
+      document.getElementById("import_ref_input").style.borderColor = "#d64545"; setValidHrefDrop(false);
     }
   }
 
@@ -2909,8 +3086,8 @@ const CreateImgModel: React.FunctionComponent = () => {
       if (listofImports[i].i_id == id) exists = 1;
     }
 
-    if (exists === 1) {	document.getElementById(import_parent).style.borderColor = "#45d651"; } 
-    else { document.getElementById(import_parent).style.borderColor = "#d64545";}
+    if (exists === 1) {	document.getElementById(import_parent).style.borderColor = "#45d651"; setValidImportCompImpIDDrop(true); setValidImportUnitsImpIDDrop(true)} 
+    else { document.getElementById(import_parent).style.borderColor = "#d64545"; setValidImportCompImpIDDrop(false); setValidImportUnitsImpIDDrop(false)}
 
   }
   // ---------------------------------------------------------------------------------
@@ -2929,8 +3106,8 @@ const CreateImgModel: React.FunctionComponent = () => {
     console.log(exists)
 
     if (exists == 1) {document.getElementById("import_units_name_input").style.borderColor = "#d64545";}
-    else if (name.value.match('^[a-zA-Z]+[a-zA-Z0-9_]*$')) {document.getElementById("import_units_name_input").style.borderColor = "#45d651";}
-    else { document.getElementById("import_units_name_input").style.borderColor = "#d64545"; }
+    else if (name.value.match('^[a-zA-Z]+[a-zA-Z0-9_]*$')) {document.getElementById("import_units_name_input").style.borderColor = "#45d651"; setValidImportUnitsNameDrop(true)}
+    else { document.getElementById("import_units_name_input").style.borderColor = "#d64545"; setValidImportUnitsNameDrop(false)}
   }
   
   const checkImportUnitsRef = () => {
@@ -2944,8 +3121,8 @@ const CreateImgModel: React.FunctionComponent = () => {
     for (let i = 0; i < shapes_.length; i++) {
       if (shapes_[i].element_type == "import_units" && shapes_[i].name == u_ref) exists = 1;
     }
-    if (exists === 1) {	document.getElementById("import_units_ref_input").style.borderColor = "#45d651"; } 
-    else { document.getElementById("import_units_ref_input").style.borderColor = "#d64545";}
+    if (u_ref != "") {	document.getElementById("import_units_ref_input").style.borderColor = "#45d651"; setValidImportUnitsRefDrop(true)} 
+    else { document.getElementById("import_units_ref_input").style.borderColor = "#d64545"; setValidImportUnitsRefDrop(false)}
   }
 
   // ---------------------------------------------------------------------------------
@@ -2963,8 +3140,8 @@ const CreateImgModel: React.FunctionComponent = () => {
       if (shapes_[i].element_type == "import_component" && shapes_[i].name == name.value) exists = 1;
     }
     if (exists === 1) {	document.getElementById("import_comp_name_input").style.borderColor = "#d64545"; } 
-    else if (name.value.match('^[a-zA-Z]+[a-zA-Z0-9_]*$')) { document.getElementById("import_comp_name_input").style.borderColor = "#45d651"; } 
-    else { document.getElementById("import_comp_name_input").style.borderColor = "#d64545"; }
+    else if (name.value.match('^[a-zA-Z]+[a-zA-Z0-9_]*$')) { document.getElementById("import_comp_name_input").style.borderColor = "#45d651"; setValidImportCompNameDrop(true)} 
+    else { document.getElementById("import_comp_name_input").style.borderColor = "#d64545"; setValidImportCompNameDrop(false)}
   }
 
   const checkImportCompRef = () => {
@@ -2977,8 +3154,8 @@ const CreateImgModel: React.FunctionComponent = () => {
       if (shapes_[i].element_type == "import_component" && shapes_[i].name == name.value) exists = 1;
     }
     // hard coded: replace later with the imported list
-    if (exists === 1) {	document.getElementById("import_comp_ref_input").style.borderColor = "#45d651"; } 
-    else { document.getElementById("import_comp_ref_input").style.borderColor = "#d64545";}
+    if (name.value != "") {	document.getElementById("import_comp_ref_input").style.borderColor = "#45d651"; setValidImportCompRefDrop(true)} 
+    else { document.getElementById("import_comp_ref_input").style.borderColor = "#d64545"; setValidImportCompRefDrop(false)}
   }
 
 
@@ -3613,7 +3790,8 @@ const CreateImgModel: React.FunctionComponent = () => {
   // ----------------------------------------------------------------------------------------------------
   // The create image section: returning the whole section
   return (
-    <div className="container">
+    <div
+    className={`container ${props.hidden ? "hidden" : ""}`}>
       <link href="https://emoji-css.afeld.me/emoji.css" rel="stylesheet"></link>
       <div>
         {/* ============================ Model name section =========================== */}
@@ -3635,7 +3813,7 @@ const CreateImgModel: React.FunctionComponent = () => {
         </div>
          {/* ========================= Just some styling padding ======================== */}
         <div className="model_padding"> </div>
-         {/* ========================= The Canvas and Element Container ======================== */}
+         {/* ========================= The Canvas and Element Container ======================== */}        
         <div id="canvas_and_model_container">
           <canvas id="graphCanvas" height="500" width="1000" 
                   onDrop={dropElem} onDragOver={allowDrop} 
@@ -3926,11 +4104,46 @@ const CreateImgModel: React.FunctionComponent = () => {
               </div>
 
               <div> Units:
-                <input id="var_units_input" className="elem_info_input" placeholder="units" onKeyUp={checkVariableUnits}
+                <input id="var_units_input" className="elem_info_input" list="different_si_units" placeholder="units" onKeyUp={checkVariableUnits}
                        onMouseOver={() => on_hover_show_cellml_restrictions("cellml_var_units")} 
                        onMouseOut={() => on_leave_close_cellml_restrictions("cellml_var_units")}></input>
+                <datalist id="different_si_units">
+                  <option>ampere</option>
+                  <option>becquerel</option>
+                  <option>candela</option>
+                  <option>dimensionless</option>
+                  <option>farad</option>
+                  <option>gram</option>
+                  <option>gray</option>
+                  <option>henry</option>
+                  <option>hertz</option>
+                  <option>joule</option>
+                  <option>katal</option>
+                  <option>kelvin</option>
+                  <option>kilogram</option>
+                  <option>litre</option>
+                  <option>lumen</option>
+                  <option>lux</option>
+                  <option>metre</option>
+                  <option>mole</option>
+                  <option>newton</option>
+                  <option>ohm</option>
+                  <option>pascal</option>
+                  <option>radian</option>
+                  <option>second</option>
+                  <option>siemens</option>
+                  <option>sievert</option>
+                  <option>steradian</option>
+                  <option>tesla</option>
+                  <option>volt</option>
+                  <option>watt</option>
+                  <option>weber</option>
+                </datalist>
                 <div id="cellml_var_units" className="cellml_restrictions">
-                    Must be a valid units element reference
+                    <ul>
+                      <li>Must be a valid units element reference</li>
+                      <li>If you don't desire a unit then use 'dimensionless'</li>
+                    </ul>
                 </div>
               </div>
 
@@ -3997,7 +4210,7 @@ const CreateImgModel: React.FunctionComponent = () => {
 
             {/* === RESET - TEST VALUE === */}
             <div id="test_value_info" className="elem_info">
-              <div> Reset Parent: 
+              <div> Reset Parent ID: 
                 <input id="tv_comp_ref" className="elem_info_input" placeholder="reset parent" onKeyUp={() => checkResetParent("tv_comp_ref")}
                        onMouseOver={() => on_hover_show_cellml_restrictions("cellml_reset_test_v")} 
                        onMouseOut={() => on_leave_close_cellml_restrictions("cellml_reset_test_v")}></input>
@@ -4008,7 +4221,7 @@ const CreateImgModel: React.FunctionComponent = () => {
             </div>
             {/* === RESET - RESET VALUE === */}
             <div id="reset_value_info" className="elem_info">
-              <div> Reset Parent: 
+              <div> Reset Parent ID: 
                 <input id="rv_comp_ref" className="elem_info_input" placeholder="reset parent" onKeyUp={() => checkResetParent("rv_comp_ref")}
                        onMouseOver={() => on_hover_show_cellml_restrictions("cellml_reset_value")} 
                        onMouseOut={() => on_leave_close_cellml_restrictions("cellml_reset_value")}></input>
@@ -4083,6 +4296,7 @@ const CreateImgModel: React.FunctionComponent = () => {
                 <div id="cellml_connection_1" className="cellml_restrictions">
                   <ul>
                     <li>Must be a valid component reference</li>
+                    <li>Must be the components name (not ID) </li>
                     <li>Component 1 can't be equal to component 2</li>
                   </ul>
                 </div>
@@ -4094,6 +4308,7 @@ const CreateImgModel: React.FunctionComponent = () => {
                 <div id="cellml_connection_2" className="cellml_restrictions">
                   <ul>
                     <li>Must be a valid component reference</li>
+                    <li>Must be the components name (not ID) </li>
                     <li>Component 1 can't be equal to component 2</li>
                   </ul>
                 </div>
@@ -4117,6 +4332,7 @@ const CreateImgModel: React.FunctionComponent = () => {
                 <div id="cellml_var_1" className="cellml_restrictions">
                   <ul>
                     <li>Must be a valid variable reference</li>
+                    <li>Must be the varaible's name (not ID) </li>
                     <li>Variable 1 can't be equal to variable 2</li>
                     <li>Only one map_variables item between any two variables</li>
                   </ul>
@@ -4129,6 +4345,7 @@ const CreateImgModel: React.FunctionComponent = () => {
                 <div id="cellml_var_2_restrictions" className="cellml_restrictions">
                   <ul>
                     <li>Must be a valid variable reference</li>
+                    <li>Must be the variable's name (not ID) </li>
                     <li>Variable 1 can't be equal to variable 2</li>
                     <li>Only one map_variables item between any two variables</li>
                   </ul>

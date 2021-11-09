@@ -20,8 +20,8 @@ import AttributePane from "./Panes/AttributePane/AttributePane";
 import EquationViewer from "./EquationViewer/EquationViewer";
 import ImportPane from "./Panes/ImportPane/ImportPane";
 import Prompt from "./Prompt/Prompt";
-import monaco, { editor } from 'monaco-editor';
-import indentString from 'indent-string';
+import monaco, { editor } from "monaco-editor";
+import indentString from "indent-string";
 import Mousetrap from "mousetrap";
 
 import VisualPane from "./Panes/VisualPane";
@@ -45,8 +45,8 @@ interface EditorState {
   activeFileCursorXPath: string;
   activeFileCursorIDOM: IDOM;
   activeMathString?: string;
-  mathStartIndex: number,
-  mathEndIndex: number,
+  mathStartIndex: number;
+  mathEndIndex: number;
   promptShow: boolean;
   promptState: PromptState;
   mathTagIncluded: boolean;
@@ -61,6 +61,7 @@ interface PromptState {
 export default class Editor extends React.Component<unknown, EditorState> {
   private initialisedFiles: Set<string>;
   private textEditorRef = createRef<TextEditor>();
+  private visualPaneRef = createRef<VisualPane>();
   private monaco: Monaco;
 
   constructor(props: unknown) {
@@ -171,11 +172,19 @@ export default class Editor extends React.Component<unknown, EditorState> {
       typeof filepath == "string"
         ? openedFilepaths.indexOf(filepath)
         : filepath;
-    this.setState({
-      activeFileIndex: index,
-      activeFileCursorIDOM: undefined,
-      activeFileCursorXPath: undefined,
-    });
+    this.setState(
+      {
+        activeFileIndex: index,
+        activeFileCursorIDOM: undefined,
+        activeFileCursorXPath: undefined,
+      },
+      () => {
+        if (index == -1) this.toggleEditorView("text");
+        if (this.state.currentMode == "graphical") {
+          this.visualPaneRef?.current?.testXMLconvert(this.getActiveFilepath());
+        }
+      }
+    );
   }
 
   /*
@@ -247,9 +256,14 @@ export default class Editor extends React.Component<unknown, EditorState> {
     }));
   }
 
-  monacoCursorPositionChangedMath(mathstr: string, startIndex: number, endIndex: number, mathTagIncluded: boolean) : void {
+  monacoCursorPositionChangedMath(
+    mathstr: string,
+    startIndex: number,
+    endIndex: number,
+    mathTagIncluded: boolean
+  ): void {
     // const cleanedAttributes = mathstr.replace(/cellml:[^</>)]*/mg, '');
-    
+
     if (mathstr != this.state.activeMathString) {
       this.setState(() => ({
         activeMathString: mathstr,
@@ -258,49 +272,61 @@ export default class Editor extends React.Component<unknown, EditorState> {
         mathTagIncluded: mathTagIncluded,
       }));
     }
-
   }
 
   /*
     Toggle between the Monaco text editor and the graphical editor view
   */
   toggleEditorView(mode: ViewMode): void {
-    this.setState(() => ({
-      currentMode: mode,
-    }));
+    this.setState(
+      () => ({
+        currentMode: mode,
+      }),
+      () => {
+        const activeFilepath = this.getActiveFilepath();
+        if (activeFilepath) ipcRenderer.send(IPCChannel.SAVE_FILE, this.getActiveFilepath());
+        this.visualPaneRef?.current?.testXMLconvert(this.getActiveFilepath());
+      }
+    );
   }
-  
-  handleReplaceRange(string: string, startOffset: number, endOffset: number) : void {
+
+  handleReplaceRange(
+    string: string,
+    startOffset: number,
+    endOffset: number
+  ): void {
     try {
-      const model = this.monaco?.editor.getModel(this.monaco.Uri.parse(this.getActiveFilepath()));
+      const model = this.monaco?.editor.getModel(
+        this.monaco.Uri.parse(this.getActiveFilepath())
+      );
       const start = model.getPositionAt(startOffset);
       const end = model.getPositionAt(endOffset);
       // const selection = new monaco.Selection(start.lineNumber, start.column, end.lineNumber, end.column);
-      
+
       // Calculating and adding offset
       const line = model.getLineContent(start.lineNumber);
       const count = line.search(/\S/);
       const text = indentString(string, count).trim();
       // if (text.charAt(-1) !== '\n') text += '\n';
-      
+
       // Creating edit operation
-      const editOp : monaco.editor.IIdentifiedSingleEditOperation = {
+      const editOp: monaco.editor.IIdentifiedSingleEditOperation = {
         range: {
           startColumn: start.column,
           startLineNumber: start.lineNumber,
           endColumn: end.column,
-          endLineNumber: end.lineNumber
+          endLineNumber: end.lineNumber,
         },
         text: text,
-        forceMoveMarkers: true
-      }
-      
+        forceMoveMarkers: true,
+      };
+
       model.pushEditOperations([], [editOp], () => []);
       // let text = model.getValue();
       // text = text.substring(0, startOffset) + string + text.substring(endOffset);
       // model.setValue(text);
     } catch (e) {
-      console.log('Replace failed: ', e);
+      console.log("Replace failed: ", e);
     }
   }
 
@@ -412,38 +438,50 @@ export default class Editor extends React.Component<unknown, EditorState> {
   }
 
   changemodel(): void {
-    console.log('change model');
+    console.log("change model");
     console.log(graphics_or_text);
-    // change mode to allow the user to generate their own model 
-    (graphics_or_text === 0) ? graphics_or_text = 1: graphics_or_text = 0;
+    // change mode to allow the user to generate their own model
+    graphics_or_text === 0 ? (graphics_or_text = 1) : (graphics_or_text = 0);
     console.log(graphics_or_text);
 
     // if changed to text --> deafult text view
     if (graphics_or_text === 0) {
-      document.getElementById("user_model_creator").style.display = 'none';
-      document.getElementById("create_new_model_img").textContent = "CREATE MODEL";
+      document.getElementById("user_model_creator").style.display = "none";
+      document.getElementById("create_new_model_img").textContent =
+        "CREATE MODEL";
 
-      const pmh = document.getElementsByClassName('pane-middle-header') as HTMLCollectionOf<HTMLElement>;
-      pmh[0].style.display = 'block';
-      const pmt = document.getElementsByClassName('pane-middle-top') as HTMLCollectionOf<HTMLElement>;
-      pmt[0].style.display = 'block';
-      const pmb = document.getElementsByClassName('pane-middle-bottom') as HTMLCollectionOf<HTMLElement>;
-      pmb[0].style.display = 'block';
-    } 
+      const pmh = document.getElementsByClassName(
+        "pane-middle-header"
+      ) as HTMLCollectionOf<HTMLElement>;
+      pmh[0].style.display = "block";
+      const pmt = document.getElementsByClassName(
+        "pane-middle-top"
+      ) as HTMLCollectionOf<HTMLElement>;
+      pmt[0].style.display = "block";
+      const pmb = document.getElementsByClassName(
+        "pane-middle-bottom"
+      ) as HTMLCollectionOf<HTMLElement>;
+      pmb[0].style.display = "block";
+    }
     // if in graphics view then display create page panel
     else {
-      document.getElementById("user_model_creator").style.display = 'block';
+      document.getElementById("user_model_creator").style.display = "block";
       document.getElementById("create_new_model_img").textContent = "TEXT VIEW";
 
-      const pmh = document.getElementsByClassName('pane-middle-header') as HTMLCollectionOf<HTMLElement>;
-      pmh[0].style.display = 'none';
-      const pmt = document.getElementsByClassName('pane-middle-top') as HTMLCollectionOf<HTMLElement>;
-      pmt[0].style.display = 'none';
-      const pmb = document.getElementsByClassName('pane-middle-bottom') as HTMLCollectionOf<HTMLElement>;
-      pmb[0].style.display = 'none';
+      const pmh = document.getElementsByClassName(
+        "pane-middle-header"
+      ) as HTMLCollectionOf<HTMLElement>;
+      pmh[0].style.display = "none";
+      const pmt = document.getElementsByClassName(
+        "pane-middle-top"
+      ) as HTMLCollectionOf<HTMLElement>;
+      pmt[0].style.display = "none";
+      const pmb = document.getElementsByClassName(
+        "pane-middle-bottom"
+      ) as HTMLCollectionOf<HTMLElement>;
+      pmb[0].style.display = "none";
     }
   }
-
 
   render(): React.ReactNode {
     const activeFilepath: string = this.getActiveFilepath();
@@ -451,8 +489,10 @@ export default class Editor extends React.Component<unknown, EditorState> {
       <React.Fragment>
         <TitleMenuBar
           getActiveFilepath={this.getActiveFilepath.bind(this)}
-          redoHandler={this.redo.bind(this)}
-          undoHandler={this.undo.bind(this)}
+          saveBtnEnabled={
+            this.getActiveFile().fileType == "CellML" &&
+            this.state.currentMode == "text"
+          }
           openPrompt={() =>
             this.openPrompt(
               "Open File from URL",
@@ -525,7 +565,7 @@ export default class Editor extends React.Component<unknown, EditorState> {
                     activeFileIndex={this.state.activeFileIndex}
                     showToggle={
                       this.state.openedFiles.length > 0 &&
-                      this.getActiveFile().fileType != "PDF"
+                      this.getActiveFile().fileType == "CellML"
                     }
                     onTabClick={this.setActiveFile.bind(this)}
                     onTabClose={this.closeFile.bind(this)}
@@ -533,17 +573,12 @@ export default class Editor extends React.Component<unknown, EditorState> {
                   />
                 </ReflexElement>
 
-                <button id="create_new_model_img" onClick={this.changemodel}>CREATE MODEL</button>
-                <div id="user_model_creator">
-                  <CreateImgModel></CreateImgModel>
-                </div>
-
                 <ReflexElement className="pane-middle-top primary-bg-dark">
                   <TextEditor
                     ref={this.textEditorRef}
                     hidden={
                       this.state.openedFiles.length == 0 ||
-                      this.getActiveFile().fileType == "PDF" ||
+                      this.getActiveFile().fileType != "CellML" ||
                       this.state.currentMode != "text"
                     }
                     readonly={this.getActiveFile().readonly}
@@ -567,6 +602,16 @@ export default class Editor extends React.Component<unknown, EditorState> {
                     }
                     file={this.getActiveFile()}
                   ></PdfViewer>
+                  <CreateImgModel
+                    hidden={this.getActiveFile()?.fileType != "Graphical"}
+                  ></CreateImgModel>
+                  <VisualPane
+                    ref={this.visualPaneRef}
+                    dom={this.getActiveFile().dom}
+                    filepath={activeFilepath}
+                    hidden={this.state.currentMode == "graphical"}
+                    onClickHandler={this.domTreeClickHandler.bind(this)}
+                  />
                 </ReflexElement>
                 <ReflexSplitter className="primary-splitter splitter" />
                 <ReflexElement
@@ -586,7 +631,8 @@ export default class Editor extends React.Component<unknown, EditorState> {
               <ReflexContainer orientation="horizontal">
                 <ReflexElement className="pane-right-top" minSize={25}>
                   <Pane title="Math View" collapsible={false}>
-                    { (this.state.activeMathString && this.state.activeMathString !== '') ?
+                    {this.state.activeMathString &&
+                    this.state.activeMathString !== "" ? (
                       <EquationViewer
                         // dom={this.state.activeFileDOM}
                         str={this.state.activeMathString}
@@ -596,7 +642,8 @@ export default class Editor extends React.Component<unknown, EditorState> {
                         end={this.state.mathEndIndex}
                         replaceHandler={this.handleReplaceRange.bind(this)}
                         mathTagIncluded={this.state.mathTagIncluded}
-                      /> : null}
+                      />
+                    ) : null}
                   </Pane>
                 </ReflexElement>
                 <ReflexSplitter className="primary-splitter splitter" />
@@ -610,17 +657,6 @@ export default class Editor extends React.Component<unknown, EditorState> {
                     attributeEditHandler={this.attributeEditHandler.bind(this)}
                   />
                 </ReflexElement>
-
-                <ReflexElement className="aaaaa" minSize={300} flex={0.50}>
-                  <Pane title="Model Viewer" collapsible={false}>
-                    <VisualPane
-                      dom={this.getActiveFile().dom}
-                      filepath={activeFilepath}
-                      onClickHandler={this.domTreeClickHandler.bind(this)}
-                    /></Pane>
-                    
-                  </ReflexElement>
-
               </ReflexContainer>
             </ReflexElement>
           </ReflexContainer>
