@@ -25,7 +25,9 @@ export const mm2omjs = (obj, parent) => {
         // }
     }
 
-    if (obj.type === "element" && !obj.processed) {
+    if (obj.processed) {
+        return obj;
+    } else if (obj.type === "element" && !obj.processed) {
         // console.log("found element");
         // if (obj.name === "math" && obj.attributes.xmlns === "http://www.w3.org/1998/Math/MathML") {
         //     // console.log("converting math to OMOBJ");
