@@ -17,6 +17,7 @@ const mathre = /.*\/math/;
 // const startre = /<\s*math.*>/gm;
 const encodingre = /encodingError/m;
 const inputre = /input_box/m;
+const errorre = /error/m;
 
 interface EVProp {
     // dom: IDOM;
@@ -160,7 +161,7 @@ class EquationViewer extends React.Component<EVProp, EVState> {
         const value = this.getOpenMath();
         if (!value) return;
         // Only handle changes if not in intermediate state
-        if ( !encodingre.test(value) && !inputre.test(value) && value != this.state.omstr) {
+        if ( !encodingre.test(value) && !inputre.test(value) && !errorre.test(value) && value != this.state.omstr) {
             this.setState({ omstr: value, hasChanged: true });
             try {
                 const mm = openmath2mathml(value);
